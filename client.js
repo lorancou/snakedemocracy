@@ -41,6 +41,8 @@ function init()
     });
 }
 
+var g_headImg;
+var g_bodyImg;
 // ping, first message, inits the snake
 function processPing(message)
 {
@@ -52,18 +54,25 @@ function processPing(message)
 
     g_socket.on("message", function (message) { processMessage(message) });
 
+    g_headImg = new Image();
+    g_headImg.src = "files/head.png";
+    g_bodyImg = new Image();
+    g_bodyImg.src = "files/body.png";
+
     // queue assets
-    g_assets = new AssetManager();
+    /*g_assets = new AssetManager();
     g_assets.queueDownload(g_headImg);
     g_assets.queueDownload(g_bodyImg);
 
     // download assets and run
-    g_assets.downloadAll(update);
+    g_assets.downloadAll(update);*/
+
+    update();
 }
 
 // assets manager
 // http://io-2011-html5-games-hr.appspot.com/#22
-function AssetManager() {
+/*function AssetManager() {
   this.successCount = 0;
   this.errorCount = 0;
   this.cache = {};
@@ -91,7 +100,7 @@ AssetManager.prototype.downloadAll = function(callback) {
       img.src = path;
       this.cache[path] = img;
   }
-}
+}*/
 
 function getScreenCoords(_coords, _middle)
 {
@@ -118,7 +127,7 @@ function update()
         {
             var screenCoords = getScreenCoords(g_snake[i]);
             g_context.drawImage(
-                g_assets.cache[g_bodyImg],
+                g_bodyImg,
                 screenCoords.x, screenCoords.y,
                 SPRITE_SIZE, SPRITE_SIZE
             );
@@ -127,7 +136,7 @@ function update()
         // draw head
         var headCoords = getScreenCoords(g_snake[g_snake.length-1]);
         g_context.drawImage(
-            g_assets.cache[g_headImg],
+            g_headImg,
             headCoords.x, headCoords.y,
             SPRITE_SIZE, SPRITE_SIZE
         );
