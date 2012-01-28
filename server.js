@@ -7,12 +7,11 @@ var fs = require('fs');
 eval(fs.readFileSync('vec2.js')+'');
 
 // global variables
-var g_sockets = new Array();
-var g_votes = new Array();
-var g_snake = new Array(/*1024*/);
-g_snake.push(new vec2(10, 10));
-var g_opinion = new vec2(0.0, -1.0);
-var g_direction = "south";
+var g_sockets = null;
+var g_votes = null;
+var g_snake = null;
+var g_opinion = null;
+var g_direction = null;
 
 app.listen(80);
 
@@ -58,6 +57,17 @@ app.use(function(err, req, res, next){
   }
 });
 
+g_sockets = new Array(); // do NOT put in init
+
+function init()
+{
+    g_votes = new Array();
+    g_snake = new Array();
+    g_opinion = new vec2(0.0, -1.0);
+    g_direction = "south";
+}
+init();
+
 // client connection sockets
 io.sockets.on("connection", function (socket)
 {
@@ -76,6 +86,10 @@ io.sockets.on("connection", function (socket)
         {
             processTweet(socket, _message.value);
         }
+        else if (_message.name == "cheatClear")
+        {
+            processClear(socket, _message.value);
+        }
         else if (_message.name == "vote")
         {
             processVote(socket, _message.value);
@@ -93,46 +107,66 @@ io.sockets.on("connection", function (socket)
     });
 });
 
+function processClear(_socket, _value)
+{
+    console.log("clear!");
+    init();
+
+    var message = { name : "clear" };
+    broadcast(message);
+}
+
 function processTweet(_socket, _value)
 {
-    // add head in current opinion's direction
-    var head = g_snake[g_snake.length-1];
-    var newHead = head.clone();
-    console.log(g_opinion.x +","+g_opinion.y);
-    var absX = Math.abs(g_opinion.x);
-    var absY = Math.abs(g_opinion.y);
-    console.log(absX +","+absY);
-    if (absX > absY)
+    var newHead;
+    if (g_snake.length == 0)
     {
-        if (g_opinion.x > 0)
-        {
-            ++newHead.x;
-            g_direction = "east";
-        }
-        else
-        {
-            --newHead.x;
-            g_direction = "west";
-        }
+        // first tweet, spawn head in the middle
+        console.log("spawn head");
+        //g_snake.push();
+        newHead = new vec2(10, 10);
     }
     else
     {
-        if (g_opinion.y > 0)
+        // add head in current opinion's direction
+        var head = g_snake[g_snake.length-1];
+        var newHead = head.clone();
+        console.log(g_opinion.x +","+g_opinion.y);
+        var absX = Math.abs(g_opinion.x);
+        var absY = Math.abs(g_opinion.y);
+        console.log(absX +","+absY);
+        if (absX > absY)
         {
-            ++newHead.y;
-            g_direction = "south";
+            if (g_opinion.x > 0)
+            {
+                ++newHead.x;
+                g_direction = "east";
+            }
+            else
+            {
+                --newHead.x;
+                g_direction = "west";
+            }
         }
         else
         {
-            --newHead.y;
-            g_direction = "north";
+            if (g_opinion.y > 0)
+            {
+                ++newHead.y;
+                g_direction = "south";
+            }
+            else
+            {
+                --newHead.y;
+                g_direction = "north";
+            }
         }
     }
     g_snake.push(newHead);
 
     // broadcast new head
     var message = { name : "head", value : newHead };
-    broadcast(message);    
+    broadcast(message);
 
     // reset opinion
     g_votes = new Array();
@@ -201,8 +235,10 @@ function processVote(_socket, _value)
 
 function broadcast(_message)
 {
+    console.log("broadcasting: " + _message.name);
     for (var i=0; i<g_sockets.length; i++)
     {
+        console.log("pouf");
         var s = g_sockets[i];
         console.log("broadcast: " + _message.name);
         s.emit("message", _message);

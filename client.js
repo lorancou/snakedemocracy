@@ -12,7 +12,7 @@ var g_assets = null;
 var g_headImg = "files/head.png";
 var g_bodyImg = "files/body.png";
 var g_snake = null;
-var g_opinion = new vec2(0.0, -1.0);
+var g_opinion = null;
 
 // client init, called with body's onload
 function init()
@@ -111,33 +111,36 @@ function update()
     g_context.fillStyle = "#000000";
     g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // draw all snake body elements
-    for (var i=0; i<g_snake.length-1; i++)
+    if (g_snake.length > 0)
     {
-        var screenCoords = getScreenCoords(g_snake[i]);
+        // draw all snake body elements
+        for (var i=0; i<g_snake.length-1; i++)
+        {
+            var screenCoords = getScreenCoords(g_snake[i]);
+            g_context.drawImage(
+                g_assets.cache[g_bodyImg],
+                screenCoords.x, screenCoords.y,
+                SPRITE_SIZE, SPRITE_SIZE
+            );
+        }
+        
+        // draw head
+        var headCoords = getScreenCoords(g_snake[g_snake.length-1]);
         g_context.drawImage(
-            g_assets.cache[g_bodyImg],
-            screenCoords.x, screenCoords.y,
+            g_assets.cache[g_headImg],
+            headCoords.x, headCoords.y,
             SPRITE_SIZE, SPRITE_SIZE
         );
+        
+        // draw opinion
+        var lastCoords = getScreenCoords(g_snake[g_snake.length-1], true);
+        g_context.strokeStyle = "#FF00FF";
+        g_context.beginPath();
+        g_context.moveTo(lastCoords.x, lastCoords.y);
+        g_context.lineTo(lastCoords.x + g_opinion.x*32, lastCoords.y + g_opinion.y*32);
+        g_context.closePath();
+        g_context.stroke();
     }
-
-    // draw head
-    var headCoords = getScreenCoords(g_snake[g_snake.length-1]);
-    g_context.drawImage(
-        g_assets.cache[g_headImg],
-        headCoords.x, headCoords.y,
-        SPRITE_SIZE, SPRITE_SIZE
-    );
-
-    // draw opinion
-    var lastCoords = getScreenCoords(g_snake[g_snake.length-1], true);
-    g_context.strokeStyle = "#FF00FF";
-    g_context.beginPath();
-    g_context.moveTo(lastCoords.x, lastCoords.y);
-    g_context.lineTo(lastCoords.x + g_opinion.x*32, lastCoords.y + g_opinion.y*32);
-    g_context.closePath();
-    g_context.stroke();
 
     // plan next update
     setTimeout("update()", 0.0);
@@ -147,7 +150,10 @@ function cheatTweet()
 {
     g_socket.emit("message", { name : "cheatTweet" });
 }
-
+function cheatClear()
+{
+    g_socket.emit("message", { name : "cheatClear" });
+}
 function vote(_value)
 {
     g_socket.emit("message", { name : "vote", value : _value });
@@ -164,5 +170,9 @@ function processMessage(_message)
     else if (_message.name == "head")
     {
         g_snake.push(new vec2(_message.value.x, _message.value.y)); // meh??
+    }
+    else if (_message.name == "clear")
+    {
+        g_snake = new Array();
     }
 }
