@@ -1,0 +1,10 @@
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  console.log("hello");
+  var socket = io.connect('http://172.16.60.17');
+  console.log("hello");
+  socket.on('news', function (data) {
+    console.log(data);
+    socket.emit('myotherevent', { my: 'data' });
+  });
+</script>

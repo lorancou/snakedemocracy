@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+ 
+  <head> 
+    <title>kilopede</title>
+    <meta name="description" content="kilopede" /> 
+    <meta name="keywords" content="ggj12" /> 
+    <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+    <!-- TODO <link rel="stylesheet" type="text/css" href="styles.css" media="screen" /> -->
+    <!-- TODO <link rel="shortcut icon" href="icon.ico" /> -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+  </head> 
+ 
+  <body onload="init()">
+    <p>
+      kilopede
+      <input type="button" id="head" value="head" onclick="popHead()"/>
+      <input type="button" id="body" value="body" onclick="popBody()"/>
+    </p>
+    <canvas id="canvas" width="400" height="400"></canvas>
+  </body>
+</html>
