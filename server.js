@@ -21,7 +21,8 @@ app.get("/", function (req, res)
     res.sendfile(__dirname + "/index.html");
 });
 
-// serve client.js, vec2.js
+// serve stuff
+// meh. public folder?...
 app.get("/client.js", function (req, res)
 {
     res.sendfile(__dirname + "/client.js");
@@ -30,20 +31,20 @@ app.get("/vec2.js", function (req, res)
 {
     res.sendfile(__dirname + "/vec2.js");
 });
-app.get("/files/head.png", function (req, res)
+/*app.get("/files/head.png", function (req, res)
 {
     res.sendfile(__dirname + "/files/head.png");
 });
 app.get("/files/body.png", function (req, res)
 {
     res.sendfile(__dirname + "/files/body.png");
-});
+});*/
 
 // serve resource files
 // https://github.com/visionmedia/express/blob/master/examples/downloads/app.js
 // /files/* is accessed via req.params[0]
 // but here we name it :file
-/*app.get("/files/:file(*)", function(req, res, next){
+app.get("/files/:file(*)", function(req, res, next){
   var file = req.params.file
     , path = __dirname + "/files/" + file;
 
@@ -63,7 +64,7 @@ app.use(function(err, req, res, next){
   } else {
     next(err);
   }
-});*/
+});
 
 g_sockets = new Array(); // do NOT put in init
 
