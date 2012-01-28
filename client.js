@@ -14,6 +14,15 @@ var g_bodyPath = "files/body.png";
 var g_snake = null;
 var g_opinion = null;
 
+function log(msg)
+{
+    //alert(msg);
+    if (window.console)
+    {
+        window.console.log(msg);
+    }
+}
+
 // client init, called with body's onload
 function init()
 {
@@ -21,7 +30,7 @@ function init()
     g_canvas =  document.getElementById("canvas");
     if (!g_canvas)
     {
-        console.log("ERROR: missing canvas element");
+        log("ERROR: missing canvas element");
         return;
     }
 
@@ -89,7 +98,7 @@ AssetManager.prototype.downloadAll = function(callback) {
       });*/
       img.onload = function() 
       {
-          console.log("yey");
+          log("yey");
           that.successCount += 1;
           //that.cache[path] = this; // yeah...
           if (that.isDone()) { callback(); }
@@ -172,11 +181,11 @@ function vote(_value)
 
 function processMessage(_message)
 {
-    console.log("processing message:" + _message.name + " (" + _message.value + ")");
+    log("processing message:" + _message.name + " (" + _message.value + ")");
     if (_message.name == "opinion")
     {
         g_opinion = new vec2(_message.value.x, _message.value.y); // meh?
-        console.log(g_opinion);
+        log(g_opinion);
     }
     else if (_message.name == "head")
     {
