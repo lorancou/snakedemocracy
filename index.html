@@ -22,6 +22,11 @@
       <input type="button" id="voteForward" value="vote forward" onclick="vote('forward')"/>
       <input type="button" id="voteRight" value="vote right" onclick="vote('right')"/>
     </p>
+    <form name="tweak" onsubmit="return submitTweaks(this)">
+      move delay: <input name="moveDelay" id="moveDelay" type="text" value="5000">
+      pause delay: <input name="pauseDelay" id="pauseDelay" type="text"  value="10000"> 
+      <input type="submit">
+    </form>
     <canvas id="canvas" width="512" height="512"></canvas>
   </body>
 </html>

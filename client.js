@@ -13,7 +13,7 @@ var g_headPath = "files/head.png";
 var g_bodyPath = "files/body.png";
 var g_snake = null;
 var g_opinion = null;
-var g_state = false;
+var g_state = null;
 
 function log(msg)
 {
@@ -60,6 +60,10 @@ function processPing(message)
         g_snake.push(new vec2(message.snake[i].x, message.snake[i].y));
     }
     g_state = message.state;
+    if (!g_state.name)
+    {
+        log("ERROR: un-named state");
+    }
 
     g_socket.on("message", function (message) { processMessage(message) });
 
@@ -192,6 +196,28 @@ function vote(_value)
         g_socket.emit("message", { name : "vote", value : _value });
     }
 }
+function submitTweaks()
+{
+    var element = document.getElementById("moveDelay");
+    if (!element)
+    {
+        log("ERROR: can't get move delay element");
+        return false;
+    }
+    log("TWEAK: move delay change to " + element.innerHTML);
+    g_socket.emit("message", { name : "moveDelayChange" , value : element.value });
+
+    element = document.getElementById("pauseDelay");
+    if (!element)
+    {
+        log("ERROR: can't get pause delay element");
+        return false;
+    }
+    log("TWEAK: pause delay change to " + element.innerHTML);
+    g_socket.emit("message", { name : "pauseDelayChange" , value : element.value });
+
+    return true;
+}
 
 function processMessage(_message)
 {
@@ -200,8 +226,13 @@ function processMessage(_message)
     {
         g_opinion = new vec2(_message.value.x, _message.value.y); // meh?
     }
-    else if (_message.name == "head")
+    else if (_message.name == "grow")
     {
+        g_snake.push(new vec2(_message.value.x, _message.value.y)); // meh??
+    }
+    else if (_message.name == "move")
+    {
+        g_snake.shift();
         g_snake.push(new vec2(_message.value.x, _message.value.y)); // meh??
     }
     else if (_message.name == "clear")
@@ -219,6 +250,11 @@ function processMessage(_message)
     }
     else if (_message.name == "playing")
     {
-        g_state = _message;
+        g_state = { name : _message.name  };
+        g_snake = _message.snake; 
+    }
+    if (!g_state.name)
+    {
+        log("ERROR: un-named state");
     }
 }

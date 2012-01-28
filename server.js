@@ -13,6 +13,11 @@ var g_snake = null;
 var g_opinion = null;
 var g_direction = null;
 var g_state = null;
+var g_moveDelay = 1000;
+var g_pauseDelay = 2000;
+var g_pendingGrow = false;
+var g_moveTimeoutHandle = null;
+var g_pauseTimeoutHandle = null;
 
 // global constants
 var AREA_SIZE = 20;
@@ -76,9 +81,13 @@ function init()
 {
     g_votes = new Array();
     g_snake = new Array();
-    g_opinion = new vec2(0.0, -1.0);
+    g_opinion = new vec2(0.0, 1.0);
     g_direction = "south";
     g_state = { name : "init" };
+    g_pendingGrow = false;
+
+    // start first game
+    startGame();
 }
 init();
 
@@ -104,6 +113,14 @@ io.sockets.on("connection", function (socket)
         {
             processClear(socket, _message.value);
         }
+        else if (_message.name == "moveDelayChange")
+        {
+            processMoveDelayChange(socket, _message.value);
+        }
+        else if (_message.name == "pauseDelayChange")
+        {
+            processPauseDelayChange(socket, _message.value);
+        }
         else if (_message.name == "vote")
         {
             processVote(socket, _message.value);
@@ -120,6 +137,60 @@ io.sockets.on("connection", function (socket)
         console.log("bye bye client");
     });
 });
+
+// start game session
+function startGame()
+{
+    console.log("start game!");
+
+    // start with 3 elements
+    // TODO: random?
+    g_snake = new Array();
+    g_snake.push(new vec2(10, 10));
+    g_snake.push(new vec2(10, 11));
+    g_snake.push(new vec2(10, 12));
+
+    // "unlock" clients, time to play and vote!!
+    g_state = { name : "playing", snake : g_snake };
+    broadcast(g_state);
+    
+    // plan next move
+    planNextMove();
+}
+
+function planNextMove()
+{
+    console.log("plan next move, delay: " + g_moveDelay);
+
+    if (g_moveDelay > 0)
+    {
+        if (g_moveTimeoutHandle)
+        {
+            clearTimeout(g_moveTimeoutHandle);
+            g_moveTimeoutHandle = null;
+        }
+        g_moveTimeoutHandle = setTimeout(move, g_moveDelay);
+    }
+}
+
+function planNextGame()
+{
+    console.log("plan next game, delay: " + g_pauseDelay);
+
+    // cancel upcoming move
+    clearTimeout(g_moveTimeoutHandle);
+    g_moveTimeoutHandle = null;
+    
+    if (g_pauseDelay > 0)
+    {
+        if (g_pauseTimeoutHandle)
+        {
+            clearTimeout(g_pauseTimeoutHandle);
+            g_pauseTimeoutHandle = null
+        }
+        g_pauseTimeoutHandle = setTimeout(startGame, g_pauseDelay);
+    }
+}
 
 function processClear(_socket, _value)
 {
@@ -138,6 +209,7 @@ function checkSelf(_newHead)
         if (_newHead.x == g_snake[i].x &&
             _newHead.y == g_snake[i].y)
         {
+            //console.log(i);
             return true;
         }
     }
@@ -157,6 +229,16 @@ function checkVictory(_newHead)
 
 function processTweet(_socket, _value)
 {
+    // TODO
+    console.log("tweet");
+    //move();
+    g_pendingGrow = true;
+}
+
+function move()
+{
+    console.log("move!");
+
     var newHead;
     if (g_snake.length == 0)
     {
@@ -165,19 +247,26 @@ function processTweet(_socket, _value)
         //g_snake.push();
         newHead = new vec2(10, 10);
 
-        // "unlock" clients, time to vote!!
-        g_state = { name : "playing" };
-        broadcast(g_state);
+        startGame();
     }
     else
     {
+        // "remove" tail
+        console.log("pending grow: " + g_pendingGrow);
+        console.log("snake: " + g_snake);
+        if (!g_pendingGrow)
+        {
+            g_snake.shift();
+        }
+        console.log("new snake: " + g_snake);
+
         // add head in current opinion's direction
         var head = g_snake[g_snake.length-1];
         var newHead = head.clone();
-        console.log(g_opinion.x +","+g_opinion.y);
+        //console.log(g_opinion.x +","+g_opinion.y);
         var absX = Math.abs(g_opinion.x);
         var absY = Math.abs(g_opinion.y);
-        console.log(absX +","+absY);
+        //console.log(absX +","+absY);
         if (absX > absY)
         {
             if (g_opinion.x > 0)
@@ -206,6 +295,8 @@ function processTweet(_socket, _value)
         }
     }
 
+    //console.log(newHead);
+
     // check area bounds
     if (newHead.x < 0 ||
         newHead.y < 0 ||
@@ -216,6 +307,9 @@ function processTweet(_socket, _value)
         var message = { name : "defeat", value : "out" };
         broadcast(message);
         g_state = message;
+
+        // plan next game
+        planNextGame();
     }
     // check self-hit
     else if (checkSelf(newHead))
@@ -224,22 +318,35 @@ function processTweet(_socket, _value)
         var message = { name : "defeat", value : "self" };
         broadcast(message);
         g_state = message;
+
+        // plan next game
+        planNextGame();
     }
     // check victory
     else if (checkVictory(newHead))
     {
-        // broadcast defeat
+        // broadcast victory
         var message = { name : "victory", value : g_snake.length };
         broadcast(message);
         g_state = message;
+
+        // plan next game
+        planNextGame();
     }
     else
     {
-        g_snake.push(newHead);
-
-        // broadcast new head
-        var message = { name : "head", value : newHead };
-        broadcast(message);
+        // broadcast move
+        if (g_pendingGrow)
+        {
+            g_pendingGrow = false;
+            var message = { name : "grow", value : newHead };
+            broadcast(message);
+        }
+        else
+        {
+            var message = { name : "move", value : newHead };
+            broadcast(message);
+        }
 
         // reset opinion
         g_votes = new Array();
@@ -248,7 +355,24 @@ function processTweet(_socket, _value)
         // broadcast it
         var message = { name : "opinion", value : g_opinion };
         broadcast(message);
+
+        // plan next move
+        planNextMove();
     }
+
+    // push new head
+    g_snake.push(newHead);
+}
+
+function processMoveDelayChange(_socket, _value)
+{
+    console.log("changed move delay: " + _value);
+    g_moveDelay = _value;
+}
+function processPauseDelayChange(_socket, _value)
+{
+    console.log("changed pause delay: " + _value);
+    g_pauseDelay = _value;
 }
 
 function processVote(_socket, _value)
@@ -263,7 +387,7 @@ function processVote(_socket, _value)
     g_votes.push(vote);
 
     // compute opinion
-    console.log(g_votes.length)
+    //console.log(g_votes.length)
     var numLeft = 0;
     var numForward = 0;
     var numRight = 0;
@@ -278,9 +402,9 @@ function processVote(_socket, _value)
         else if (ivote.value == "right") { ++numRight; ++total }
         else console.log("ERROR: invalid vote: " + ivote.value);
     }
-    console.log("left votes: " + numLeft);
-    console.log("right votes: " + numRight);
-    console.log("forward votes: " + numForward);
+    //console.log("left votes: " + numLeft);
+    //console.log("right votes: " + numRight);
+    //console.log("forward votes: " + numForward);
     if (g_direction == "east")
     {
         g_opinion.x = numForward;
