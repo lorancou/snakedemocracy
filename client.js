@@ -9,11 +9,29 @@ var g_context = null;
 var g_canvas = null;
 var g_socket = null;
 var g_assets = null;
-var g_headPath = "files/head.png";
-var g_bodyPath = "files/body.png";
 var g_snake = null;
 var g_opinion = null;
 var g_state = null;
+var g_clickX = -1;
+var g_clickY = -1;
+
+// assets
+var g_headPath = "files/head.png";
+var g_bodyPath = "files/body.png";
+var g_arrowPaths =
+{
+    east : "files/arrow_e.png",
+    west : "files/arrow_w.png",
+    north : "files/arrow_n.png",
+    south : "files/arrow_s.png"
+}
+var g_arrowGoldPaths =
+{
+    east : "files/arrow_gold_e.png",
+    west : "files/arrow_gold_w.png",
+    north : "files/arrow_gold_n.png",
+    south : "files/arrow_gold_s.png"
+}
 
 function log(msg)
 {
@@ -43,12 +61,42 @@ function init()
         return;
     }
 
+    // plug mouse inputs
+	g_canvas.onmouseup = mouseUp;
+	g_canvas.oncontextmenu = function() { return false; };
+
     // connect to node.js server
     g_socket = io.connect(SERVER_ADDRESS);
     g_socket.on("ping", function (message)
     {
         processPing(message)
     });
+}
+
+function mouseUp(e)
+{
+	var button = null;	
+	if (e.button) button = e.button;
+	else button = e.which;
+	if (button == null ) return;
+
+    if (button==1)
+    {
+        var x, y;
+	    /*if (e.clientX && e.clientY) // IE?
+        {
+            x = clientX;
+            y = clientY;
+        }
+        else
+        {*/
+		    x = e.layerX - g_canvas.offsetLeft;
+		    y = e.layerY - g_canvas.offsetTop;
+        //}
+        g_clickX = x;
+        g_clickY = y;
+        log("click " + x + "," + y);
+    }
 }
 
 // ping, first message, inits the snake
@@ -71,6 +119,14 @@ function processPing(message)
     g_assets = new AssetManager();
     g_assets.queueDownload(g_headPath);
     g_assets.queueDownload(g_bodyPath);
+    g_assets.queueDownload(g_arrowPaths.east);
+    g_assets.queueDownload(g_arrowPaths.west);
+    g_assets.queueDownload(g_arrowPaths.south);
+    g_assets.queueDownload(g_arrowPaths.north);
+    g_assets.queueDownload(g_arrowGoldPaths.east);
+    g_assets.queueDownload(g_arrowGoldPaths.west);
+    g_assets.queueDownload(g_arrowGoldPaths.south);
+    g_assets.queueDownload(g_arrowGoldPaths.north);
 
     // download assets and run
     g_assets.downloadAll(update);
@@ -158,15 +214,157 @@ function update()
         );
         
         // draw opinion
-        if (g_opinion)
+        if (g_opinion && g_snake && g_snake.length>=2)
         {
-            var lastCoords = getScreenCoords(g_snake[g_snake.length-1], true);
+            var head = g_snake[g_snake.length-1].clone();
+            var neck = g_snake[g_snake.length-2].clone();
+            var drawEast = true;
+            var drawWest = true;
+            var drawSouth = true;
+            var drawNorth = true;
+            var direction = null;
+            if (head.x != neck.x)
+            {
+                // east
+                if (head.x > neck.x)
+                {
+                    direction = "east";
+                    drawWest = false;
+                    if (g_opinion.current == "forward") drawGold = "east";
+                    else if (g_opinion.current == "left") drawGold = "north";
+                    else if (g_opinion.current == "right") drawGold = "south";
+                }
+                // west
+                else
+                {
+                    direction = "west";
+                    drawEast = false;
+                    if (g_opinion.current == "forward") drawGold = "west";
+                    else if (g_opinion.current == "left") drawGold = "south";
+                    else if (g_opinion.current == "right") drawGold = "north";
+                }
+            }
+            else
+            {
+                // south
+                if (head.y > neck.y)
+                {
+                    direction = "south";
+                    drawNorth = false;
+                    if (g_opinion.current == "forward") drawGold = "south";
+                    else if (g_opinion.current == "left") drawGold = "east";
+                    else if (g_opinion.current == "right") drawGold = "west";
+                }
+                // north
+                else
+                {
+                    direction = "north";
+                    drawSouth = false;
+                    if (g_opinion.current == "forward") drawGold = "north";
+                    else if (g_opinion.current == "left") drawGold = "west";
+                    else if (g_opinion.current == "right") drawGold = "east";
+                }
+            }
+
+            if (drawEast)
+            {
+                var point = new vec2(head.x+1, head.y);
+                var coords = getScreenCoords(point);
+                g_context.drawImage(
+                    (drawGold == "east")
+                        ? g_assets.cache[g_arrowGoldPaths.east]
+                        : g_assets.cache[g_arrowPaths.east],
+                    coords.x, coords.y,
+                    SPRITE_SIZE, SPRITE_SIZE
+                );
+            }
+            if (drawWest)
+            {
+                var point = new vec2(head.x-1, head.y);
+                var coords = getScreenCoords(point);
+                g_context.drawImage(
+                    (drawGold == "west")
+                        ? g_assets.cache[g_arrowGoldPaths.west]
+                        : g_assets.cache[g_arrowPaths.west],
+                    coords.x, coords.y,
+                    SPRITE_SIZE, SPRITE_SIZE
+                );
+            }
+            if (drawSouth)
+            {
+                var point = new vec2(head.x, head.y+1);
+                var coords = getScreenCoords(point);
+                g_context.drawImage(
+                    (drawGold == "south")
+                        ? g_assets.cache[g_arrowGoldPaths.south]
+                        : g_assets.cache[g_arrowPaths.south],
+                    coords.x, coords.y,
+                    SPRITE_SIZE, SPRITE_SIZE
+                );
+            }
+            if (drawNorth)
+            {
+                var point = new vec2(head.x, head.y-1);
+                var coords = getScreenCoords(point);
+                g_context.drawImage(
+                    (drawGold == "north")
+                        ? g_assets.cache[g_arrowGoldPaths.north]
+                        : g_assets.cache[g_arrowPaths.north],
+                    coords.x, coords.y,
+                    SPRITE_SIZE, SPRITE_SIZE
+                );
+            }
+            
+            /*var lastCoords = getScreenCoords(g_snake[g_snake.length-1], true);
             g_context.strokeStyle = "#FF00FF";
             g_context.beginPath();
             g_context.moveTo(lastCoords.x, lastCoords.y);
             g_context.lineTo(lastCoords.x + g_opinion.x*32, lastCoords.y + g_opinion.y*32);
             g_context.closePath();
-            g_context.stroke();
+            g_context.stroke();*/
+
+            // apply mouse input
+            // getting tired... 4h of sleep... updating inputs inside a draw thing, yep.
+            if (g_clickX != -1 && g_clickY != -1)
+            {
+                var headPos = g_snake[g_snake.length-1];
+                var x = Math.floor(g_clickX / SPRITE_SIZE);
+                var y = Math.floor(g_clickY / SPRITE_SIZE);
+
+                log(headPos.x + "," + headPos.y);
+                log(x + "," + y);
+                
+                if (y == headPos.y)
+                {
+                    if (x == headPos.x+1)
+                    {
+                        if (direction == "north") vote("right");
+                        if (direction == "east") vote("forward");
+                        if (direction == "south") vote("left");
+                    }
+                    else if (x == headPos.x-1)
+                    {
+                        if (direction == "south") vote("right");
+                        if (direction == "west") vote("forward");
+                        if (direction == "north") vote("left");
+                    }
+                }
+                else if (x == headPos.x)
+                {
+                    if (y == headPos.y+1)
+                    {
+                        if (direction == "east") vote("right");
+                        if (direction == "south") vote("forward");
+                        if (direction == "west") vote("left");
+                    }
+                    else if (y == headPos.y-1)
+                    {
+                        if (direction == "west") vote("right");
+                        if (direction == "north") vote("forward");
+                        if (direction == "east") vote("left");
+                    }
+                }
+            }
         }
     }
 
@@ -179,6 +377,10 @@ function update()
             g_state.name + ": " + g_state.value,
             10, 40);
     }
+
+    // reset input
+    g_clickX = -1;
+    g_clickY = -1;
 }
 
 function cheatTweet()
@@ -224,7 +426,12 @@ function processMessage(_message)
     log("processing message:" + _message.name + " (" + _message.value + ")");
     if (_message.name == "opinion")
     {
-        g_opinion = new vec2(_message.value.x, _message.value.y); // meh?
+        g_opinion = {};
+        g_opinion.current = _message.value.current;
+        g_opinion.numLeft = _message.value.numLeft;
+        g_opinion.numRight = _message.value.numRight;
+        g_opinion.numForward = _message.value.numForward;
+        log(g_opinion);
     }
     else if (_message.name == "grow")
     {
@@ -251,7 +458,11 @@ function processMessage(_message)
     else if (_message.name == "playing")
     {
         g_state = { name : _message.name  };
-        g_snake = _message.snake; 
+        g_snake = new Array();
+        for (var i=0; i<_message.snake.length; ++i)
+        {
+            g_snake.push(new vec2(_message.snake[i].x, _message.snake[i].y)); // meh??
+        }
     }
     if (!g_state.name)
     {

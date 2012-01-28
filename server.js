@@ -13,7 +13,7 @@ var g_snake = null;
 var g_opinion = null;
 var g_direction = null;
 var g_state = null;
-var g_moveDelay = 1000;
+var g_moveDelay = 5000;
 var g_pauseDelay = 2000;
 var g_pendingGrow = false;
 var g_moveTimeoutHandle = null;
@@ -81,7 +81,13 @@ function init()
 {
     g_votes = new Array();
     g_snake = new Array();
-    g_opinion = new vec2(0.0, 1.0);
+
+    g_opinion = {};
+    g_opinion.current = "forward";
+    g_opinion.numLeft = 0;
+    g_opinion.numRight = 0;
+    g_opinion.numForward = 0;
+
     g_direction = "south";
     g_state = { name : "init" };
     g_pendingGrow = false;
@@ -264,34 +270,48 @@ function move()
         var head = g_snake[g_snake.length-1];
         var newHead = head.clone();
         //console.log(g_opinion.x +","+g_opinion.y);
-        var absX = Math.abs(g_opinion.x);
-        var absY = Math.abs(g_opinion.y);
+        //var absX = Math.abs(g_opinion.x);
+        //var absY = Math.abs(g_opinion.y);
         //console.log(absX +","+absY);
-        if (absX > absY)
+
+        // set new direction
+        if (g_direction == "east")
         {
-            if (g_opinion.x > 0)
-            {
-                ++newHead.x;
-                g_direction = "east";
-            }
-            else
-            {
-                --newHead.x;
-                g_direction = "west";
-            }
+            if (g_opinion.current == "left") g_direction = "north";
+            if (g_opinion.current == "right") g_direction = "south";
         }
-        else
+        else if (g_direction == "west")
         {
-            if (g_opinion.y > 0)
-            {
-                ++newHead.y;
-                g_direction = "south";
-            }
-            else
-            {
-                --newHead.y;
-                g_direction = "north";
-            }
+            if (g_opinion.current == "left") g_direction = "south";
+            if (g_opinion.current == "right") g_direction = "north";
+        }
+        else if (g_direction == "south")
+        {
+            if (g_opinion.current == "left") g_direction = "east";
+            if (g_opinion.current == "right") g_direction = "west";
+        }
+        else // north
+        {
+            if (g_opinion.current == "left") g_direction = "west";
+            if (g_opinion.current == "right") g_direction = "east";
+        }
+
+        // set new head position
+        if (g_direction == "east")
+        {
+            ++newHead.x;
+        }
+        else if (g_direction == "west")
+        {
+            --newHead.x;
+        }
+        else if (g_direction == "south")
+        {
+            ++newHead.y;
+        }
+        else // north
+        {
+            --newHead.y;
         }
     }
 
@@ -350,7 +370,11 @@ function move()
 
         // reset opinion
         g_votes = new Array();
-        g_opinion.normalize();
+        g_opinion = {};
+        g_opinion.current = "forward";
+        g_opinion.numLeft = 0;
+        g_opinion.numRight = 0;
+        g_opinion.numForward = 0;
         
         // broadcast it
         var message = { name : "opinion", value : g_opinion };
@@ -392,8 +416,8 @@ function processVote(_socket, _value)
     var numForward = 0;
     var numRight = 0;
     var total = 0;
-    g_opinion.x = 0.0;
-    g_opinion.y = 0.0;
+    //g_opinion.x = 0.0;
+    //g_opinion.y = 0.0;
     for (var i=0; i<g_votes.length; i++)
     {
         var ivote = g_votes[i];
@@ -402,28 +426,22 @@ function processVote(_socket, _value)
         else if (ivote.value == "right") { ++numRight; ++total }
         else console.log("ERROR: invalid vote: " + ivote.value);
     }
-    //console.log("left votes: " + numLeft);
-    //console.log("right votes: " + numRight);
-    //console.log("forward votes: " + numForward);
-    if (g_direction == "east")
+    console.log("left votes: " + numLeft);
+    console.log("right votes: " + numRight);
+    console.log("forward votes: " + numForward);
+
+    var max = Math.max(numLeft, numRight, numForward);
+    if (max == numForward || numLeft == numRight)
     {
-        g_opinion.x = numForward;
-        g_opinion.y = numRight - numLeft;
+        g_opinion.current = "forward";
     }
-    else if (g_direction == "west")
+    else if (max == numLeft)
     {
-        g_opinion.x = -numForward;
-        g_opinion.y = numLeft - numRight;
+        g_opinion.current = "left";
     }
-    else if (g_direction == "south")
+    else
     {
-        g_opinion.x = numLeft - numRight;
-        g_opinion.y = numForward;
-    }
-    else if (g_direction == "north")
-    {
-        g_opinion.x = numRight - numLeft;
-        g_opinion.y -= numForward;
+        g_opinion.current = "right";
     }
 
     // broadcast it
