@@ -12,6 +12,10 @@ var g_votes = null;
 var g_snake = null;
 var g_opinion = null;
 var g_direction = null;
+var g_state = null;
+
+// global constants
+var AREA_SIZE = 20;
 
 app.listen(80);
 
@@ -74,6 +78,7 @@ function init()
     g_snake = new Array();
     g_opinion = new vec2(0.0, -1.0);
     g_direction = "south";
+    g_state = { name : "init" };
 }
 init();
 
@@ -85,7 +90,7 @@ io.sockets.on("connection", function (socket)
 
     // log connection
     console.log("new client");
-    socket.emit("ping", g_snake);
+    socket.emit("ping", { snake : g_snake, state : g_state });
 
     // receive client message
     socket.on("message", function (_message)
@@ -125,6 +130,31 @@ function processClear(_socket, _value)
     broadcast(message);
 }
 
+function checkSelf(_newHead)
+{
+    // all *except* current head
+    for (var i=1; i<g_snake.length; ++i)
+    {
+        if (_newHead.x == g_snake[i].x &&
+            _newHead.y == g_snake[i].y)
+        {
+            return true;
+        }
+    }
+}
+
+function checkVictory(_newHead)
+{
+    if (g_snake.length > 0)
+    {
+        if (_newHead.x == g_snake[0].x &&
+            _newHead.y == g_snake[0].y)
+        {
+            return true;
+        }
+    }
+}
+
 function processTweet(_socket, _value)
 {
     var newHead;
@@ -134,6 +164,10 @@ function processTweet(_socket, _value)
         console.log("spawn head");
         //g_snake.push();
         newHead = new vec2(10, 10);
+
+        // "unlock" clients, time to vote!!
+        g_state = { name : "playing" };
+        broadcast(g_state);
     }
     else
     {
@@ -171,19 +205,50 @@ function processTweet(_socket, _value)
             }
         }
     }
-    g_snake.push(newHead);
 
-    // broadcast new head
-    var message = { name : "head", value : newHead };
-    broadcast(message);
+    // check area bounds
+    if (newHead.x < 0 ||
+        newHead.y < 0 ||
+        newHead.x >= AREA_SIZE ||
+        newHead.y >= AREA_SIZE)
+    {
+        // broadcast defeat
+        var message = { name : "defeat", value : "out" };
+        broadcast(message);
+        g_state = message;
+    }
+    // check self-hit
+    else if (checkSelf(newHead))
+    {
+        // broadcast defeat
+        var message = { name : "defeat", value : "self" };
+        broadcast(message);
+        g_state = message;
+    }
+    // check victory
+    else if (checkVictory(newHead))
+    {
+        // broadcast defeat
+        var message = { name : "victory", value : g_snake.length };
+        broadcast(message);
+        g_state = message;
+    }
+    else
+    {
+        g_snake.push(newHead);
 
-    // reset opinion
-    g_votes = new Array();
-    g_opinion.normalize();
+        // broadcast new head
+        var message = { name : "head", value : newHead };
+        broadcast(message);
 
-    // broadcast it
-    var message = { name : "opinion", value : g_opinion };
-    broadcast(message);
+        // reset opinion
+        g_votes = new Array();
+        g_opinion.normalize();
+        
+        // broadcast it
+        var message = { name : "opinion", value : g_opinion };
+        broadcast(message);
+    }
 }
 
 function processVote(_socket, _value)

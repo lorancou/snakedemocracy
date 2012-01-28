@@ -13,6 +13,7 @@ var g_headPath = "files/head.png";
 var g_bodyPath = "files/body.png";
 var g_snake = null;
 var g_opinion = null;
+var g_state = false;
 
 function log(msg)
 {
@@ -54,10 +55,11 @@ function init()
 function processPing(message)
 {
     g_snake = new Array();
-    for (var i=0; i<message.length; ++i)
+    for (var i=0; i<message.snake.length; ++i)
     {
-        g_snake.push(new vec2(message[i].x, message[i].y));
+        g_snake.push(new vec2(message.snake[i].x, message.snake[i].y));
     }
+    g_state = message.state;
 
     g_socket.on("message", function (message) { processMessage(message) });
 
@@ -98,7 +100,6 @@ AssetManager.prototype.downloadAll = function(callback) {
       });*/
       img.onload = function() 
       {
-          log("yey");
           that.successCount += 1;
           //that.cache[path] = this; // yeah...
           if (that.isDone()) { callback(); }
@@ -164,6 +165,16 @@ function update()
             g_context.stroke();
         }
     }
+
+    // draw msg
+    if (g_state.name != "playing")
+    {
+        g_context.fillStyle = "#FFFFFF";
+        //g_context.font = ;
+        g_context.fillText(
+            g_state.name + ": " + g_state.value,
+            10, 40);
+    }
 }
 
 function cheatTweet()
@@ -176,7 +187,10 @@ function cheatClear()
 }
 function vote(_value)
 {
-    g_socket.emit("message", { name : "vote", value : _value });
+    if (g_state.name == "playing")
+    {
+        g_socket.emit("message", { name : "vote", value : _value });
+    }
 }
 
 function processMessage(_message)
@@ -185,7 +199,6 @@ function processMessage(_message)
     if (_message.name == "opinion")
     {
         g_opinion = new vec2(_message.value.x, _message.value.y); // meh?
-        log(g_opinion);
     }
     else if (_message.name == "head")
     {
@@ -194,5 +207,18 @@ function processMessage(_message)
     else if (_message.name == "clear")
     {
         g_snake = new Array();
+        g_state = _message;
+    }
+    else if (_message.name == "defeat")
+    {
+        g_state = _message;
+    }
+    else if (_message.name == "victory")
+    {
+        g_state = _message;
+    }
+    else if (_message.name == "playing")
+    {
+        g_state = _message;
     }
 }
