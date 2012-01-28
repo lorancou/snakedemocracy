@@ -9,15 +9,18 @@
     <!-- TODO <link rel="stylesheet" type="text/css" href="styles.css" media="screen" /> -->
     <!-- TODO <link rel="shortcut icon" href="icon.ico" /> -->
     <script src="/socket.io/socket.io.js"></script>
+    <script src="vec2.js"></script>
     <script src="client.js"></script>
   </head> 
  
   <body onload="init()">
     <p>
       kilopede
-      <input type="button" id="head" value="head" onclick="popHead()"/>
-      <input type="button" id="body" value="body" onclick="popBody()"/>
+      <input type="button" id="cheatTweet" value="cheat tweet" onclick="cheatTweet()"/>
+      <input type="button" id="voteLeft" value="vote left" onclick="vote('left')"/>
+      <input type="button" id="voteForward" value="vote forward" onclick="vote('forward')"/>
+      <input type="button" id="voteRight" value="vote right" onclick="vote('right')"/>
     </p>
-    <canvas id="canvas" width="400" height="400"></canvas>
+    <canvas id="canvas" width="512" height="512"></canvas>
   </body>
 </html>

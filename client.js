@@ -1,7 +1,8 @@
 // global constants
-var SERVER_ADDRESS = "http://172.16.60.17"
-var CANVAS_WIDTH = 400;
-var CANVAS_HEIGHT = 400;
+var SERVER_ADDRESS = "kilopede.dyndns.org"; //"http://172.16.60.17"
+var CANVAS_WIDTH = 480;
+var CANVAS_HEIGHT = 480;
+var SPRITE_SIZE = 24;
 
 // global variables
 var g_context = null;
@@ -10,6 +11,8 @@ var g_socket = null;
 var g_assets = null;
 var g_headImg = "files/head.png";
 var g_bodyImg = "files/body.png";
+var g_snake = null;
+var g_opinion = new vec2(0.0, -1.0);
 
 // client init, called with body's onload
 function init()
@@ -30,16 +33,24 @@ function init()
         return;
     }
 
-    // clear canvas
-    g_context.fillStyle = "#000000";
-    g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
     // connect to node.js server
     g_socket = io.connect(SERVER_ADDRESS);
-    g_socket.on("ping", function (data) { console.log(data); });
-    g_socket.on("message", function (data) { processMessage(data) });
+    g_socket.on("ping", function (message)
+    {
+        processPing(message)
+    });
+}
 
-    console.log("hello");
+// ping, first message, inits the snake
+function processPing(message)
+{
+    g_snake = new Array();
+    for (var i=0; i<message.length; ++i)
+    {
+        g_snake.push(new vec2(message[i].x, message[i].y));
+    }
+
+    g_socket.on("message", function (message) { processMessage(message) });
 
     // queue assets
     g_assets = new AssetManager();
@@ -82,34 +93,76 @@ AssetManager.prototype.downloadAll = function(callback) {
   }
 }
 
+function getScreenCoords(_coords, _middle)
+{
+    var topLeft = new vec2(_coords.x*SPRITE_SIZE, _coords.y*SPRITE_SIZE);
+    if (!_middle)
+    {
+        return topLeft;
+    }
+    var middle = new vec2(topLeft.x + 0.5*SPRITE_SIZE, topLeft.y + 0.5*SPRITE_SIZE);
+    return middle;
+}
+
 // client update
 function update()
 {
-}
+    // clear canvas
+    g_context.fillStyle = "#000000";
+    g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-function popHead()
-{
-    g_socket.emit("message", "popHead");
-}
-
-function popBody()
-{
-    g_socket.emit("message", "popBody");
-}
-
-function processMessage(data)
-{
-    console.log("processing message:" + data);
-    if (data == "popHead")
+    // draw all snake body elements
+    for (var i=0; i<g_snake.length-1; i++)
     {
-        //g_head = true;
-        //socket.emit("message", "popHead");
-        g_context.drawImage(g_assets.cache[g_headImg], 0, 0);
+        var screenCoords = getScreenCoords(g_snake[i]);
+        g_context.drawImage(
+            g_assets.cache[g_bodyImg],
+            screenCoords.x, screenCoords.y,
+            SPRITE_SIZE, SPRITE_SIZE
+        );
     }
-    else if (data == "popBody")
+
+    // draw head
+    var headCoords = getScreenCoords(g_snake[g_snake.length-1]);
+    g_context.drawImage(
+        g_assets.cache[g_headImg],
+        headCoords.x, headCoords.y,
+        SPRITE_SIZE, SPRITE_SIZE
+    );
+
+    // draw opinion
+    var lastCoords = getScreenCoords(g_snake[g_snake.length-1], true);
+    g_context.strokeStyle = "#FF00FF";
+    g_context.beginPath();
+    g_context.moveTo(lastCoords.x, lastCoords.y);
+    g_context.lineTo(lastCoords.x + g_opinion.x*32, lastCoords.y + g_opinion.y*32);
+    g_context.closePath();
+    g_context.stroke();
+
+    // plan next update
+    setTimeout("update()", 0.0);
+}
+
+function cheatTweet()
+{
+    g_socket.emit("message", { name : "cheatTweet" });
+}
+
+function vote(_value)
+{
+    g_socket.emit("message", { name : "vote", value : _value });
+}
+
+function processMessage(_message)
+{
+    console.log("processing message:" + _message.name + " (" + _message.value + ")");
+    if (_message.name == "opinion")
     {
-        //g_body = true;
-        //socket.emit("message", "popBody");
-        g_context.drawImage(g_assets.cache[g_bodyImg], 64, 0);
+        g_opinion = new vec2(_message.value.x, _message.value.y); // meh?
+        console.log(g_opinion);
+    }
+    else if (_message.name == "head")
+    {
+        g_snake.push(new vec2(_message.value.x, _message.value.y)); // meh??
     }
 }
