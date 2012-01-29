@@ -197,6 +197,7 @@ div.digits
 
 #faq
 {
-    width: 900;
-    height: 480;
+    width: 900px;
+    height: 480px;
+	background-color:magenta;
 }
