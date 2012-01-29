@@ -115,7 +115,7 @@ a.nav-item:hover
 	margin-right:auto;
 	padding:0px 16px 0px 16px;
 	width:918px;
-	height:498px;
+	height:1966px;
 }
 
 #canvas-box
@@ -197,7 +197,7 @@ div.digits
 
 #faq
 {
-    width: 900px;
-    height: 480px;
-	/*background-color:magenta;*/
+    width: 727px;
+    height: 1966px;
+	margin:auto;
 }
