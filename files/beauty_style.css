@@ -115,6 +115,16 @@ a.nav-item:hover
 	margin-right:auto;
 	padding:0px 16px 0px 16px;
 	width:918px;
+	height:496px;
+}
+
+#content2
+{
+	background-color:#fff7ee;
+	margin-left:auto;
+	margin-right:auto;
+	padding:0px 16px 0px 16px;
+	width:918px;
 	height:1966px;
 }
 
