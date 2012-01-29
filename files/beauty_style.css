@@ -1,0 +1,152 @@
+@charset "utf-8";
+/* CSS Document */
+
+body
+{ 
+	/*background-image:url('files/bg.jpg');*/
+	background-color:#ffedd9;
+	background-repeat:repeat-y;
+	/*background-attachment:fixed;*/
+	background-position:center;
+	margin:0px;
+	padding:0px;
+}
+
+p
+{
+	margin:0px;	
+}
+
+a:link,a:visited
+{
+	color:#4aa08b;
+	background-color:transparent;
+	text-decoration:none;
+}
+a:active
+{
+	color:#70d8be;
+	background-color:transparent;
+	text-decoration:none;
+}
+
+
+canvas
+{
+	/*background-color:#000000;*/
+}
+
+#wrap-header
+{
+	margin:0px;
+	background-color:#a5653a;
+}
+
+#header
+{
+	background-image:url(headtitle.jpg);
+	background-repeat:no-repeat;
+	background-position:left;
+	margin-left:auto;
+	margin-right:auto;	
+	width:950px;
+	height:60px;
+}
+
+#headtitle
+{
+	padding-left:0px;
+}
+
+#slogan
+{
+	float:right;
+	margin-top: 31px;
+	margin-right:20px;
+	font:20px calibri,arial,sans-serif;
+	font-style:italic;
+	font-weight:bold;
+	color:#fff7ee;
+	text-align:right;
+	text-shadow: 0px 0px 30px #ff9900;
+}
+#quote
+{
+	float:right;
+	width:200px;
+	height:60px;
+	font:10px georgia,times,serif;
+	font-style:italic;
+	color:#e7aa5e;
+	text-align:center;
+	margin-top:10px;
+	margin-right:20px;
+}
+
+#wrap-content
+{
+	margin:0px;
+	background-image:url(content-bg.gif);
+	background-repeat:repeat-y;
+	background-position:center;
+}
+
+#navigation
+{
+	font:20px calibri,arial,sans-serif;
+	text-decoration:none;
+	margin-left:auto;
+	margin-right:auto;
+	padding:8px 16px 8px 16px;
+	width:918px;
+}
+a.nav-item:hover
+{
+	color:#fff7ee;
+	background-color:#4aa08b;
+	text-decoration:none;
+}
+
+#content
+{
+	background-color:#fff7ee;
+	margin-left:auto;
+	margin-right:auto;
+	padding:0px 16px 0px 16px;
+	width:918px;
+	height:498px;
+}
+
+#canvas-box
+{
+	float:left;
+	background-image:url(canvas-bg.gif);
+	width:480px;
+	height:480px;
+	padding:3px;
+}
+
+#feed
+{
+	float:right;
+}
+
+#wrap-footer
+{
+	margin:0px;
+	background-image:url(footer-bg.gif);
+	background-repeat:no-repeat;
+	background-position:top;
+}
+
+#footer
+{
+	margin-left:auto;
+	margin-right:auto;
+	padding:0px;
+	padding-top:6px;
+	text-align:center;
+	font:10px arial,sans-serif;;
+	color:#a5653a;
+	height:20px;
+}

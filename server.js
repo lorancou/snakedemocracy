@@ -26,10 +26,22 @@ var STARTUP_APPLE_COUNT = 3;
 
 app.listen(80);
 
-// serve index.html
+// serve *.html
 app.get("/", function (req, res)
 {
     res.sendfile(__dirname + "/index.html");
+});
+app.get("/faq", function (req, res)
+{
+    res.sendfile(__dirname + "/faq.html");
+});
+app.get("/credits", function (req, res)
+{
+    res.sendfile(__dirname + "/credits.html");
+});
+app.get("/cheat", function (req, res)
+{
+    res.sendfile(__dirname + "/cheat.html");
 });
 
 // serve stuff
