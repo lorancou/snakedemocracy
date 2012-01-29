@@ -20,6 +20,7 @@ var g_pauseDelay = 10000;
 var g_pendingGrow = false;
 var g_moveTimeoutHandle = null;
 var g_pauseTimeoutHandle = null;
+var g_snakeLengthCache = -1;
 
 // global constants
 var AREA_SIZE = 20;
@@ -121,8 +122,8 @@ io.sockets.on("connection", function (socket)
     {
         g_sockets.push(socket);
 
-        // log connection
-        console.log("*** NEW CLIENT ***");
+        // log connection, send current state
+        console.log("New client");
         socket.emit("ping", { snake : g_snake, apples : g_apples, state : g_state });
     }
 
@@ -267,6 +268,9 @@ function processTweet(_socket, _value)
 function move()
 {
     console.log("Move!");
+
+    // cache this, as it's "wrong" when broadcasting
+    g_snakeLengthCache = g_snake.length;
 
     var newHead;
     if (g_snake.length == 0)
@@ -422,6 +426,8 @@ function move()
 
     // push new head
     g_snake.push(newHead);
+
+    g_snakeLengthCache = -1;
 }
 
 function processMoveDelayChange(_socket, _value)
@@ -554,10 +560,47 @@ function pickupApple(_idx)
     broadcast(message);
 }
 
+function computeScore()
+{
+    var snakeLength = 3;
+    if (g_snake)
+    {
+        if (g_snakeLengthCache != -1)
+        {
+            snakeLength = g_snakeLengthCache;
+        }
+        else
+        {
+            snakeLength = g_snake.length;
+        }
+    }
+    else
+    {
+        console.log("ERROR: computing score without a snake");
+    }
+
+    var playerCount = 0;
+    if (g_sockets)
+    {
+        playerCount = g_sockets.length;
+    }
+    else
+    {
+        console.log("ERROR: computing score without sockets table");
+    }
+
+    var score = snakeLength * playerCount;
+    console.log("Score: " + score + "(snake: " + snakeLength + " * " + playerCount + ")");
+    return score;
+}
+
 function broadcast(_message)
 {
-    // any time a message is broadcasted, append the current number of players
+    // any time a message is broadcasted, append the number of players...
     _message.playerCount = g_sockets.length;
+
+    // and the current score
+    _message.score = computeScore();
 
     // actually broadcast
     //console.log("BROADCAST: " + _message.name);

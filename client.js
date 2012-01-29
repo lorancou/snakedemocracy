@@ -14,6 +14,7 @@ var g_apples = null;
 var g_opinion = null;
 var g_state = null;
 var g_playerCount = 0;
+var g_score = 0;
 var g_clickX = -1;
 var g_clickY = -1;
 var g_playerCountElement = null;
@@ -571,7 +572,7 @@ function updateStats()
     }
     if (g_scoreElement)
     {
-        // TODO
+        g_scoreElement.innerHTML = "score: " + g_score;
     }
 }
 
@@ -618,8 +619,9 @@ function processMessage(_message)
 {
     //log("MESSAGE:" + _message.name + " (" + _message.value + ")");
 
-    // update player count
+    // update player count & score
     g_playerCount = _message.playerCount;
+    g_score = _message.score;
 
     if (_message.name == "opinion")
     {
