@@ -1,4 +1,13 @@
+// usage
+if (process.argv.length != 4)
+{
+    console.log("usage: node ./server.js login password");
+    process.exit();
+}
+
 // requires
+var http = require('http');
+var https = require('https');
 var app = require("express").createServer();
 var io = require("socket.io").listen(app);
 io.set('log level', 0); // no logging
@@ -16,11 +25,12 @@ var g_opinion = null;
 var g_direction = null;
 var g_state = null;
 var g_moveDelay = 2000;
-var g_pauseDelay = 10000;
+var g_pauseDelay = 7000;
 var g_pendingGrow = false;
 var g_moveTimeoutHandle = null;
 var g_pauseTimeoutHandle = null;
 var g_snakeLengthCache = -1;
+var g_tweets = 0;
 
 // global constants
 var AREA_SIZE = 20;
@@ -423,6 +433,13 @@ function move()
             }
         }
 
+        // check for apples from Twitter (+broadcast)
+        if (g_tweets > 0)
+        {
+            spawnApple(g_tweets, true);
+            g_tweets = 0;
+        }
+
         // plan next move
         planNextMove();
     }
@@ -614,3 +631,68 @@ function broadcast(_message)
     }
 }
 
+// TWITTER
+
+var username = process.argv[2];
+var password = process.argv[3];
+
+var auth = 'Basic ' + new Buffer(username + ':' + password).toString('base64');
+
+
+var options = {
+    host: 'stream.twitter.com',
+    port: 443,
+    path: '/1/statuses/filter.json',
+    headers : {'Host': 'stream.twitter.com', 
+	       'Authorization': auth,
+	       'Content-type': 'application/x-www-form-urlencoded'},
+    method: "POST"
+};
+
+
+console.dir(options);
+
+var buf = "";
+
+var req = https.request(options, function(res) {
+    //  console.log('STATUS: ' + res.statusCode);
+    //  console.log('HEADERS: ' + JSON.stringify(res.headers));
+    res.setEncoding('utf8');
+    res.on('data', function (chunk) {
+	buf += chunk;
+	var a = buf.split("\r\n");
+	buf = a[a.length-1];
+
+	for(var i=0; i < a.length-1; i++) {
+	    if (a[i] != "") {
+		    var json = JSON.parse(a[i]);
+		    if (json.user && json.text) {
+		        console.log("Tweet from " + json.user.screen_name, ": ", json.text)
+		        g_tweets++;
+		        /*for(var j=0; j<clients.length; j++) {
+			      clients[j].send(a[i]);
+		          }*/
+		    }
+	    }
+	}
+    });
+});
+
+req.write("track=#snakedemocracy\n\n");
+req.end();
+
+/*setInterval(function() {
+    // no tweet = quit                                                                                                                         
+    if (tweets == 0)
+    {
+	    console.log("No tweets for the last 10 seconds...");
+	    //process.exit(0);
+    }
+    else
+    {
+	    console.log(tweets+" tweets during the last 10 seconds...");
+        spawnApple(tweets, true);
+        tweets = 0;
+    }
+
+}, 10000);*/
