@@ -126,6 +126,16 @@ a.nav-item:hover
 	padding:3px;
 }
 
+#stats
+{
+    background-color: magenta;
+	float:left;
+	/*background-image:url(canvas-bg.gif);*/
+	width:170px;
+	height:480px;
+	margin-left:16px;
+}
+
 #feed
 {
 	float:right;

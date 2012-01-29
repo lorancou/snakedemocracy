@@ -13,8 +13,14 @@ var g_snake = null;
 var g_apples = null;
 var g_opinion = null;
 var g_state = null;
+var g_playerCount = 0;
 var g_clickX = -1;
 var g_clickY = -1;
+var g_playerCountElement = null;
+var g_numLeftElement = null;
+var g_numForwardElement = null;
+var g_numRightElement = null;
+var g_scoreElement = null;
 
 // assets
 var g_headPaths =
@@ -85,6 +91,21 @@ function init()
         return;
     }
 
+    // get stats elements
+    g_playerCountElement = document.getElementById("playerCount");
+    g_numLeftElement = document.getElementById("numLeft");
+    g_numForwardElement = document.getElementById("numForward");
+    g_numRightElement = document.getElementById("numRight");
+    g_scoreElement = document.getElementById("score");
+    if (!g_playerCountElement ||
+        !g_numLeftElement ||
+        !g_numForwardElement ||
+        !g_numRightElement ||
+        !g_scoreElement)
+    {
+        log("WARNING: missing some stats elements");
+    }
+
     // plug mouse inputs
 	g_canvas.onmouseup = mouseUp;
 	g_canvas.oncontextmenu = function() { return false; };
@@ -119,7 +140,7 @@ function mouseUp(e)
         //}
         g_clickX = x;
         g_clickY = y;
-        log("click " + x + "," + y);
+        //log("click " + x + "," + y);
     }
 }
 
@@ -283,8 +304,8 @@ function update()
             var x = Math.floor(g_clickX / SPRITE_SIZE);
             var y = Math.floor(g_clickY / SPRITE_SIZE);
             
-            log(headPos.x + "," + headPos.y);
-            log(x + "," + y);
+            //log(headPos.x + "," + headPos.y);
+            //log(x + "," + y);
             
             if (y == headPos.y)
             {
@@ -384,8 +405,7 @@ function update()
             else if (prevDir == "west" && nextDir == "north") bodyImg = g_assets.cache[g_bodyPaths.wn];
             else if (nextDir == "west" && prevDir == "north") bodyImg = g_assets.cache[g_bodyPaths.wn];
             else if (prevDir == "north" && nextDir == "east") bodyImg = g_assets.cache[g_bodyPaths.ne];
-            else if (nextDir == "north" && prevDir == "east") bodyImg = g_assets.cache[g_bodyPaths.ne];
-            else log(prevDir + "/" + nextDir);
+            else /*(nextDir == "north" && prevDir == "east")*/ bodyImg = g_assets.cache[g_bodyPaths.ne];
             g_context.drawImage(
                 bodyImg,
                 bodyCoords.x, bodyCoords.y,
@@ -514,6 +534,45 @@ function update()
     // reset input
     g_clickX = -1;
     g_clickY = -1;
+
+    updateStats();
+}
+
+function updateStats()
+{
+    if (g_playerCountElement)
+    {
+        g_playerCountElement.innerHTML = "players: " + g_playerCount;
+        if (g_playerCount == 0)
+        {
+            g_playerCountElement.innerHTML += " :(";
+        }
+    }
+    if (g_numLeftElement)
+    {
+        if (g_opinion)
+        {
+            g_numLeftElement.innerHTML = "left: " + g_opinion.numLeft;
+        }
+    }
+    if (g_numForwardElement)
+    {
+        if (g_opinion)
+        {
+            g_numForwardElement.innerHTML = "forward: " + g_opinion.numForward;
+        }
+    }
+    if (g_numRightElement)
+    {
+        if (g_opinion)
+        {
+            g_numRightElement.innerHTML = "right: " + g_opinion.numRight;
+        }
+    }
+    if (g_scoreElement)
+    {
+        // TODO
+    }
 }
 
 function cheatTweet()
@@ -528,6 +587,7 @@ function vote(_value)
 {
     if (g_state.name == "playing")
     {
+        //log("vote: " + _value);
         g_socket.emit("message", { name : "vote", value : _value });
     }
 }
@@ -556,7 +616,11 @@ function submitTweaks()
 
 function processMessage(_message)
 {
-    log("processing message:" + _message.name + " (" + _message.value + ")");
+    //log("MESSAGE:" + _message.name + " (" + _message.value + ")");
+
+    // update player count
+    g_playerCount = _message.playerCount;
+
     if (_message.name == "opinion")
     {
         g_opinion = {};
@@ -564,7 +628,7 @@ function processMessage(_message)
         g_opinion.numLeft = _message.value.numLeft;
         g_opinion.numRight = _message.value.numRight;
         g_opinion.numForward = _message.value.numForward;
-        log(g_opinion);
+        //log(g_opinion.numLeft);
     }
     else if (_message.name == "grow")
     {

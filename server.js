@@ -1,6 +1,7 @@
 // requires
 var app = require("express").createServer();
 var io = require("socket.io").listen(app);
+io.set('log level', 0); // no logging
 
 // DIRTY don't try this at home
 var fs = require('fs');
@@ -116,16 +117,19 @@ init();
 io.sockets.on("connection", function (socket)
 {
     // push new socket
-    g_sockets.push(socket);
+    if (g_sockets.indexOf(socket) == -1)
+    {
+        g_sockets.push(socket);
 
-    // log connection
-    console.log("new client");
-    socket.emit("ping", { snake : g_snake, apples : g_apples, state : g_state });
+        // log connection
+        console.log("*** NEW CLIENT ***");
+        socket.emit("ping", { snake : g_snake, apples : g_apples, state : g_state });
+    }
 
     // receive client message
     socket.on("message", function (_message)
     {
-        console.log("processing message:" + _message.name + " (" + _message.value + ")");
+        console.log("MESSAGE:" + _message.name + " (" + _message.value + ")");
         if (_message.name == "cheatTweet")
         {
             processTweet(socket, _message.value);
@@ -155,14 +159,14 @@ io.sockets.on("connection", function (socket)
         {
 	        return s != socket;
 	    });
-        console.log("bye bye client");
+        console.log("Bye bye client");
     });
 });
 
 // start game session
 function startGame()
 {
-    console.log("start game!");
+    console.log("Starting game!");
 
     // start with 3 elements
     // TODO: random?
@@ -185,7 +189,7 @@ function startGame()
 
 function planNextMove()
 {
-    console.log("plan next move, delay: " + g_moveDelay);
+    console.log("Plan next move, delay: " + g_moveDelay);
 
     if (g_moveDelay > 0)
     {
@@ -200,7 +204,7 @@ function planNextMove()
 
 function planNextGame()
 {
-    console.log("plan next game, delay: " + g_pauseDelay);
+    console.log("Plan next game, delay: " + g_pauseDelay);
 
     // cancel upcoming move
     clearTimeout(g_moveTimeoutHandle);
@@ -219,7 +223,7 @@ function planNextGame()
 
 function processClear(_socket, _value)
 {
-    console.log("clear!");
+    console.log("Clear!");
     init();
 
     var message = { name : "clear" };
@@ -255,20 +259,20 @@ function checkVictory(_newHead)
 function processTweet(_socket, _value)
 {
     // TODO
-    console.log("tweet");
+    console.log("Tweet");
     //move();
     g_pendingGrow = true;
 }
 
 function move()
 {
-    console.log("move!");
+    console.log("Move!");
 
     var newHead;
     if (g_snake.length == 0)
     {
         // first tweet, spawn head in the middle
-        console.log("spawn head");
+        //console.log("spawn head");
         //g_snake.push();
         newHead = new vec2(10, 10);
 
@@ -277,13 +281,13 @@ function move()
     else
     {
         // "remove" tail
-        console.log("pending grow: " + g_pendingGrow);
-        console.log("snake: " + g_snake);
+        //console.log("pending grow: " + g_pendingGrow);
+        //console.log("snake: " + g_snake);
         if (!g_pendingGrow)
         {
             g_snake.shift();
         }
-        console.log("new snake: " + g_snake);
+        //console.log("new snake: " + g_snake);
 
         // add head in current opinion's direction
         var head = g_snake[g_snake.length-1];
@@ -422,12 +426,12 @@ function move()
 
 function processMoveDelayChange(_socket, _value)
 {
-    console.log("changed move delay: " + _value);
+    console.log("Changed move delay: " + _value);
     g_moveDelay = _value;
 }
 function processPauseDelayChange(_socket, _value)
 {
-    console.log("changed pause delay: " + _value);
+    console.log("Changed pause delay: " + _value);
     g_pauseDelay = _value;
 }
 
@@ -444,39 +448,39 @@ function processVote(_socket, _value)
 
     // compute opinion
     //console.log(g_votes.length)
-    var numLeft = 0;
-    var numForward = 0;
-    var numRight = 0;
-    var total = 0;
+    g_opinion.numLeft = 0;
+    g_opinion.numForward = 0;
+    g_opinion.numRight = 0;
+    //var total = 0;
     //g_opinion.x = 0.0;
     //g_opinion.y = 0.0;
     for (var i=0; i<g_votes.length; i++)
     {
         var ivote = g_votes[i];
-        if (ivote.value == "left") { ++numLeft; ++total; }
-        else if (ivote.value == "forward") { ++numForward; ++total }
-        else if (ivote.value == "right") { ++numRight; ++total }
+        if (ivote.value == "left") { ++g_opinion.numLeft; }
+        else if (ivote.value == "forward") { ++g_opinion.numForward; }
+        else if (ivote.value == "right") { ++g_opinion.numRight; }
         else console.log("ERROR: invalid vote: " + ivote.value);
     }
-    console.log("left votes: " + numLeft);
-    console.log("right votes: " + numRight);
-    console.log("forward votes: " + numForward);
+    //console.log("left votes: " + g_opinion.numLeft);
+    //console.log("right votes: " + g_opinion.numRight);
+    //console.log("forward votes: " + g_opinion.numForward);
 
-    var max = Math.max(numLeft, numRight, numForward);
-    if (max == numForward || numLeft == numRight)
+    var max = Math.max(g_opinion.numLeft, g_opinion.numRight, g_opinion.numForward);
+    if (max == g_opinion.numForward || g_opinion.numLeft == g_opinion.numRight)
     {
         g_opinion.current = "forward";
     }
-    else if (max == numLeft)
+    else if (max == g_opinion.numLeft)
     {
         g_opinion.current = "left";
     }
-    else
+    else // max == g_opinion.numRight
     {
         g_opinion.current = "right";
     }
 
-    // broadcast it
+    // broadcast opinion
     var message = { name : "opinion", value : g_opinion };
     broadcast(message);
 }
@@ -552,12 +556,14 @@ function pickupApple(_idx)
 
 function broadcast(_message)
 {
-    console.log("broadcasting: " + _message.name);
+    // any time a message is broadcasted, append the current number of players
+    _message.playerCount = g_sockets.length;
+
+    // actually broadcast
+    //console.log("BROADCAST: " + _message.name);
     for (var i=0; i<g_sockets.length; i++)
     {
-        console.log("pouf");
         var s = g_sockets[i];
-        console.log("broadcast: " + _message.name);
         s.emit("message", _message);
     }
 }
