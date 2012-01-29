@@ -94,6 +94,7 @@ canvas
 #navigation
 {
 	font:20px calibri,arial,sans-serif;
+	font-weight:bold;
 	text-decoration:none;
 	margin-left:auto;
 	margin-right:auto;
