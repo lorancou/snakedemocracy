@@ -61,8 +61,10 @@ var g_arrowGoldPaths =
     north : "files/arrow_gold_n.png",
     south : "files/arrow_gold_s.png"
 }
-var g_fullgridPath = "files/fullgrid.png";
 var g_applePath = "files/apple.png";
+var g_fullgridPath = "files/fullgrid.png";
+var g_victoryPath = "files/victory.png";
+var g_defeatPath = "files/defeat.png";
 
 function log(msg)
 {
@@ -195,8 +197,10 @@ function processPing(message)
     g_assets.queueDownload(g_arrowGoldPaths.west);
     g_assets.queueDownload(g_arrowGoldPaths.south);
     g_assets.queueDownload(g_arrowGoldPaths.north);
-    g_assets.queueDownload(g_fullgridPath);
     g_assets.queueDownload(g_applePath);
+    g_assets.queueDownload(g_fullgridPath);
+    g_assets.queueDownload(g_victoryPath);
+    g_assets.queueDownload(g_defeatPath);
 
     // download assets and run
     g_assets.downloadAll(update);
@@ -523,13 +527,30 @@ function update()
     }
 
     // draw msg
-    if (g_state.name != "playing")
+    /*if (g_state.name != "playing")
     {
         g_context.fillStyle = "#FFFFFF";
         //g_context.font = ;
         g_context.fillText(
             g_state.name + ": " + g_state.value,
             10, 40);
+    }*/
+
+    // draw end game overlay
+    if (g_state.name == "victory")
+    {
+        g_context.drawImage(
+            g_assets.cache[g_victoryPath],
+            0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        // TODO: draw score
+        // TODO: draw countdown
+    }
+    else if (g_state.name == "defeat")
+    {
+        g_context.drawImage(
+            g_assets.cache[g_defeatPath],
+            0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        // TODO: draw countdown
     }
 
     // reset input
