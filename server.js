@@ -423,13 +423,16 @@ function move()
         // check for apples pickup
         for (var a=0; a<g_apples.length; ++a)
         {
-            if (g_apples[a].x == newHead.x &&
-                g_apples[a].y == newHead.y)
+            if (g_apples[a]) // CRASHFIX? callback hell?
             {
-                pickupApple(a);
-                spawnApple(1, true);
-                g_pendingGrow = true;
-                break; // 2+ apples at the same spot shouln't not happen. normally.
+                if (g_apples[a].x == newHead.x &&
+                    g_apples[a].y == newHead.y)
+                {
+                    pickupApple(a);
+                    spawnApple(1, true);
+                    g_pendingGrow = true;
+                    break; // 2+ apples at the same spot shouln't not happen. normally.
+                }
             }
         }
 
@@ -650,7 +653,7 @@ var options = {
 };
 
 
-console.dir(options);
+//console.dir(options);
 
 var buf = "";
 
