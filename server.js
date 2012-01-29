@@ -47,10 +47,10 @@ app.get("/faq", function (req, res)
 {
     res.sendfile(__dirname + "/faq.html");
 });
-app.get("/credits", function (req, res)
+/*app.get("/credits", function (req, res)
 {
     res.sendfile(__dirname + "/credits.html");
-});
+});*/
 app.get("/cheat", function (req, res)
 {
     res.sendfile(__dirname + "/cheat.html");
