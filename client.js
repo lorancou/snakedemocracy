@@ -564,36 +564,39 @@ function updateStats()
 {
     if (g_playerCountElement)
     {
-        g_playerCountElement.innerHTML = "players: " + g_playerCount;
         if (g_playerCount == 0)
         {
-            g_playerCountElement.innerHTML += " :(";
+            g_playerCountElement.innerHTML = " :(";
+        }
+        else
+        {
+            g_playerCountElement.innerHTML = g_playerCount;
         }
     }
     if (g_numLeftElement)
     {
         if (g_opinion)
         {
-            g_numLeftElement.innerHTML = "left: " + g_opinion.numLeft;
+            g_numLeftElement.innerHTML = g_opinion.numLeft;
         }
     }
     if (g_numForwardElement)
     {
         if (g_opinion)
         {
-            g_numForwardElement.innerHTML = "forward: " + g_opinion.numForward;
+            g_numForwardElement.innerHTML = g_opinion.numForward;
         }
     }
     if (g_numRightElement)
     {
         if (g_opinion)
         {
-            g_numRightElement.innerHTML = "right: " + g_opinion.numRight;
+            g_numRightElement.innerHTML = g_opinion.numRight;
         }
     }
     if (g_scoreElement)
     {
-        g_scoreElement.innerHTML = "score: " + g_score;
+        g_scoreElement.innerHTML = g_score;
     }
 }
 
