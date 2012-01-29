@@ -17,6 +17,10 @@ var g_playerCount = 0;
 var g_score = 0;
 var g_clickX = -1;
 var g_clickY = -1;
+var g_keyLeft = false;
+var g_keyUp = false;
+var g_keyRight = false;
+var g_keyDown = false;
 var g_playerCountElement = null;
 var g_numLeftElement = null;
 var g_numForwardElement = null;
@@ -109,9 +113,14 @@ function init()
         log("WARNING: missing some stats elements");
     }
 
-    // plug mouse inputs
+    // plug inputs
+	g_canvas.onmouseup = mouseDown;
 	g_canvas.onmouseup = mouseUp;
 	g_canvas.oncontextmenu = function() { return false; };
+    g_canvas.onselectstart = function() {return false;} // ie
+    g_canvas.onmousedown = function() {return false;} // mozilla
+    document.onkeydown = keyDown;
+    document.onkeyup = keyUp;
 
     // connect to node.js server
     g_socket = io.connect(SERVER_ADDRESS);
@@ -119,6 +128,10 @@ function init()
     {
         processPing(message)
     });
+}
+
+function mouseDown(e)
+{
 }
 
 function mouseUp(e)
@@ -144,6 +157,33 @@ function mouseUp(e)
         g_clickX = x;
         g_clickY = y;
         //log("click " + x + "," + y);
+    }
+}
+
+function keyDown(e)
+{
+	/*var ev = null;
+	if ( IE ) ev = event;
+	else ev = e;
+    if ( ev == null ) return;
+
+    switch ( ev.keyCode )
+    {
+    case 37: case 81: case 65: minus_input_left_pressed = true; break;
+    case 38: case 90: case 87: minus_input_up_pressed = true; break;
+    case 39: case 68: minus_input_right_pressed = true; break;
+    case 40: case 83: minus_input_down_pressed = true; break;
+    }*/
+}
+
+function keyUp(e)
+{
+    switch (e.keyCode)
+    {
+    case 37: case 81: case 65: g_keyLeft = true; break;
+    case 38: case 90: case 87: g_keyUp = true; break;
+    case 39: case 68: g_keyRight = true; break;
+    case 40: case 83: g_keyDown = true; break;
     }
 }
 
@@ -342,6 +382,32 @@ function update()
                     if (direction == "east") vote("left");
                 }
             }
+        }
+
+        // apply keyboard input
+        if (g_keyLeft)
+        {
+            if (direction == "west") vote("forward");
+            else if (direction == "south") vote("right");
+            else if (direction == "north") vote("left");
+        }
+        else if (g_keyUp)
+        {
+            if (direction == "north") vote("forward");
+            else if (direction == "east") vote("left");
+            else if (direction == "west") vote("right");
+        }
+        else if (g_keyRight)
+        {
+            if (direction == "south") vote("left");
+            else if (direction == "east") vote("forward");
+            else if (direction == "north") vote("right");
+        }
+        else if (g_keyDown)
+        {
+            if (direction == "south") vote("forward");
+            else if (direction == "east") vote("right");
+            else if (direction == "west") vote("left");
         }
 
         // draw apples
@@ -556,6 +622,10 @@ function update()
     // reset input
     g_clickX = -1;
     g_clickY = -1;
+    g_keyLeft = false;
+    g_keyUp = false;
+    g_keyRight = false;
+    g_keyDown = false;
 
     updateStats();
 }
