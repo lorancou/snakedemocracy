@@ -124,6 +124,7 @@ a.nav-item:hover
 	width:480px;
 	height:480px;
 	padding:3px;
+	margin-left:16px;
 }
 
 #stats
@@ -132,7 +133,6 @@ a.nav-item:hover
 	background-image:url(bg-stats.jpg);
 	width:170px;
 	height:480px;
-	margin-left:16px;
 }
 
 #stats-0

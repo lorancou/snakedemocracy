@@ -33,7 +33,6 @@
                     <input type="button" id="voteForward" value="vote forward" onclick="vote('forward')"/>
                     <input type="button" id="voteRight" value="vote right" onclick="vote('right')"/>
                 </p>-->
-                <div id="canvas-box"><canvas id="canvas" width="480" height="480"></canvas></div>
        	        <div id="stats">
                   <div class="filler" id="stats-0">&nbsp;</div>
                   <div class="digits" id="playerCount">156</div>
@@ -51,13 +50,14 @@
                   <p id="numRight">0 right</p>
                   <p id="score">score</p>-->
                 </div>
+                <div id="canvas-box"><canvas id="canvas" width="480" height="480"></canvas></div>
                 <div id="feed">
                 	<script>
                     new TWTR.Widget({
                       version: 2,
                       type: 'search',
                       search: '#snakedemocracy',
-                      interval: 30000,
+                      interval: 4000,
                       title: 'This is where it feeds',
                       subject: 'SnakeDemocracy',
                       width: 224,
@@ -74,10 +74,10 @@
                         }
                       },
                       features: {
-                        scrollbar: true,
+                        scrollbar: false,
                         loop: false,
                         live: true,
-                        behavior: 'default'
+                        behavior: 'all'
                       }
                     }).render().start();
                     </script>
