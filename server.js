@@ -10,6 +10,7 @@ eval(fs.readFileSync('vec2.js')+'');
 var g_sockets = null;
 var g_votes = null;
 var g_snake = null;
+var g_apples = null;
 var g_opinion = null;
 var g_direction = null;
 var g_state = null;
@@ -21,6 +22,7 @@ var g_pauseTimeoutHandle = null;
 
 // global constants
 var AREA_SIZE = 20;
+var STARTUP_APPLE_COUNT = 3;
 
 app.listen(80);
 
@@ -81,6 +83,7 @@ function init()
 {
     g_votes = new Array();
     g_snake = new Array();
+    g_apples = new Array();
 
     g_opinion = {};
     g_opinion.current = "forward";
@@ -105,7 +108,7 @@ io.sockets.on("connection", function (socket)
 
     // log connection
     console.log("new client");
-    socket.emit("ping", { snake : g_snake, state : g_state });
+    socket.emit("ping", { snake : g_snake, apples : g_apples, state : g_state });
 
     // receive client message
     socket.on("message", function (_message)
@@ -156,8 +159,12 @@ function startGame()
     g_snake.push(new vec2(10, 11));
     g_snake.push(new vec2(10, 12));
 
+    // start with some random apples
+    g_apples = new Array();
+    spawnApple(STARTUP_APPLE_COUNT, false);
+
     // "unlock" clients, time to play and vote!!
-    g_state = { name : "playing", snake : g_snake };
+    g_state = { name : "playing", snake : g_snake, apples : g_apples };
     broadcast(g_state);
     
     // plan next move
@@ -380,6 +387,19 @@ function move()
         var message = { name : "opinion", value : g_opinion };
         broadcast(message);
 
+        // check for apples pickup
+        for (var a=0; a<g_apples.length; ++a)
+        {
+            if (g_apples[a].x == newHead.x &&
+                g_apples[a].y == newHead.y)
+            {
+                pickupApple(a);
+                spawnApple(1, true);
+                g_pendingGrow = true;
+                break; // 2+ apples at the same spot shouln't not happen. normally.
+            }
+        }
+
         // plan next move
         planNextMove();
     }
@@ -446,6 +466,75 @@ function processVote(_socket, _value)
 
     // broadcast it
     var message = { name : "opinion", value : g_opinion };
+    broadcast(message);
+}
+
+function spawnApple(_count, _broadcast)
+{
+    // collect available slots
+    var slots = new Array();
+    for (var x=0; x<AREA_SIZE; ++x)
+    {
+        for (var y=0; y<AREA_SIZE; ++y)
+        {
+            // snake here?
+            var snakeStandsHere = false;
+            for (var i=0; i<g_snake.length; ++i)
+            {
+                if (g_snake[i].x == x && g_snake[i].y == y)
+                {
+                    snakeStandsHere = true;
+                    break;
+                }
+            }
+
+            // apple here?
+            var appleStandsHere = false;
+            for (var i=0; i<g_apples.length; ++i)
+            {
+                if (g_apples[i].x == x && g_apples[i].y == y)
+                {
+                    appleStandsHere = true;
+                    break;
+                }
+            }
+
+            if (!(snakeStandsHere || appleStandsHere))
+            {
+                slots.push(new vec2(x, y));
+            }
+        }
+    }
+
+    // spawn _count apples
+    for (var a=0; a<_count; ++a)
+    {
+        if (slots.length == 0)
+        {
+            break;
+        }
+
+        // pick a random slot
+        var idx = Math.floor(Math.random()*(slots.length+1));
+        g_apples.push(slots[idx]);
+        
+        // broadcast spawn
+        if (_broadcast)
+        {
+            var message = { name : "spawn", value : "apple", position : slots[idx] };
+            broadcast(message);
+        }
+
+        // remove slot from array
+        slots.splice(idx, 1); 
+    }
+}
+
+function pickupApple(_idx)
+{
+    // remove apple, broadcast
+    g_apples.splice(_idx, 1);
+    var message = { name : "pickup", value : "apple", idx : _idx };
     broadcast(message);
 }
 

@@ -10,6 +10,7 @@ var g_canvas = null;
 var g_socket = null;
 var g_assets = null;
 var g_snake = null;
+var g_apples = null;
 var g_opinion = null;
 var g_state = null;
 var g_clickX = -1;
@@ -54,6 +55,7 @@ var g_arrowGoldPaths =
     south : "files/arrow_gold_s.png"
 }
 var g_fullgridPath = "files/fullgrid.png";
+var g_applePath = "files/apple.png";
 
 function log(msg)
 {
@@ -124,11 +126,21 @@ function mouseUp(e)
 // ping, first message, inits the snake
 function processPing(message)
 {
+    // copy initial snake
     g_snake = new Array();
     for (var i=0; i<message.snake.length; ++i)
     {
         g_snake.push(new vec2(message.snake[i].x, message.snake[i].y));
     }
+
+    // copy initial apples
+    g_apples = new Array();
+    for (var i=0; i<message.apples.length; ++i)
+    {
+        g_apples.push(new vec2(message.apples[i].x, message.apples[i].y));
+    }
+
+    // set game state
     g_state = message.state;
     if (!g_state.name)
     {
@@ -162,6 +174,7 @@ function processPing(message)
     g_assets.queueDownload(g_arrowGoldPaths.south);
     g_assets.queueDownload(g_arrowGoldPaths.north);
     g_assets.queueDownload(g_fullgridPath);
+    g_assets.queueDownload(g_applePath);
 
     // download assets and run
     g_assets.downloadAll(update);
@@ -303,6 +316,17 @@ function update()
                     if (direction == "east") vote("left");
                 }
             }
+        }
+
+        // draw apples
+        for (var i=0; i<g_apples.length; ++i)
+        {
+            var appleCoords = getScreenCoords(g_apples[i]);
+            g_context.drawImage(
+                g_assets.cache[g_applePath],
+                appleCoords.x, appleCoords.y,
+                SPRITE_SIZE, SPRITE_SIZE
+            );
         }
 
         // draw tail
@@ -567,10 +591,33 @@ function processMessage(_message)
     else if (_message.name == "playing")
     {
         g_state = { name : _message.name  };
+
+        // copy snakes
         g_snake = new Array();
         for (var i=0; i<_message.snake.length; ++i)
         {
             g_snake.push(new vec2(_message.snake[i].x, _message.snake[i].y)); // meh??
+        }
+
+        // copy apples
+        g_apples = new Array();
+        for (var i=0; i<_message.apples.length; ++i)
+        {
+            g_apples.push(new vec2(_message.apples[i].x, _message.apples[i].y)); // meh??
+        }
+    }
+    else if (_message.name == "spawn")
+    {
+        if (_message.value == "apple")
+        {
+            g_apples.push(new vec2(_message.position.x, _message.position.y));
+        }
+    }
+    else if (_message.name == "pickup")
+    {
+        if (_message.value == "apple")
+        {
+            g_apples.splice(_message.idx, 1);
         }
     }
     if (!g_state.name)
