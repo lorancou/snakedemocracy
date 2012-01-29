@@ -180,6 +180,9 @@ function startGame()
     g_apples = new Array();
     spawnApple(STARTUP_APPLE_COUNT, false);
 
+    // fix that infinite victory loop. so long!
+    g_direction = "south";
+
     // "unlock" clients, time to play and vote!!
     g_state = { name : "playing", snake : g_snake, apples : g_apples };
     broadcast(g_state);
