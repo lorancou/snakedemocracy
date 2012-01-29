@@ -3,6 +3,7 @@ var SERVER_ADDRESS = "snakedemocracy.dyndns.org";
 var CANVAS_WIDTH = 480;
 var CANVAS_HEIGHT = 480;
 var SPRITE_SIZE = 24;
+var SELECT_FRAMES = 3;
 
 // global variables
 var g_context = null;
@@ -21,6 +22,10 @@ var g_keyLeft = false;
 var g_keyUp = false;
 var g_keyRight = false;
 var g_keyDown = false;
+var g_selectEast = -1;
+var g_selectWest = -1;
+var g_selectSouth = -1;
+var g_selectNorth = -1;
 var g_playerCountElement = null;
 var g_numLeftElement = null;
 var g_numForwardElement = null;
@@ -64,6 +69,13 @@ var g_arrowGoldPaths =
     west : "files/arrow_gold_w.png",
     north : "files/arrow_gold_n.png",
     south : "files/arrow_gold_s.png"
+}
+var g_arrowSelectPaths =
+{
+    east : "files/arrow_select_e.png",
+    west : "files/arrow_select_w.png",
+    north : "files/arrow_select_n.png",
+    south : "files/arrow_select_s.png"
 }
 var g_applePath = "files/apple.png";
 var g_fullgridPath = "files/fullgrid.png";
@@ -114,11 +126,11 @@ function init()
     }
 
     // plug inputs
-	g_canvas.onmouseup = mouseDown;
+	g_canvas.onmousedown = mouseDown;
 	g_canvas.onmouseup = mouseUp;
 	g_canvas.oncontextmenu = function() { return false; };
     g_canvas.onselectstart = function() {return false;} // ie
-    g_canvas.onmousedown = function() {return false;} // mozilla
+    //g_canvas.onmousedown = function() {return false;} // mozilla
     document.onkeydown = keyDown;
     document.onkeyup = keyUp;
 
@@ -132,10 +144,8 @@ function init()
 
 function mouseDown(e)
 {
-}
+    log("mouse down");
 
-function mouseUp(e)
-{
 	var button = null;	
 	if (e.button) button = e.button;
 	else button = e.which;
@@ -158,25 +168,15 @@ function mouseUp(e)
         g_clickY = y;
         //log("click " + x + "," + y);
     }
+
+    return false;
+}
+
+function mouseUp(e)
+{
 }
 
 function keyDown(e)
-{
-	/*var ev = null;
-	if ( IE ) ev = event;
-	else ev = e;
-    if ( ev == null ) return;
-
-    switch ( ev.keyCode )
-    {
-    case 37: case 81: case 65: minus_input_left_pressed = true; break;
-    case 38: case 90: case 87: minus_input_up_pressed = true; break;
-    case 39: case 68: minus_input_right_pressed = true; break;
-    case 40: case 83: minus_input_down_pressed = true; break;
-    }*/
-}
-
-function keyUp(e)
 {
     switch (e.keyCode)
     {
@@ -185,6 +185,10 @@ function keyUp(e)
     case 39: case 68: g_keyRight = true; break;
     case 40: case 83: g_keyDown = true; break;
     }
+}
+
+function keyUp(e)
+{
 }
 
 // ping, first message, inits the snake
@@ -237,6 +241,10 @@ function processPing(message)
     g_assets.queueDownload(g_arrowGoldPaths.west);
     g_assets.queueDownload(g_arrowGoldPaths.south);
     g_assets.queueDownload(g_arrowGoldPaths.north);
+    g_assets.queueDownload(g_arrowSelectPaths.east);
+    g_assets.queueDownload(g_arrowSelectPaths.west);
+    g_assets.queueDownload(g_arrowSelectPaths.south);
+    g_assets.queueDownload(g_arrowSelectPaths.north);
     g_assets.queueDownload(g_applePath);
     g_assets.queueDownload(g_fullgridPath);
     g_assets.queueDownload(g_victoryPath);
@@ -359,12 +367,14 @@ function update()
                     if (direction == "north") vote("right");
                     if (direction == "east") vote("forward");
                     if (direction == "south") vote("left");
+                    g_selectEast = SELECT_FRAMES;
                 }
                 else if (x == headPos.x-1)
                 {
                     if (direction == "south") vote("right");
                     if (direction == "west") vote("forward");
                     if (direction == "north") vote("left");
+                    g_selectWest = SELECT_FRAMES;
                 }
             }
             else if (x == headPos.x)
@@ -374,12 +384,14 @@ function update()
                     if (direction == "east") vote("right");
                     if (direction == "south") vote("forward");
                     if (direction == "west") vote("left");
+                    g_selectSouth = SELECT_FRAMES;
                 }
                 else if (y == headPos.y-1)
                 {
                     if (direction == "west") vote("right");
                     if (direction == "north") vote("forward");
                     if (direction == "east") vote("left");
+                    g_selectNorth = SELECT_FRAMES;
                 }
             }
         }
@@ -390,24 +402,28 @@ function update()
             if (direction == "west") vote("forward");
             else if (direction == "south") vote("right");
             else if (direction == "north") vote("left");
+            if (direction != "east") g_selectWest = SELECT_FRAMES;
         }
         else if (g_keyUp)
         {
             if (direction == "north") vote("forward");
             else if (direction == "east") vote("left");
             else if (direction == "west") vote("right");
+            if (direction != "south") g_selectNorth = SELECT_FRAMES;
         }
         else if (g_keyRight)
         {
             if (direction == "south") vote("left");
             else if (direction == "east") vote("forward");
             else if (direction == "north") vote("right");
+            if (direction != "west") g_selectEast = SELECT_FRAMES;
         }
         else if (g_keyDown)
         {
             if (direction == "south") vote("forward");
             else if (direction == "east") vote("right");
             else if (direction == "west") vote("left");
+            if (direction != "north") g_selectSouth = SELECT_FRAMES;
         }
 
         // draw apples
@@ -553,6 +569,16 @@ function update()
                     SPRITE_SIZE, SPRITE_SIZE
                 );
             }
+            if (g_selectEast>0)
+            {
+                var point = new vec2(head.x+1, head.y);
+                var coords = getScreenCoords(point);
+                g_context.drawImage(
+                    g_assets.cache[g_arrowSelectPaths.east],
+                    coords.x, coords.y,
+                    SPRITE_SIZE, SPRITE_SIZE
+                );
+            }
             if (drawWest)
             {
                 var point = new vec2(head.x-1, head.y);
@@ -561,6 +587,16 @@ function update()
                     (drawGold == "west")
                         ? g_assets.cache[g_arrowGoldPaths.west]
                         : g_assets.cache[g_arrowPaths.west],
+                    coords.x, coords.y,
+                    SPRITE_SIZE, SPRITE_SIZE
+                );
+            }
+            if (g_selectWest>0)
+            {
+                var point = new vec2(head.x-1, head.y);
+                var coords = getScreenCoords(point);
+                g_context.drawImage(
+                    g_assets.cache[g_arrowSelectPaths.west],
                     coords.x, coords.y,
                     SPRITE_SIZE, SPRITE_SIZE
                 );
@@ -577,6 +613,16 @@ function update()
                     SPRITE_SIZE, SPRITE_SIZE
                 );
             }
+            if (g_selectSouth>0)
+            {
+                var point = new vec2(head.x, head.y+1);
+                var coords = getScreenCoords(point);
+                g_context.drawImage(
+                    g_assets.cache[g_arrowSelectPaths.south],
+                    coords.x, coords.y,
+                    SPRITE_SIZE, SPRITE_SIZE
+                );
+            }
             if (drawNorth)
             {
                 var point = new vec2(head.x, head.y-1);
@@ -585,6 +631,16 @@ function update()
                     (drawGold == "north")
                         ? g_assets.cache[g_arrowGoldPaths.north]
                         : g_assets.cache[g_arrowPaths.north],
+                    coords.x, coords.y,
+                    SPRITE_SIZE, SPRITE_SIZE
+                );
+            }
+            if (g_selectNorth>0)
+            {
+                var point = new vec2(head.x, head.y-1);
+                var coords = getScreenCoords(point);
+                g_context.drawImage(
+                    g_assets.cache[g_arrowSelectPaths.north],
                     coords.x, coords.y,
                     SPRITE_SIZE, SPRITE_SIZE
                 );
@@ -626,6 +682,10 @@ function update()
     g_keyUp = false;
     g_keyRight = false;
     g_keyDown = false;
+    if (g_selectEast > 0) --g_selectEast;
+    if (g_selectWest > 0) --g_selectWest;
+    if (g_selectSouth > 0) --g_selectSouth;
+    if (g_selectNorth > 0) --g_selectNorth;
 
     updateStats();
 }
