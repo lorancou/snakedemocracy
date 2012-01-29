@@ -16,8 +16,29 @@ var g_clickX = -1;
 var g_clickY = -1;
 
 // assets
-var g_headPath = "files/head.png";
-var g_bodyPath = "files/body.png";
+var g_headPaths =
+{
+    east : "files/snake_head_e.png",
+    west : "files/snake_head_w.png",
+    north : "files/snake_head_n.png",
+    south : "files/snake_head_s.png"
+}
+var g_bodyPaths =
+{
+    hz : "files/snake_h.png",
+    vt : "files/snake_v.png",
+    es : "files/snake_es.png",
+    sw : "files/snake_sw.png",
+    wn : "files/snake_wn.png",
+    ne : "files/snake_ne.png"
+}
+var g_tailPaths =
+{
+    east : "files/snake_tails_e.png",
+    west : "files/snake_tails_w.png",
+    north : "files/snake_tails_n.png",
+    south : "files/snake_tails_s.png"
+}
 var g_arrowPaths =
 {
     east : "files/arrow_e.png",
@@ -32,6 +53,7 @@ var g_arrowGoldPaths =
     north : "files/arrow_gold_n.png",
     south : "files/arrow_gold_s.png"
 }
+var g_fullgridPath = "files/fullgrid.png";
 
 function log(msg)
 {
@@ -117,8 +139,20 @@ function processPing(message)
 
     // queue assets
     g_assets = new AssetManager();
-    g_assets.queueDownload(g_headPath);
-    g_assets.queueDownload(g_bodyPath);
+    g_assets.queueDownload(g_headPaths.east);
+    g_assets.queueDownload(g_headPaths.west);
+    g_assets.queueDownload(g_headPaths.south);
+    g_assets.queueDownload(g_headPaths.north);
+    g_assets.queueDownload(g_bodyPaths.hz);
+    g_assets.queueDownload(g_bodyPaths.vt);
+    g_assets.queueDownload(g_bodyPaths.es);
+    g_assets.queueDownload(g_bodyPaths.sw);
+    g_assets.queueDownload(g_bodyPaths.wn);
+    g_assets.queueDownload(g_bodyPaths.ne);
+    g_assets.queueDownload(g_tailPaths.east);
+    g_assets.queueDownload(g_tailPaths.west);
+    g_assets.queueDownload(g_tailPaths.south);
+    g_assets.queueDownload(g_tailPaths.north);
     g_assets.queueDownload(g_arrowPaths.east);
     g_assets.queueDownload(g_arrowPaths.west);
     g_assets.queueDownload(g_arrowPaths.south);
@@ -127,6 +161,7 @@ function processPing(message)
     g_assets.queueDownload(g_arrowGoldPaths.west);
     g_assets.queueDownload(g_arrowGoldPaths.south);
     g_assets.queueDownload(g_arrowGoldPaths.north);
+    g_assets.queueDownload(g_fullgridPath);
 
     // download assets and run
     g_assets.downloadAll(update);
@@ -189,81 +224,206 @@ function update()
     setTimeout("update()", 0.0);
 
     // clear canvas
-    g_context.fillStyle = "#000000";
-    g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    //g_context.fillStyle = "#000000";
+    //g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    g_context.drawImage(
+        g_assets.cache[g_fullgridPath],
+        0, 0,
+        CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    if (g_snake.length > 0)
+    if (g_snake.length > 1)
     {
-        // draw all snake body elements
-        for (var i=0; i<g_snake.length-1; i++)
+        // determine head direction...
+        var head = g_snake[g_snake.length-1].clone();
+        var neck = g_snake[g_snake.length-2].clone();
+        var direction = null;
+        if (head.x != neck.x)
         {
-            var screenCoords = getScreenCoords(g_snake[i]);
+            if (head.x > neck.x) direction = "east";
+            else direction = "west";
+        }
+        else
+        {
+            if (head.y > neck.y) direction = "south";
+            else direction = "north";
+        }
+
+        // .. and tail direction
+        var pretail = g_snake[1].clone();
+        var tail = g_snake[0].clone();
+        var tailDirection = null;
+        if (pretail.x != tail.x)
+        {
+            if (pretail.x > tail.x) tailDirection = "east";
+            else tailDirection = "west";
+        }
+        else
+        {
+            if (pretail.y > tail.y) tailDirection = "south";
+            else tailDirection = "north";
+        }
+
+        // apply mouse input
+        if (g_clickX != -1 && g_clickY != -1)
+        {
+            var headPos = g_snake[g_snake.length-1];
+            var x = Math.floor(g_clickX / SPRITE_SIZE);
+            var y = Math.floor(g_clickY / SPRITE_SIZE);
+            
+            log(headPos.x + "," + headPos.y);
+            log(x + "," + y);
+            
+            if (y == headPos.y)
+            {
+                if (x == headPos.x+1)
+                {
+                    if (direction == "north") vote("right");
+                    if (direction == "east") vote("forward");
+                    if (direction == "south") vote("left");
+                }
+                else if (x == headPos.x-1)
+                {
+                    if (direction == "south") vote("right");
+                    if (direction == "west") vote("forward");
+                    if (direction == "north") vote("left");
+                }
+            }
+            else if (x == headPos.x)
+            {
+                if (y == headPos.y+1)
+                {
+                    if (direction == "east") vote("right");
+                    if (direction == "south") vote("forward");
+                    if (direction == "west") vote("left");
+                }
+                else if (y == headPos.y-1)
+                {
+                    if (direction == "west") vote("right");
+                    if (direction == "north") vote("forward");
+                    if (direction == "east") vote("left");
+                }
+            }
+        }
+
+        // draw tail
+        var tailCoords = getScreenCoords(tail);
+        var tailImg = null;
+        if (tailDirection == "east") tailImg = g_assets.cache[g_tailPaths.east];
+        else if (tailDirection == "west") tailImg = g_assets.cache[g_tailPaths.west];
+        else if (tailDirection == "south") tailImg = g_assets.cache[g_tailPaths.south];
+        else /*(tailDirection == "north")*/ tailImg = g_assets.cache[g_tailPaths.north];
+        g_context.drawImage(
+            tailImg,
+            tailCoords.x, tailCoords.y,
+            SPRITE_SIZE, SPRITE_SIZE
+        );
+
+        // draw all snake body elements
+        for (var i=1; i<g_snake.length-1; i++)
+        {
+            var previous = g_snake[i+1].clone();
+            var current = g_snake[i].clone();
+            var next = g_snake[i-1].clone();
+            var prevDir = null;
+            var nextDir = null;
+            if (previous.x != current.x)
+            {
+                if (previous.x > current.x) prevDir = "east";
+                else prevDir = "west";
+            }
+            else
+            {
+                if (previous.y > current.y) prevDir = "south";
+                else prevDir = "north";
+            }
+            if (current.x != next.x)
+            {
+                if (current.x > next.x) nextDir = "west";
+                else nextDir = "east";
+            }
+            else
+            {
+                if (current.y > next.y) nextDir = "north";
+                else nextDir = "south";
+            }
+
+            var bodyCoords = getScreenCoords(g_snake[i]);
+            var bodyImg = null;
+            if (prevDir == "east" && nextDir == "west") bodyImg = g_assets.cache[g_bodyPaths.hz];
+            else if (nextDir == "east" && prevDir == "west") bodyImg = g_assets.cache[g_bodyPaths.hz];
+            else if (prevDir == "south" && nextDir == "north") bodyImg = g_assets.cache[g_bodyPaths.vt];
+            else if (nextDir == "south" && prevDir == "north") bodyImg = g_assets.cache[g_bodyPaths.vt];
+            else if (prevDir == "east" && nextDir == "south") bodyImg = g_assets.cache[g_bodyPaths.es];
+            else if (nextDir == "east" && prevDir == "south") bodyImg = g_assets.cache[g_bodyPaths.es];
+            else if (prevDir == "south" && nextDir == "west") bodyImg = g_assets.cache[g_bodyPaths.sw];
+            else if (nextDir == "south" && prevDir == "west") bodyImg = g_assets.cache[g_bodyPaths.sw];
+            else if (prevDir == "west" && nextDir == "north") bodyImg = g_assets.cache[g_bodyPaths.wn];
+            else if (nextDir == "west" && prevDir == "north") bodyImg = g_assets.cache[g_bodyPaths.wn];
+            else if (prevDir == "north" && nextDir == "east") bodyImg = g_assets.cache[g_bodyPaths.ne];
+            else if (nextDir == "north" && prevDir == "east") bodyImg = g_assets.cache[g_bodyPaths.ne];
+            else log(prevDir + "/" + nextDir);
             g_context.drawImage(
-                g_assets.cache[g_bodyPath],
-                screenCoords.x, screenCoords.y,
+                bodyImg,
+                bodyCoords.x, bodyCoords.y,
                 SPRITE_SIZE, SPRITE_SIZE
             );
         }
         
         // draw head
-        var headCoords = getScreenCoords(g_snake[g_snake.length-1]);
+        var headCoords = getScreenCoords(head);
+        var headImg = null;
+        if (direction == "east") headImg = g_assets.cache[g_headPaths.east];
+        else if (direction == "west") headImg = g_assets.cache[g_headPaths.west];
+        else if (direction == "south") headImg = g_assets.cache[g_headPaths.south];
+        else /*(direction == "north")*/ headImg = g_assets.cache[g_headPaths.north];
         g_context.drawImage(
-            g_assets.cache[g_headPath],
+            headImg,
             headCoords.x, headCoords.y,
             SPRITE_SIZE, SPRITE_SIZE
         );
         
         // draw opinion
-        if (g_opinion && g_snake && g_snake.length>=2)
+        if (g_opinion)
         {
-            var head = g_snake[g_snake.length-1].clone();
-            var neck = g_snake[g_snake.length-2].clone();
             var drawEast = true;
             var drawWest = true;
             var drawSouth = true;
             var drawNorth = true;
-            var direction = null;
-            if (head.x != neck.x)
+
+            // east
+            if (direction == "east")
             {
-                // east
-                if (head.x > neck.x)
-                {
-                    direction = "east";
-                    drawWest = false;
-                    if (g_opinion.current == "forward") drawGold = "east";
-                    else if (g_opinion.current == "left") drawGold = "north";
-                    else if (g_opinion.current == "right") drawGold = "south";
-                }
-                // west
-                else
-                {
-                    direction = "west";
-                    drawEast = false;
-                    if (g_opinion.current == "forward") drawGold = "west";
-                    else if (g_opinion.current == "left") drawGold = "south";
-                    else if (g_opinion.current == "right") drawGold = "north";
-                }
+                drawWest = false;
+                if (g_opinion.current == "forward") drawGold = "east";
+                else if (g_opinion.current == "left") drawGold = "north";
+                else if (g_opinion.current == "right") drawGold = "south";
             }
+            // west
+            else if (direction == "west")
+            {
+                direction = "west";
+                drawEast = false;
+                if (g_opinion.current == "forward") drawGold = "west";
+                else if (g_opinion.current == "left") drawGold = "south";
+                else if (g_opinion.current == "right") drawGold = "north";
+            }
+            // south
+            else if (direction == "south")
+            {
+                direction = "south";
+                drawNorth = false;
+                if (g_opinion.current == "forward") drawGold = "south";
+                else if (g_opinion.current == "left") drawGold = "east";
+                else if (g_opinion.current == "right") drawGold = "west";
+            }
+            // north
             else
             {
-                // south
-                if (head.y > neck.y)
-                {
-                    direction = "south";
-                    drawNorth = false;
-                    if (g_opinion.current == "forward") drawGold = "south";
-                    else if (g_opinion.current == "left") drawGold = "east";
-                    else if (g_opinion.current == "right") drawGold = "west";
-                }
-                // north
-                else
-                {
-                    direction = "north";
-                    drawSouth = false;
-                    if (g_opinion.current == "forward") drawGold = "north";
-                    else if (g_opinion.current == "left") drawGold = "west";
-                    else if (g_opinion.current == "right") drawGold = "east";
-                }
+                direction = "north";
+                drawSouth = false;
+                if (g_opinion.current == "forward") drawGold = "north";
+                else if (g_opinion.current == "left") drawGold = "west";
+                else if (g_opinion.current == "right") drawGold = "east";
             }
 
             if (drawEast)
@@ -313,57 +473,6 @@ function update()
                     coords.x, coords.y,
                     SPRITE_SIZE, SPRITE_SIZE
                 );
-            }
-            
-            /*var lastCoords = getScreenCoords(g_snake[g_snake.length-1], true);
-            g_context.strokeStyle = "#FF00FF";
-            g_context.beginPath();
-            g_context.moveTo(lastCoords.x, lastCoords.y);
-            g_context.lineTo(lastCoords.x + g_opinion.x*32, lastCoords.y + g_opinion.y*32);
-            g_context.closePath();
-            g_context.stroke();*/
-
-            // apply mouse input
-            // getting tired... 4h of sleep... updating inputs inside a draw thing, yep.
-            if (g_clickX != -1 && g_clickY != -1)
-            {
-                var headPos = g_snake[g_snake.length-1];
-                var x = Math.floor(g_clickX / SPRITE_SIZE);
-                var y = Math.floor(g_clickY / SPRITE_SIZE);
-
-                log(headPos.x + "," + headPos.y);
-                log(x + "," + y);
-                
-                if (y == headPos.y)
-                {
-                    if (x == headPos.x+1)
-                    {
-                        if (direction == "north") vote("right");
-                        if (direction == "east") vote("forward");
-                        if (direction == "south") vote("left");
-                    }
-                    else if (x == headPos.x-1)
-                    {
-                        if (direction == "south") vote("right");
-                        if (direction == "west") vote("forward");
-                        if (direction == "north") vote("left");
-                    }
-                }
-                else if (x == headPos.x)
-                {
-                    if (y == headPos.y+1)
-                    {
-                        if (direction == "east") vote("right");
-                        if (direction == "south") vote("forward");
-                        if (direction == "west") vote("left");
-                    }
-                    else if (y == headPos.y-1)
-                    {
-                        if (direction == "west") vote("right");
-                        if (direction == "north") vote("forward");
-                        if (direction == "east") vote("left");
-                    }
-                }
             }
         }
     }
