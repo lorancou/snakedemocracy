@@ -537,10 +537,13 @@ function spawnApple(_count, _broadcast)
             var appleStandsHere = false;
             for (var i=0; i<g_apples.length; ++i)
             {
-                if (g_apples[i].x == x && g_apples[i].y == y)
+                if (g_apples[i]) // CRASH FIX :/
                 {
-                    appleStandsHere = true;
-                    break;
+                    if (g_apples[i].x == x && g_apples[i].y == y)
+                    {
+                        appleStandsHere = true;
+                        break;
+                    }
                 }
             }
 
