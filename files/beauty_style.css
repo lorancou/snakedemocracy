@@ -128,12 +128,45 @@ a.nav-item:hover
 
 #stats
 {
-    background-color: magenta;
-	float:left;
-	/*background-image:url(canvas-bg.gif);*/
+   	float:left;
+	background-image:url(bg-stats.jpg);
 	width:170px;
 	height:480px;
 	margin-left:16px;
+}
+
+#stats-0
+{
+	height:50px;
+}
+#stats-2
+{
+	height:43px;
+}
+#stats-4
+{
+	height:41px;
+}
+#stats-6
+{
+	height:41px;
+}
+#stats-8
+{
+	height:52px;
+}
+
+div.filler
+{
+	background-color:transparent;
+}
+div.digits
+{
+	background-color:transparent;
+	color:#000000;
+	font:24px calibri,arial,sans-serif;
+	font-weight:bold;
+	text-align:center;
 }
 
 #feed
