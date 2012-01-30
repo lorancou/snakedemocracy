@@ -6,6 +6,7 @@
 Client:
  - Hide score on defeat
  - Active/inactive players
+ - Detect server restart / DOS
 
 Website
  - Victory tweet
