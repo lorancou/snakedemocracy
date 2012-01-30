@@ -1,5 +1,5 @@
 // global constants
-var SERVER_ADDRESS = "snakedemocracy.dyndns.org";
+var SERVER_ADDRESS = "snakedemocracy.herokuapp.com";
 var CANVAS_WIDTH = 480;
 var CANVAS_HEIGHT = 480;
 var SPRITE_SIZE = 24;
