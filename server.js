@@ -36,11 +36,11 @@ var g_tweets = 0;
 var AREA_SIZE = 20;
 var STARTUP_APPLE_COUNT = 3;
 
+//app.listen(80);
 var port = process.env.PORT || 3000;
 app.listen(port, function() {
   console.log("Listening on " + port);
 });
-app.listen(port);
 
 // serve *.html
 app.get("/", function (req, res)
