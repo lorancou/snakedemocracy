@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
     <link rel="shortcut icon" href="files/icon.ico" />
     <script charset="utf-8" src="http://widgets.twimg.com/j/2/widget.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="http://snakedemocracy.herokuapp.com/socket.io/socket.io.js"></script>
     <script src="vec2.js"></script>
     <script src="client.js"></script>
     <link href="files/beauty_style.css" rel="stylesheet" type="text/css" />
@@ -35,22 +35,34 @@
                 </p>-->
        	        <div id="stats">
                   <div class="filler" id="stats-0">&nbsp;</div>
-                  <div class="digits" id="playerCount">156</div>
+                  <div class="digits" id="playerCount">&#x2014;</div>
                   <div class="filler" id="stats-2">&nbsp;</div>
-                  <div class="digits" id="numLeft">156</div>
+                  <div class="digits" id="numLeft">&#x2014;</div>
                   <div class="filler" id="stats-4">&nbsp;</div>
-                  <div class="digits" id="numForward">156</div>
+                  <div class="digits" id="numForward">&#x2014;</div>
                   <div class="filler" id="stats-6">&nbsp;</div>
-                  <div class="digits" id="numRight">156</div>
+                  <div class="digits" id="numRight">&#x2014;</div>
                   <div class="filler" id="stats-8">&nbsp;</div>
-                  <div class="digits" id="score">156 pts</div>
+                  <div class="digits" id="score">&#x2014;</div>
                   <!--<p id="playerCount">0 player :(</p>
                   <p id="numLeft">0 left</p>
                   <p id="numForward">0 forward</p>
                   <p id="numRight">0 right</p>
                   <p id="score">score</p>-->
                 </div>
-                <div id="canvas-box"><canvas id="canvas" width="480" height="480"></canvas></div>
+                <div id="canvas-box">
+                  <canvas id="canvas" width="480" height="480">
+                    <div id="nocanvas">
+                      <p>Your browser doesn't support <a href="http://en.wikipedia.org/wiki/HTML5">HTML5</a>.</p>
+                      <p>To play,
+                      <a href="http://www.firefox.com/">get</a>
+                      <a href="http://www.google.com/chrome/">any</a>
+                      <a href="http://windows.microsoft.com/en-us/internet-explorer/products/ie/home">modern</a>
+                      <a href="http://www.opera.com/browser/">web</a>
+                      <a href="http://www.apple.com/safari/">browser</a>.</p>
+                    </div>
+                  </canvas>
+                </div>
                 <div id="feed">
                 	<script>
                     new TWTR.Widget({
@@ -86,7 +98,12 @@
 		</div>
         <div id="wrap-footer">
             <div id="footer">
-            	Game developed during the 2012 Global Game Jam in Paris at ISART Digital in 48 hours &#x2014; Team : Laurent Couvidou, Alexis Moroz, Christophe Zerr
+            	Game developed during the 2012 Global Game Jam in Paris at ISART Digital in 48 hours &#x2014; Team : Laurent Couvidou, Alexis Moroz, Christophe Zerr.<br/>
+              Copyright (c) 2012 Laurent Couvidou, Christophe Zerr, Alexis Moroz.
+              Source code and asset are available on <a href="https://github.com/lorancou/snakedemocracy">GitHub</a>.
+              Comment and rate on the <a href="http://globalgamejam.org/2012/snake-democracy">GGJ12 project page.</a><br/>
+              The source code is licensed under <a href="http://www.gnu.org/copyleft/gpl.html">the GNU GPL Version 3</a>.
+              Assets are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/2.0/">Creative Commons Attribution-NonCommercial 2.0 Generic License (CC BY-NC 2.0)</a>.<br/>
             </div>
         </div>
     </div>

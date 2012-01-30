@@ -211,3 +211,11 @@ div.digits
     height: 1966px;
 	margin:auto;
 }
+
+#nocanvas
+{
+    text-align: center;
+    margin-top: 200px;
+	font:arial,sans-serif;
+	color:#a5653a;
+}

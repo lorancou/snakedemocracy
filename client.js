@@ -134,12 +134,23 @@ function init()
     document.onkeydown = keyDown;
     document.onkeyup = keyUp;
 
+    log("pre connect");
+    
+    g_context.fillStyle = "#000000";
+    //g_context.font = ;
+    g_context.fillText(
+        "Loading... please be patient, citizen.",
+        150, 240);
+    
     // connect to node.js server
     g_socket = io.connect(SERVER_ADDRESS);
     g_socket.on("ping", function (message)
     {
-        processPing(message)
+        log("ping received");
+        processPing(message);
     });
+
+    log("post connect");
 }
 
 function mouseDown(e)
