@@ -9,6 +9,7 @@ Client:
  - Detect server restart / DOS
 
 Website
+ - Display victory condition after 5 apples eaten
  - Victory tweet
  - Side/promote/apple tweet
  - About page
