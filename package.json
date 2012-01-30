@@ -1,0 +1,21 @@
+{
+  "author": "Laurent Couvidou, Alexis Moroz, Christophe Zerr <snakedemocracy@gmail.com> (http://globalgamejam.org/2012/snake-democracy)",
+  "name": "snakedemocracy",
+  "description": "SnakeDemocracy -- RIGHT. LEFT. VOTE.",
+  "version": "0.0.0",
+  "homepage": "http://www.snakedemocracy.com/",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/lorancou/snakedemocracy.git"
+  },
+  "main": "server.js",
+  "engines": {
+    "node": "~0.6.9"
+  },
+  "dependencies": {
+    "express": "2.5.6",
+    "socket.io": "0.8.7"    
+  },
+  "devDependencies": {},
+  "optionalDependencies": {}
+}
