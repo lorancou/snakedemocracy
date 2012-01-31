@@ -1,20 +1,33 @@
 // usage
 if (process.argv.length < 4)
 {
-    console.log("usage: node ./server.js login password [test]");
+    console.log("usage: node ./server.js login password");
     process.exit();
 }
 
 // requires
-var http = require('http');
-var https = require('https');
+var http = require("http");
+var https = require("https");
 var app = require("express").createServer();
 var io = require("socket.io").listen(app);
-io.set('log level', 0); // no logging
 
+// configure socket.io for production
+io.configure("production", function(){
+    io.enable("browser client minification");  // send minified client
+    io.enable("browser client etag");          // apply etag caching logic based on version number
+    io.enable("browser client gzip");          // gzip the file
+    io.set("log level", 0);                    // no logging
+});
+
+// configure socket.io for production
+io.configure("development", function(){
+    io.set("force new connection");            // for spam bots
+    io.set("log level", 0);                    // no logging
+});
+    
 // DIRTY don't try this at home
-var fs = require('fs');
-eval(fs.readFileSync('vec2.js')+'');
+var fs = require("fs");
+eval(fs.readFileSync("vec2.js")+"");
 
 // global variables
 var g_sockets = null;
@@ -31,7 +44,7 @@ var g_moveTimeoutHandle = null;
 var g_pauseTimeoutHandle = null;
 var g_snakeLengthCache = -1;
 var g_tweets = 0;
-var g_test = (process.argv.length==5) && (process.argv[4]=="test");
+var g_test = (process.env.NODE_ENV == "development");//(process.argv.length==5) && (process.argv[4]=="test");
 
 // global constants
 var AREA_SIZE = 20;
@@ -115,6 +128,15 @@ g_sockets = new Array(); // do NOT put in init
 
 function init()
 {
+    if (g_test)
+    {
+        console.log("Init: development mode");
+    }
+    else
+    {
+        console.log("Init: production mode");
+    }
+    
     g_votes = new Array();
     g_snake = new Array();
     g_apples = new Array();
@@ -144,6 +166,7 @@ function init()
     // start first game
     startGame();
 }
+
 init();
 
 function reportAbuse(_address, _message)
@@ -207,7 +230,7 @@ io.sockets.on("connection", function (socket)
     });
     
     // disconnecting clients
-    socket.on('disconnect', function()
+    socket.on("disconnect", function()
     {
 	    g_sockets = g_sockets.filter(function(s)
         {
@@ -680,26 +703,26 @@ function broadcast(_message)
 var username = process.argv[2];
 var password = process.argv[3];
 
-var auth = 'Basic ' + new Buffer(username + ':' + password).toString('base64');
+var auth = "Basic " + new Buffer(username + ":" + password).toString("base64");
 
 
 var options = {
-    host: 'stream.twitter.com',
+    host: "stream.twitter.com",
     port: 443,
-    path: '/1/statuses/filter.json',
-    headers : {'Host': 'stream.twitter.com', 
-	       'Authorization': auth,
-	       'Content-type': 'application/x-www-form-urlencoded'},
+    path: "/1/statuses/filter.json",
+    headers : {"Host": "stream.twitter.com", 
+	       "Authorization": auth,
+	       "Content-type": "application/x-www-form-urlencoded"},
     method: "POST"
 };
 
 // start receiving tweets
 var buf = "";
 var req = https.request(options, function(res) {
-    //  console.log('STATUS: ' + res.statusCode);
-    //  console.log('HEADERS: ' + JSON.stringify(res.headers));
-    res.setEncoding('utf8');
-    res.on('data', function (chunk) {
+    //  console.log("STATUS: " + res.statusCode);
+    //  console.log("HEADERS: " + JSON.stringify(res.headers));
+    res.setEncoding("utf8");
+    res.on("data", function (chunk) {
 	buf += chunk;
 	var a = buf.split("\r\n");
 	buf = a[a.length-1];
