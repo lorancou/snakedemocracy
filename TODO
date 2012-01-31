@@ -12,7 +12,9 @@ Client:
      * Firefox: "NetworkError: 400 Invalid header received from client - http://snakedemocracy.herokuapp.com/socket.io/1/websocket/8976880731893123008"
  - Fix for paranoïd security software: this: http://housecall.trendmicro.com/
  - Button hold shouldn't send a vote
+ - Max 10 votes per turn
  - Leaving the game running in a hidden tab brings rendering glitches (Opera, at least)
+ - Blink or shine or something to indicate when victory is close
  
 Website
  - Display victory condition after 5 apples eaten
@@ -22,3 +24,6 @@ Website
  
 Server
  - Test server
+ - Wrap on sides
+ - Kick cheaters?
+ 
