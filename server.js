@@ -220,6 +220,10 @@ io.sockets.on("connection", function (socket)
         {
             processRestart(socket, _message.value);
         }
+        else if (_message.name == "cheatKill")
+        {
+            processKill();
+        }
         else if (_message.name == "moveDelayChange")
         {
             processMoveDelayChange(socket, _message.value);
@@ -300,6 +304,12 @@ function planNextGame()
         }
         g_pauseTimeoutHandle = setTimeout(startGame, g_pauseDelay);
     }
+}
+
+function processKill()
+{
+    console.log("Dying.");
+    process.exit(0);
 }
 
 function processRestart(_socket, _value)

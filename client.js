@@ -785,13 +785,17 @@ function updateStats()
 }
 
 // test/cheat/tweaks
-function cheatTweet()
+function cheatKill()
 {
-    g_socket.emit("testmsg", { name : "cheatTweet" });
+    g_socket.emit("testmsg", { name : "cheatKill" });
 }
 function cheatRestart()
 {
     g_socket.emit("testmsg", { name : "cheatRestart" });
+}
+function cheatTweet()
+{
+    g_socket.emit("testmsg", { name : "cheatTweet" });
 }
 var g_spamBots = new Array();
 function addSpamBot(_count)
