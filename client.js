@@ -746,7 +746,7 @@ function cheatRestart()
 function addSpamBot(_count)
 {
     log("spam 1");
-    var spamSocket = io.connect(SERVER_TEST_ADDRESS);
+    var spamSocket = io.connect(SERVER_TEST_ADDRESS, {'force new connection': true});
     log("spam 2");
     spamSocket.on("ping", function (message)
     {
