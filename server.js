@@ -333,7 +333,7 @@ function clearOpinionBroadcast()
 
 function planNextOpinionBroadcast()
 {
-    g_opinionTimeoutHandle = setTimeOut(opinionBroadcast, 400);
+    g_opinionTimeoutHandle = setTimeout(opinionBroadcast, 400);
 }
 
 // TODO: this should probably go in a worker thread
