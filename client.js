@@ -189,6 +189,7 @@ function mouseUp(e)
 
 function keyDown(e)
 {
+    log("keyDown");
     switch (e.keyCode)
     {
     case 37: case 81: case 65: g_keyLeft = true; break;
