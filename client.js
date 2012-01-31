@@ -735,11 +735,11 @@ function updateStats()
 
 function cheatTweet()
 {
-    g_socket.emit("message", { name : "cheatTweet" });
+    g_socket.emit("testmsg", { name : "cheatTweet" });
 }
 function cheatClear()
 {
-    g_socket.emit("message", { name : "cheatClear" });
+    g_socket.emit("testmsg", { name : "cheatClear" });
 }
 function vote(_value)
 {
@@ -758,7 +758,7 @@ function submitTweaks()
         return false;
     }
     log("TWEAK: move delay change to " + element.innerHTML);
-    g_socket.emit("message", { name : "moveDelayChange" , value : element.value });
+    g_socket.emit("testmsg", { name : "moveDelayChange" , value : element.value });
 
     element = document.getElementById("pauseDelay");
     if (!element)
@@ -767,7 +767,7 @@ function submitTweaks()
         return false;
     }
     log("TWEAK: pause delay change to " + element.innerHTML);
-    g_socket.emit("message", { name : "pauseDelayChange" , value : element.value });
+    g_socket.emit("testmsg", { name : "pauseDelayChange" , value : element.value });
 
     return true;
 }

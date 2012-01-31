@@ -134,6 +134,11 @@ function init()
 }
 init();
 
+function reportAbuse(_address, _port, _message)
+{
+    console.warn("ABUSE: " + _address + ":" + _port + " " + _message);
+}
+
 // client connection sockets
 io.sockets.on("connection", function (socket)
 {
@@ -151,31 +156,39 @@ io.sockets.on("connection", function (socket)
     socket.on("message", function (_message)
     {
         console.log("MESSAGE:" + _message.name + " (" + _message.value + ")");
-        if (g_test)
-        {
-            if (_message.name == "cheatTweet")
-            {
-                processTweet("cheat", "cheat");
-            }
-            else if (_message.name == "cheatClear")
-            {
-                processClear(socket, _message.value);
-            }
-            else if (_message.name == "moveDelayChange")
-            {
-                processMoveDelayChange(socket, _message.value);
-            }
-            else if (_message.name == "pauseDelayChange")
-            {
-                processPauseDelayChange(socket, _message.value);
-            }
-        }
-        else if (_message.name == "vote")
+        if (_message.name == "vote")
         {
             processVote(socket, _message.value);
         }
     });
 
+    // those messages are processed with a TEST server only -- you could
+    // try sending those to a prod server but you don't want to get banned, do
+    // you?
+    socket.on("testmsg", function (_message)
+    {
+        if (!g_test)
+        {
+            reportAbuse(socket.address.address, socket.address.port, _message);
+        }
+        else if (_message.name == "cheatTweet")
+        {
+            processTweet("cheat", "cheat");
+        }
+        else if (_message.name == "cheatClear")
+        {
+            processClear(socket, _message.value);
+        }
+        else if (_message.name == "moveDelayChange")
+        {
+            processMoveDelayChange(socket, _message.value);
+        }
+        else if (_message.name == "pauseDelayChange")
+        {
+            processPauseDelayChange(socket, _message.value);
+        }
+    }
+    
     // disconnecting clients
     socket.on('disconnect', function()
     {
