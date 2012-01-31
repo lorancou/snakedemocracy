@@ -601,7 +601,7 @@ function processVote(_socket, _value)
     ++_socket.votesThisMove;
     if (_socket.votesThisMove > MAX_VOTES_PER_MOVE)
     {
-        var address = socket.handshake.address.address;
+        var address = _socket.handshake.address.address;
         reportAbuse(address, "Extra vote, total " + _socket.votesThisMove);
         return;
     }
