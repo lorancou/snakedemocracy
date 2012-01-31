@@ -521,12 +521,12 @@ function move()
         if (g_pendingGrow)
         {
             g_pendingGrow = false;
-            var message = { name : "grow", turn : g_turn, value : newHead };
+            var message = { name : "grow", move : g_move, value : newHead };
             broadcast(message);
         }
         else
         {
-            var message = { name : "move", turn : g_turn, value : newHead };
+            var message = { name : "move", move : g_move, value : newHead };
             broadcast(message);
         }
 
