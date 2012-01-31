@@ -155,8 +155,11 @@ function init()
 
 function mouseDown(e)
 {
-    log("mouse down");
+    return false;
+}
 
+function mouseUp(e)
+{
 	var button = null;	
 	if (e.button) button = e.button;
 	else button = e.which;
@@ -164,32 +167,19 @@ function mouseDown(e)
 
     if (button==1)
     {
-        var x, y;
-	    /*if (e.clientX && e.clientY) // IE?
-        {
-            x = clientX;
-            y = clientY;
-        }
-        else
-        {*/
-		    x = e.layerX - g_canvas.offsetLeft;
-		    y = e.layerY - g_canvas.offsetTop;
-        //}
-        g_clickX = x;
-        g_clickY = y;
-        //log("click " + x + "," + y);
+        g_clickX = e.layerX - g_canvas.offsetLeft;
+        g_clickY = e.layerY - g_canvas.offsetTop;
     }
 
     return false;
 }
 
-function mouseUp(e)
+function keyDown(e)
 {
 }
 
-function keyDown(e)
+function keyUp(e)
 {
-    log("keyDown");
     switch (e.keyCode)
     {
     case 37: case 81: case 65: g_keyLeft = true; break;
@@ -197,10 +187,6 @@ function keyDown(e)
     case 39: case 68: g_keyRight = true; break;
     case 40: case 83: g_keyDown = true; break;
     }
-}
-
-function keyUp(e)
-{
 }
 
 // ping, first message, inits the snake
