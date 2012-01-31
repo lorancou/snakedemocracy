@@ -249,6 +249,8 @@ io.sockets.on("connection", function (socket)
 function startGame()
 {
     console.log("Starting game!");
+    
+    console.log(process.memoryUsage().heapUsed);
 
     // start with 3 elements
     // TODO: random?
@@ -314,7 +316,7 @@ function processKill()
 
 function processRestart(_socket, _value)
 {
-    console.log("New game!");
+    console.log("Restart!");
     init();
 }
 
