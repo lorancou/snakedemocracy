@@ -448,7 +448,7 @@ function update()
             );
         }
 
-        // draw tail
+        // draw tail tip
         var tailCoords = getScreenCoords(tail);
         var tailImg = null;
         if (tailDirection == "east") tailImg = g_assets.cache[g_tailPaths.east];
@@ -457,6 +457,11 @@ function update()
         else /*(tailDirection == "north")*/ tailImg = g_assets.cache[g_tailPaths.north];
         g_context.drawImage(
             tailImg,
+            tailCoords.x, tailCoords.y,
+            SPRITE_SIZE, SPRITE_SIZE
+        );
+        g_context.drawImage(
+            g_assets.cache[g_applePath],
             tailCoords.x, tailCoords.y,
             SPRITE_SIZE, SPRITE_SIZE
         );
