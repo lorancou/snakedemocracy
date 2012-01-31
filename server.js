@@ -151,21 +151,24 @@ io.sockets.on("connection", function (socket)
     socket.on("message", function (_message)
     {
         console.log("MESSAGE:" + _message.name + " (" + _message.value + ")");
-        if (_message.name == "cheatTweet")
+        if (g_test)
         {
-            processTweet(socket, _message.value);
-        }
-        else if (_message.name == "cheatClear")
-        {
-            processClear(socket, _message.value);
-        }
-        else if (_message.name == "moveDelayChange")
-        {
-            processMoveDelayChange(socket, _message.value);
-        }
-        else if (_message.name == "pauseDelayChange")
-        {
-            processPauseDelayChange(socket, _message.value);
+            if (_message.name == "cheatTweet")
+            {
+                processTweet("cheat", "cheat");
+            }
+            else if (_message.name == "cheatClear")
+            {
+                processClear(socket, _message.value);
+            }
+            else if (_message.name == "moveDelayChange")
+            {
+                processMoveDelayChange(socket, _message.value);
+            }
+            else if (_message.name == "pauseDelayChange")
+            {
+                processPauseDelayChange(socket, _message.value);
+            }
         }
         else if (_message.name == "vote")
         {
@@ -280,12 +283,10 @@ function checkVictory(_newHead)
     }
 }
 
-function processTweet(_socket, _value)
+function processTweet(_screenName, _text)
 {
-    // TODO
-    console.log("Tweet");
-    //move();
-    g_pendingGrow = true;
+    console.log("Tweet from " + _screenName, ": ", _text)
+	g_tweets++;
 }
 
 function move()
@@ -665,11 +666,8 @@ var options = {
     method: "POST"
 };
 
-
-//console.dir(options);
-
+// start receiving tweets
 var buf = "";
-
 var req = https.request(options, function(res) {
     //  console.log('STATUS: ' + res.statusCode);
     //  console.log('HEADERS: ' + JSON.stringify(res.headers));
@@ -683,32 +681,11 @@ var req = https.request(options, function(res) {
 	    if (a[i] != "") {
 		    var json = JSON.parse(a[i]);
 		    if (json.user && json.text) {
-		        console.log("Tweet from " + json.user.screen_name, ": ", json.text)
-		        g_tweets++;
-		        /*for(var j=0; j<clients.length; j++) {
-			      clients[j].send(a[i]);
-		          }*/
+                processTweet(json.user.screen_name, json.text);
 		    }
 	    }
 	}
     });
 });
-
 req.write("track=#snakedemocracy\n\n");
 req.end();
-
-/*setInterval(function() {
-    // no tweet = quit                                                                                                                         
-    if (tweets == 0)
-    {
-	    console.log("No tweets for the last 10 seconds...");
-	    //process.exit(0);
-    }
-    else
-    {
-	    console.log(tweets+" tweets during the last 10 seconds...");
-        spawnApple(tweets, true);
-        tweets = 0;
-    }
-
-}, 10000);*/
