@@ -1,3 +1,4 @@
+TEST
 // global constants
 var SERVER_ADDRESS = "/";//"snakedemocracy.herokuapp.com";
 var CANVAS_WIDTH = 480;
