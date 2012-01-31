@@ -745,7 +745,14 @@ function cheatRestart()
 }
 function addSpamBot(_count)
 {
-    log("+spam");
+    log("spam 1");
+    var spamSocket = io.connect(SERVER_TEST_ADDRESS);
+    log("spam 2");
+    spamSocket.on("ping", function (message)
+    {
+        log("SPAM: ping received");
+        //processPing(message);
+    });
 }
 function rmSpamBot(_count)
 {

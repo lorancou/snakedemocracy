@@ -157,6 +157,8 @@ io.sockets.on("connection", function (socket)
 {
     var address = socket.handshake.address.address;
     
+    console.log("Connection: ", address);
+    
     // push new socket
     if (g_sockets.indexOf(socket) == -1)
     {
@@ -211,7 +213,7 @@ io.sockets.on("connection", function (socket)
         {
 	        return s != socket;
 	    });
-        console.log("Bye bye client");
+        console.log("Bye bye client: ", address);
     });
 });
 
