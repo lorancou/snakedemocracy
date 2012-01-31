@@ -16,7 +16,7 @@ io.configure("production", function(){
     io.enable("browser client minification");  // send minified client
     io.enable("browser client etag");          // apply etag caching logic based on version number
     io.enable("browser client gzip");          // gzip the file
-    io.set("force new connection", false);     // no spam bots BULLSHIT: this just doens't work :(
+    io.set("force new connection", false);     // no spam bots BULLSHIT: this just doesn't work :(
     io.set("log level", 0);                    // no logging
 });
 
@@ -181,7 +181,7 @@ io.sockets.on("connection", function (socket)
 {
     var address = socket.handshake.address.address;
     
-    console.log("Connection: ", address);
+    //console.log("Connection: ", address);
     
     // push new socket
     if (g_sockets.indexOf(socket) == -1)
@@ -196,7 +196,7 @@ io.sockets.on("connection", function (socket)
     // receive client message
     socket.on("message", function (_message)
     {
-        console.log("MESSAGE:" + _message.name + " (" + _message.value + ")");
+        //console.log("MESSAGE:" + _message.name + " (" + _message.value + ")");
         if (_message.name == "vote")
         {
             processVote(socket, _message.value);
@@ -342,7 +342,8 @@ function processTweet(_screenName, _text)
 
 function move()
 {
-    console.log("Move!");
+    var score = computeScore();
+    console.log("Move! Current score: " + score);
 
     // cache this, as it's "wrong" when broadcasting
     g_snakeLengthCache = g_snake.length;
@@ -678,7 +679,7 @@ function computeScore()
     }
 
     var score = snakeLength * playerCount;
-    console.log("Score: " + score + "(snake: " + snakeLength + " * " + playerCount + ")");
+    //console.log("Score: " + score + "(snake: " + snakeLength + " * " + playerCount + ")");
     return score;
 }
 
