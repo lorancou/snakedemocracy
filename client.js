@@ -236,6 +236,11 @@ function connect()
         processPing(message);
         
         update();
+        
+        if (g_test)
+        {
+            updateSpamBots();
+        }
     });
 }
 
@@ -858,10 +863,6 @@ function updateSpamBots()
     
     setTimeout("updateSpamBots()", 200); // vote 10 times in 2s
 }
-if (g_test)
-{
-    updateSpamBots();
-}
 function submitTweaks()
 {
     var element = document.getElementById("moveDelay");
@@ -977,7 +978,7 @@ function processTestmsg(_message)
         var memUsageElement = document.getElementById("memUsage");
         if (memUsageElement)
         {
-            memUsageElement.innerHTML = message.text;
+            memUsageElement.innerHTML = _message.text;
         }
     }    
 }

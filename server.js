@@ -592,8 +592,8 @@ function processVote(_socket, _value)
     }
 
     // broadcast opinion
-    var message = { name : "opinion", value : g_opinion };
-    broadcast(message);
+    //var message = { name : "opinion", value : g_opinion };
+    //broadcast(message);
 }
 
 function spawnApple(_count, _broadcast)
