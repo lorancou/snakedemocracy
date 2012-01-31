@@ -17,12 +17,20 @@
     <div style="float:right"><canvas id="canvas" width="480" height="480"></canvas></div>
     <h1>SNAKE DEMOCRACY</h1>
     <p>
-      cheats <input type="button" id="cheatRestart" value="restart" onclick="cheatRestart()"/> 
+      cheats:
+      <input type="button" id="cheatRestart" value="restart" onclick="cheatRestart()"/> 
       <input type="button" id="cheatTweet" value="tweet" onclick="cheatTweet()"/>
     </p>
     <p>
-      spam bots <input type="button" id="addSpamBot" value="+1" onclick="addSpamBot(1)"/> 
+      spam bots:
+      <input type="button" id="addSpamBot" value="+1" onclick="addSpamBot(1)"/> 
       <input type="button" id="rmSpamBot" value="-1" onclick="rmSpamBot(1)"/>
+      <input type="button" id="addSpamBot" value="+32" onclick="addSpamBot(32)"/> 
+      <input type="button" id="rmSpamBot" value="-32" onclick="rmSpamBot(32)"/>
+      <input type="button" id="addSpamBot" value="+256" onclick="addSpamBot(256)"/> 
+      <input type="button" id="rmSpamBot" value="-256" onclick="rmSpamBot(256)"/>
+      <input type="button" id="addSpamBot" value="+1024" onclick="addSpamBot(1024)"/> 
+      <input type="button" id="rmSpamBot" value="-1024" onclick="rmSpamBot(1024)"/>
     </p>
     <p><form name="tweak" onsubmit="return submitTweaks(this)">
       move delay: <input name="moveDelay" id="moveDelay" type="text" value="5000">

@@ -625,7 +625,7 @@ function spawnApple(_count, _broadcast)
         }
 
         // pick a random slot
-        var idx = Math.floor(Math.random()*(slots.length+1));
+        var idx = Math.floor(Math.random()*slots.length);
         g_apples.push(slots[idx]);
         
         // broadcast spawn

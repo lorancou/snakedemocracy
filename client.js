@@ -32,6 +32,7 @@ var g_numLeftElement = null;
 var g_numForwardElement = null;
 var g_numRightElement = null;
 var g_scoreElement = null;
+var g_test = null;
 
 // assets
 var g_headPaths =
@@ -92,9 +93,75 @@ function log(msg)
     }
 }
 
+/**
+ * Provides requestAnimationFrame in a cross browser way.
+ * Copyright 2010, Google Inc.
+ * https://cvs.khronos.org/svn/repos/registry/trunk/public/webgl/sdk/demos/common/webgl-utils.js
+ */
+window.requestAnimFrame = (function() {
+  return window.requestAnimationFrame ||
+         window.webkitRequestAnimationFrame ||
+         window.mozRequestAnimationFrame ||
+         window.oRequestAnimationFrame ||
+         window.msRequestAnimationFrame ||
+         function(/* function FrameRequestCallback */ callback, /* DOMElement Element */ element) {
+           return window.setTimeout(callback, 1000/60);
+         };
+})();
+
+/**
+ * Provides cancelRequestAnimationFrame in a cross browser way.
+ * Copyright 2010, Google Inc.
+ * https://cvs.khronos.org/svn/repos/registry/trunk/public/webgl/sdk/demos/common/webgl-utils.js
+ */
+window.cancelRequestAnimFrame = (function() {
+  return window.cancelCancelRequestAnimationFrame ||
+         window.webkitCancelRequestAnimationFrame ||
+         window.mozCancelRequestAnimationFrame ||
+         window.oCancelRequestAnimationFrame ||
+         window.msCancelRequestAnimationFrame ||
+         window.clearTimeout;
+})();
+
+function queueAssets(_mgr)
+{
+    _mgr.queueDownload(g_headPaths.east);
+    _mgr.queueDownload(g_headPaths.west);
+    _mgr.queueDownload(g_headPaths.south);
+    _mgr.queueDownload(g_headPaths.north);
+    _mgr.queueDownload(g_bodyPaths.hz);
+    _mgr.queueDownload(g_bodyPaths.vt);
+    _mgr.queueDownload(g_bodyPaths.es);
+    _mgr.queueDownload(g_bodyPaths.sw);
+    _mgr.queueDownload(g_bodyPaths.wn);
+    _mgr.queueDownload(g_bodyPaths.ne);
+    _mgr.queueDownload(g_tailPaths.east);
+    _mgr.queueDownload(g_tailPaths.west);
+    _mgr.queueDownload(g_tailPaths.south);
+    _mgr.queueDownload(g_tailPaths.north);
+    _mgr.queueDownload(g_arrowPaths.east);
+    _mgr.queueDownload(g_arrowPaths.west);
+    _mgr.queueDownload(g_arrowPaths.south);
+    _mgr.queueDownload(g_arrowPaths.north);
+    _mgr.queueDownload(g_arrowGoldPaths.east);
+    _mgr.queueDownload(g_arrowGoldPaths.west);
+    _mgr.queueDownload(g_arrowGoldPaths.south);
+    _mgr.queueDownload(g_arrowGoldPaths.north);
+    _mgr.queueDownload(g_arrowSelectPaths.east);
+    _mgr.queueDownload(g_arrowSelectPaths.west);
+    _mgr.queueDownload(g_arrowSelectPaths.south);
+    _mgr.queueDownload(g_arrowSelectPaths.north);
+    _mgr.queueDownload(g_applePath);
+    _mgr.queueDownload(g_fullgridPath);
+    _mgr.queueDownload(g_victoryPath);
+    _mgr.queueDownload(g_defeatPath);
+}
+
 // client init, called with body's onload
 function init(_test)
 {
+    g_test = _test;
+    
     // get canvas element
     g_canvas =  document.getElementById("canvas");
     if (!g_canvas)
@@ -135,23 +202,64 @@ function init(_test)
     document.onkeydown = keyDown;
     document.onkeyup = keyUp;
 
-    log("pre connect");
+    log("Loading...");
     
     g_context.fillStyle = "#000000";
-    //g_context.font = ;
     g_context.fillText(
-        "Loading... please be patient, citizen.",
+        "Loading ballot paper... please be patient, citizen.",
         150, 240);
     
+    // queue assets, download them, then connect socket
+    g_assets = new AssetManager();
+    queueAssets(g_assets);
+    g_assets.downloadAll(connect);
+}
+
+function connect()
+{
+    log("Connecting...");
+
+    g_context.fillStyle = "#000000";
+    g_context.fillText(
+        "Connecting to polling station... please remain patient, citizen.",
+        150, 240);
+
     // connect to node.js server
-    g_socket = io.connect(_test ? SERVER_TEST_ADDRESS : SERVER_ADDRESS);
+    g_socket = io.connect(g_test ? SERVER_TEST_ADDRESS : SERVER_ADDRESS);
     g_socket.on("ping", function (message)
     {
-        log("ping received");
+        log("Connected! Running!");
         processPing(message);
+        
+        update();
     });
+}
 
-    log("post connect");
+// ping, first message, inits the snake
+function processPing(message)
+{
+    // copy initial snake
+    g_snake = new Array();
+    for (var i=0; i<message.snake.length; ++i)
+    {
+        g_snake.push(new vec2(message.snake[i].x, message.snake[i].y));
+    }
+
+    // copy initial apples
+    g_apples = new Array();
+    for (var i=0; i<message.apples.length; ++i)
+    {
+        g_apples.push(new vec2(message.apples[i].x, message.apples[i].y));
+    }
+
+    // set game state
+    g_state = message.state;
+    if (!g_state.name)
+    {
+        log("ERROR: un-named state");
+    }
+
+    g_socket.on("message", function (message) { processMessage(message) });
 }
 
 function mouseDown(e)
@@ -188,69 +296,6 @@ function keyUp(e)
     case 39: case 68: g_keyRight = true; break;
     case 40: case 83: g_keyDown = true; break;
     }
-}
-
-// ping, first message, inits the snake
-function processPing(message)
-{
-    // copy initial snake
-    g_snake = new Array();
-    for (var i=0; i<message.snake.length; ++i)
-    {
-        g_snake.push(new vec2(message.snake[i].x, message.snake[i].y));
-    }
-
-    // copy initial apples
-    g_apples = new Array();
-    for (var i=0; i<message.apples.length; ++i)
-    {
-        g_apples.push(new vec2(message.apples[i].x, message.apples[i].y));
-    }
-
-    // set game state
-    g_state = message.state;
-    if (!g_state.name)
-    {
-        log("ERROR: un-named state");
-    }
-
-    g_socket.on("message", function (message) { processMessage(message) });
-
-    // queue assets
-    g_assets = new AssetManager();
-    g_assets.queueDownload(g_headPaths.east);
-    g_assets.queueDownload(g_headPaths.west);
-    g_assets.queueDownload(g_headPaths.south);
-    g_assets.queueDownload(g_headPaths.north);
-    g_assets.queueDownload(g_bodyPaths.hz);
-    g_assets.queueDownload(g_bodyPaths.vt);
-    g_assets.queueDownload(g_bodyPaths.es);
-    g_assets.queueDownload(g_bodyPaths.sw);
-    g_assets.queueDownload(g_bodyPaths.wn);
-    g_assets.queueDownload(g_bodyPaths.ne);
-    g_assets.queueDownload(g_tailPaths.east);
-    g_assets.queueDownload(g_tailPaths.west);
-    g_assets.queueDownload(g_tailPaths.south);
-    g_assets.queueDownload(g_tailPaths.north);
-    g_assets.queueDownload(g_arrowPaths.east);
-    g_assets.queueDownload(g_arrowPaths.west);
-    g_assets.queueDownload(g_arrowPaths.south);
-    g_assets.queueDownload(g_arrowPaths.north);
-    g_assets.queueDownload(g_arrowGoldPaths.east);
-    g_assets.queueDownload(g_arrowGoldPaths.west);
-    g_assets.queueDownload(g_arrowGoldPaths.south);
-    g_assets.queueDownload(g_arrowGoldPaths.north);
-    g_assets.queueDownload(g_arrowSelectPaths.east);
-    g_assets.queueDownload(g_arrowSelectPaths.west);
-    g_assets.queueDownload(g_arrowSelectPaths.south);
-    g_assets.queueDownload(g_arrowSelectPaths.north);
-    g_assets.queueDownload(g_applePath);
-    g_assets.queueDownload(g_fullgridPath);
-    g_assets.queueDownload(g_victoryPath);
-    g_assets.queueDownload(g_defeatPath);
-
-    // download assets and run
-    g_assets.downloadAll(update);
 }
 
 // assets manager
@@ -307,7 +352,8 @@ function getScreenCoords(_coords, _middle)
 function update()
 {
     // plan next update
-    setTimeout("update()", 0.0);
+    //setTimeout("update()", 0.0);
+    requestAnimFrame(update);
 
     // clear canvas
     //g_context.fillStyle = "#000000";
@@ -317,7 +363,7 @@ function update()
         0, 0,
         CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    if (g_snake.length > 1)
+    if (g_snake.length > 1 && g_state.name == "playing")
     {
         // determine head direction...
         var head = g_snake[g_snake.length-1].clone();
@@ -734,7 +780,7 @@ function updateStats()
     }
 }
 
-// test/heat/tweaks
+// test/cheat/tweaks
 function cheatTweet()
 {
     g_socket.emit("testmsg", { name : "cheatTweet" });
@@ -743,21 +789,58 @@ function cheatRestart()
 {
     g_socket.emit("testmsg", { name : "cheatRestart" });
 }
+var g_spamBots = new Array();
 function addSpamBot(_count)
 {
-    log("spam 1");
-    var spamSocket = io.connect(SERVER_TEST_ADDRESS, {'force new connection': true});
-    log("spam 2");
-    spamSocket.on("ping", function (message)
+    for (var i=0; i<_count; ++i)
     {
-        log("SPAM: ping received");
-        //processPing(message);
-    });
+        var spamSocket = io.connect(SERVER_TEST_ADDRESS, {"force new connection": true});
+        spamSocket.on("ping", function (message)
+        {
+            g_spamBots.push(spamSocket);
+        });
+    }
 }
 function rmSpamBot(_count)
 {
-    log("-spam");
+    for (var i=0; i<_count; ++i)
+    {
+        var spamSocket = g_spamBots.pop();
+        if (spamSocket)
+        {
+            spamSocket.disconnect();
+        }
+    }
 }
+function updateSpamBots()
+{
+    for (var i=0; i<g_spamBots.length; ++i)
+    {
+        var spamSocket = g_spamBots[i];
+
+        // couldn't connect, remove from array
+        if (!spamSocket)
+        {
+            g_spamBots.splice(i, 1); 
+        }
+        
+        // cast random vote
+        if (g_state.name == "playing")
+        {
+            var pick = Math.floor(Math.random()*3);
+            var voteValue = null;
+            if (pick==0) voteValue = "left";
+            else if (pick==1) voteValue = "forward";
+            else if (pick==2) voteValue = "right";
+            else log("ERROR: Math.random went mad?");
+            //log("SPAM: " + voteValue);
+            spamSocket.emit("message", { name : "vote", value : voteValue });
+        }
+    }
+    
+    setTimeout("updateSpamBots()", 200); // vote 10 times in 2s
+}
+updateSpamBots();
 function submitTweaks()
 {
     var element = document.getElementById("moveDelay");
@@ -840,7 +923,10 @@ function processMessage(_message)
         g_apples = new Array();
         for (var i=0; i<_message.apples.length; ++i)
         {
-            g_apples.push(new vec2(_message.apples[i].x, _message.apples[i].y)); // meh??
+            if (_message.apples[i]) // CRASH fix
+            {
+                g_apples.push(new vec2(_message.apples[i].x, _message.apples[i].y)); // meh??
+            }
         }
     }
     else if (_message.name == "spawn")
