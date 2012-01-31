@@ -134,21 +134,23 @@ function init()
 }
 init();
 
-function reportAbuse(_address, _port, _message)
+function reportAbuse(_address, _message)
 {
-    console.warn("ABUSE: " + _address + ":" + _port + " " + _message);
+    console.warn("ABUSE: " + _address + " " + _message);
 }
 
 // client connection sockets
 io.sockets.on("connection", function (socket)
 {
+    var address = socket.handshake.address.address;
+    
     // push new socket
     if (g_sockets.indexOf(socket) == -1)
     {
         g_sockets.push(socket);
 
         // log connection, send current state
-        console.log("New client");
+        console.log("New client: ", address);
         socket.emit("ping", { snake : g_snake, apples : g_apples, state : g_state });
     }
 
@@ -169,7 +171,7 @@ io.sockets.on("connection", function (socket)
     {
         if (!g_test)
         {
-            reportAbuse(socket.address.address, socket.address.port, _message);
+            reportAbuse(address, _message);
         }
         else if (_message.name == "cheatTweet")
         {
