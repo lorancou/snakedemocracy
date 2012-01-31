@@ -1,5 +1,6 @@
 // global constants
-var SERVER_ADDRESS = "/";//"snakedemocracy.herokuapp.com";
+var SERVER_ADDRESS = "/";
+var SERVER_TEST_ADDRESS = "snakedemocracy.dyndns.org:3000";
 var CANVAS_WIDTH = 480;
 var CANVAS_HEIGHT = 480;
 var SPRITE_SIZE = 24;
@@ -92,7 +93,7 @@ function log(msg)
 }
 
 // client init, called with body's onload
-function init()
+function init(_test)
 {
     // get canvas element
     g_canvas =  document.getElementById("canvas");
@@ -143,7 +144,7 @@ function init()
         150, 240);
     
     // connect to node.js server
-    g_socket = io.connect(SERVER_ADDRESS);
+    g_socket = io.connect(_test ? SERVER_TEST_ADDRESS : SERVER_ADDRESS);
     g_socket.on("ping", function (message)
     {
         log("ping received");
@@ -733,21 +734,22 @@ function updateStats()
     }
 }
 
+// test/heat/tweaks
 function cheatTweet()
 {
     g_socket.emit("testmsg", { name : "cheatTweet" });
 }
-function cheatClear()
+function cheatRestart()
 {
-    g_socket.emit("testmsg", { name : "cheatClear" });
+    g_socket.emit("testmsg", { name : "cheatRestart" });
 }
-function vote(_value)
+function addSpamBot(_count)
 {
-    if (g_state.name == "playing")
-    {
-        //log("vote: " + _value);
-        g_socket.emit("message", { name : "vote", value : _value });
-    }
+    log("+spam");
+}
+function rmSpamBot(_count)
+{
+    log("-spam");
 }
 function submitTweaks()
 {
@@ -770,6 +772,16 @@ function submitTweaks()
     g_socket.emit("testmsg", { name : "pauseDelayChange" , value : element.value });
 
     return true;
+}
+
+// VOTE
+function vote(_value)
+{
+    if (g_state.name == "playing")
+    {
+        //log("vote: " + _value);
+        g_socket.emit("message", { name : "vote", value : _value });
+    }
 }
 
 function processMessage(_message)
@@ -797,11 +809,6 @@ function processMessage(_message)
     {
         g_snake.shift();
         g_snake.push(new vec2(_message.value.x, _message.value.y)); // meh??
-    }
-    else if (_message.name == "clear")
-    {
-        g_snake = new Array();
-        g_state = _message;
     }
     else if (_message.name == "defeat")
     {

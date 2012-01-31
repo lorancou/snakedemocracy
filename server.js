@@ -129,6 +129,18 @@ function init()
     g_state = { name : "init" };
     g_pendingGrow = false;
 
+    // clear timeouts
+    if (g_pauseTimeoutHandle)
+    {
+        clearTimeout(g_pauseTimeoutHandle);
+        g_pauseTimeoutHandle = null
+    }
+    if (g_moveTimeoutHandle)
+    {
+        clearTimeout(g_moveTimeoutHandle);
+        g_moveTimeoutHandle = null
+    }
+    
     // start first game
     startGame();
 }
@@ -178,9 +190,9 @@ io.sockets.on("connection", function (socket)
         {
             processTweet("cheat", "cheat");
         }
-        else if (_message.name == "cheatClear")
+        else if (_message.name == "cheatRestart")
         {
-            processClear(socket, _message.value);
+            processRestart(socket, _message.value);
         }
         else if (_message.name == "moveDelayChange")
         {
@@ -264,13 +276,10 @@ function planNextGame()
     }
 }
 
-function processClear(_socket, _value)
+function processRestart(_socket, _value)
 {
-    console.log("Clear!");
+    console.log("New game!");
     init();
-
-    var message = { name : "clear" };
-    broadcast(message);
 }
 
 function checkSelf(_newHead)

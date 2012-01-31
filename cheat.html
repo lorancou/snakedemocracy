@@ -2,28 +2,32 @@
 <html>
  
   <head> 
-    <title>SNAKE DEMOCRACY</title>
+    <title>SNAKE DEMOCRACY CHEATS AND TEST</title>
     <meta name="description" content="Snake Democracy, a Global Game Jam 2012 game" /> 
     <meta name="keywords" content="snake, democracy, global, game, jam, ggj12" /> 
     <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
     <!-- TODO <link rel="stylesheet" type="text/css" href="styles.css" media="screen" /> -->
     <!-- TODO <link rel="shortcut icon" href="icon.ico" /> -->
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="http://snakedemocracy.dyndns.org:3000/socket.io/socket.io.js"></script>
     <script src="vec2.js"></script>
     <script src="client.js"></script>
   </head> 
  
-  <body onload="init()">
+  <body onload="init('test')">
+    <div style="float:right"><canvas id="canvas" width="480" height="480"></canvas></div>
+    <h1>SNAKE DEMOCRACY</h1>
     <p>
-      kilopede
-      <input type="button" id="cheatTweet" value="cheat tweet" onclick="cheatTweet()"/>
-      <input type="button" id="cheatClear" value="cheat clear" onclick="cheatClear()"/> 
-   </p>
-    <form name="tweak" onsubmit="return submitTweaks(this)">
+      cheats <input type="button" id="cheatRestart" value="restart" onclick="cheatRestart()"/> 
+      <input type="button" id="cheatTweet" value="tweet" onclick="cheatTweet()"/>
+    </p>
+    <p>
+      spam bots <input type="button" id="addSpamBot" value="+1" onclick="addSpamBot(1)"/> 
+      <input type="button" id="rmSpamBot" value="-1" onclick="rmSpamBot(1)"/>
+    </p>
+    <p><form name="tweak" onsubmit="return submitTweaks(this)">
       move delay: <input name="moveDelay" id="moveDelay" type="text" value="5000">
       pause delay: <input name="pauseDelay" id="pauseDelay" type="text"  value="10000"> 
       <input type="submit">
-    </form>
-    <canvas id="canvas" width="512" height="512"></canvas>
+    </form></p>
   </body>
 </html>
