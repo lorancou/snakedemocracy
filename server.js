@@ -136,7 +136,8 @@ init();
 
 function reportAbuse(_address, _message)
 {
-    console.warn("ABUSE: " + _address + " " + _message);
+    console.warn("ABUSE: " + _address);
+    console.dir(_message);
 }
 
 // client connection sockets
