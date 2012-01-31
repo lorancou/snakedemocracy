@@ -916,11 +916,25 @@ function processMessage(_message)
     else if (_message.name == "grow")
     {
         g_snake.push(new vec2(_message.value.x, _message.value.y)); // meh??
+
+        // reset opinion
+        g_opinion = {};
+        g_opinion.current = "forward";
+        g_opinion.numLeft = 0;
+        g_opinion.numRight = 0;
+        g_opinion.numForward = 0;
     }
     else if (_message.name == "move")
     {
         g_snake.shift();
         g_snake.push(new vec2(_message.value.x, _message.value.y)); // meh??
+
+        // reset opinion
+        g_opinion = {};
+        g_opinion.current = "forward";
+        g_opinion.numLeft = 0;
+        g_opinion.numRight = 0;
+        g_opinion.numForward = 0;
     }
     else if (_message.name == "defeat")
     {

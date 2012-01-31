@@ -43,6 +43,7 @@ var g_pauseDelay = 7000;
 var g_pendingGrow = false;
 var g_moveTimeoutHandle = null;
 var g_pauseTimeoutHandle = null;
+var g_opinionTimeoutHandle = null;
 var g_snakeLengthCache = -1;
 var g_tweets = 0;
 var g_test = (process.env.NODE_ENV == "development");//(process.argv.length==5) && (process.argv[4]=="test");
@@ -153,16 +154,9 @@ function init()
     g_pendingGrow = false;
 
     // clear timeouts
-    if (g_pauseTimeoutHandle)
-    {
-        clearTimeout(g_pauseTimeoutHandle);
-        g_pauseTimeoutHandle = null
-    }
-    if (g_moveTimeoutHandle)
-    {
-        clearTimeout(g_moveTimeoutHandle);
-        g_moveTimeoutHandle = null
-    }
+    clearMoveTimeout();
+    clearPauseTimeout();
+    clearOpinionBroadcast();
     
     // start first game
     startGame();
@@ -279,6 +273,18 @@ function startGame()
     
     // plan next move
     planNextMove();
+    
+    // plan next opinion broadcast
+    planNextOpinionBroadcast();
+}
+
+function clearMoveTimeout()
+{
+    if (g_moveTimeoutHandle)
+    {
+        clearTimeout(g_moveTimeoutHandle);
+        g_moveTimeoutHandle = null;
+    }
 }
 
 function planNextMove()
@@ -287,12 +293,17 @@ function planNextMove()
 
     if (g_moveDelay > 0)
     {
-        if (g_moveTimeoutHandle)
-        {
-            clearTimeout(g_moveTimeoutHandle);
-            g_moveTimeoutHandle = null;
-        }
+        clearMoveTimeout();
         g_moveTimeoutHandle = setTimeout(move, g_moveDelay);
+    }
+}
+
+function clearPauseTimeout()
+{
+    if (g_pauseTimeoutHandle)
+    {
+        clearTimeout(g_pauseTimeoutHandle);
+        g_pauseTimeoutHandle = null
     }
 }
 
@@ -300,19 +311,37 @@ function planNextGame()
 {
     console.log("Plan next game, delay: " + g_pauseDelay);
 
-    // cancel upcoming move
-    clearTimeout(g_moveTimeoutHandle);
-    g_moveTimeoutHandle = null;
+    // cancel upcoming move & opinion broadcast
+    clearMoveTimeout();
+    clearOpinionBroadcast();
     
     if (g_pauseDelay > 0)
     {
-        if (g_pauseTimeoutHandle)
-        {
-            clearTimeout(g_pauseTimeoutHandle);
-            g_pauseTimeoutHandle = null
-        }
+        clearPauseTimeout();
         g_pauseTimeoutHandle = setTimeout(startGame, g_pauseDelay);
     }
+}
+
+function clearOpinionBroadcast()
+{
+    if (g_opinionTimeoutHandle)
+    {
+        clearTimeout(g_opinionTimeoutHandle);
+        g_opinionTimeoutHandle = null
+    }
+}
+
+function planNextOpinionBroadcast()
+{
+    g_opinionTimeoutHandle = setTimeOut(opinionBroadcast, 400);
+}
+
+// TODO: this should probably go in a worker thread
+function opinionBroadcast()
+{
+    var message = { name : "opinion", value : g_opinion };
+    broadcast(message);
+    planNextOpinionBroadcast();
 }
 
 function processKill()
@@ -499,8 +528,9 @@ function move()
         g_opinion.numForward = 0;
         
         // broadcast it
-        var message = { name : "opinion", value : g_opinion };
-        broadcast(message);
+        //var message = { name : "opinion", value : g_opinion };
+        //broadcast(message);
+        // => done when the "move" or "grow" event is received
 
         // check for apples pickup
         for (var a=0; a<g_apples.length; ++a)
