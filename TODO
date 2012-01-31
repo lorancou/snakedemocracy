@@ -14,16 +14,16 @@ Client:
  - Button hold shouldn't send a vote
  - Max 10 votes per turn
  - Leaving the game running in a hidden tab brings rendering glitches (Opera, at least)
- - Blink or shine or something to indicate when victory is close
+ - (Blink or shine or something to indicate when victory is close)
  
 Website
- - Display victory condition after 5 apples eaten
+ - Display victory condition after 5 apples eaten + tip tail blinks and shine
  - Victory tweet
  - Side/promote/apple tweet
  - About page
  
 Server
  - Test server
- - Wrap on sides
  - Kick cheaters?
+ - Remove cheat page access on prod server
  
