@@ -16,12 +16,13 @@ io.configure("production", function(){
     io.enable("browser client minification");  // send minified client
     io.enable("browser client etag");          // apply etag caching logic based on version number
     io.enable("browser client gzip");          // gzip the file
+    io.set("force new connection", false);     // no spam bots BULLSHIT: this just doens't work :(
     io.set("log level", 0);                    // no logging
 });
 
 // configure socket.io for production
 io.configure("development", function(){
-    io.set("force new connection");            // for spam bots
+    io.set("force new connection", true);      // allow spam bots
     io.set("log level", 0);                    // no logging
 });
     
