@@ -460,11 +460,11 @@ function update()
             tailCoords.x, tailCoords.y,
             SPRITE_SIZE, SPRITE_SIZE
         );
-        g_context.drawImage(
+        /*g_context.drawImage(
             g_assets.cache[g_applePath],
             tailCoords.x, tailCoords.y,
             SPRITE_SIZE, SPRITE_SIZE
-        );
+        );*/
 
         // draw all snake body elements
         for (var i=1; i<g_snake.length-1; i++)
