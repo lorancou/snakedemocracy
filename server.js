@@ -53,6 +53,7 @@ var g_test = (process.env.NODE_ENV == "development");//(process.argv.length==5) 
 // global constants
 var AREA_SIZE = 20;
 var STARTUP_APPLE_COUNT = 3;
+var MAX_VOTES_PER_MOVE = 10;
 
 //app.listen(80);
 var port = process.env.PORT || 3000;
@@ -189,6 +190,7 @@ io.sockets.on("connection", function (socket)
         // log connection, send current state
         console.log("New client: ", address);
         socket.emit("ping", { snake : g_snake, apples : g_apples, state : g_state });
+        socket.votesThisMove = 0;
     }
 
     // receive client message
@@ -304,6 +306,13 @@ function planNextMove()
     {
         clearMoveTimeout();
         g_moveTimeoutHandle = setTimeout(move, g_moveDelay);
+    }
+    
+    // clear vote counts
+    for (var i=0; i<g_sockets.length; i++)
+    {
+        var s = g_sockets[i];
+        s.votesThisMove = 0;
     }
 }
 
@@ -589,6 +598,14 @@ function processPauseDelayChange(_socket, _value)
 
 function processVote(_socket, _value)
 {
+    ++_socket.votesThisMove;
+    if (_socket.votesThisMove > MAX_VOTES_PER_MOVE)
+    {
+        var address = socket.handshake.address.address;
+        reportAbuse(address, "Extra vote, total " + _socket.votesThisMove);
+        return;
+    }
+    
     // push/update client vote
 	g_votes = g_votes.filter(function(v)
     {

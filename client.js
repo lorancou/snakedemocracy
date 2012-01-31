@@ -5,6 +5,7 @@ var CANVAS_WIDTH = 480;
 var CANVAS_HEIGHT = 480;
 var SPRITE_SIZE = 24;
 var SELECT_FRAMES = 3;
+var MAX_VOTES_PER_MOVE = 10;
 
 // global variables
 var g_context = null;
@@ -28,6 +29,7 @@ var g_selectEast = -1;
 var g_selectWest = -1;
 var g_selectSouth = -1;
 var g_selectNorth = -1;
+var g_votesThisMove = 0;
 var g_playerCountElement = null;
 var g_numLeftElement = null;
 var g_numForwardElement = null;
@@ -896,10 +898,11 @@ function submitTweaks()
 // VOTE
 function vote(_value)
 {
-    if (g_state.name == "playing")
+    if (g_state.name == "playing" && g_votesThisMove < MAX_VOTES_PER_MOVE)
     {
         //log("vote: " + _value);
         g_socket.emit("message", { name : "vote", move : g_move, value : _value });
+        ++g_votesThisMove;
     }
 }
 
@@ -925,6 +928,7 @@ function processMessage(_message)
         g_snake.push(new vec2(_message.value.x, _message.value.y)); // meh??
             
         g_move = _message.move;
+        g_votesThisMove = 0;
 
         // reset opinion
         g_opinion = {};
@@ -939,6 +943,7 @@ function processMessage(_message)
         g_snake.push(new vec2(_message.value.x, _message.value.y)); // meh??
 
         g_move = _message.move;
+        g_votesThisMove = 0;
 
         // reset opinion
         g_opinion = {};
@@ -951,16 +956,19 @@ function processMessage(_message)
     {
         g_state = _message;
         g_move = 0;
+        g_votesThisMove = 0;
     }
     else if (_message.name == "victory")
     {
         g_state = _message;
         g_move = 0;
+        g_votesThisMove = 0;
     }
     else if (_message.name == "playing")
     {
         g_state = { name : _message.name  };
         g_move = 0;
+        g_votesThisMove = 0;
 
         // copy snakes
         g_snake = new Array();
