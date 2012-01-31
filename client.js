@@ -204,6 +204,8 @@ function init(_test)
 
     log("Loading...");
     
+    g_context.fillStyle = "#FFFFFF";
+    g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     g_context.fillStyle = "#000000";
     g_context.fillText(
         "Loading ballot paper... please be patient, citizen.",
@@ -219,6 +221,8 @@ function connect()
 {
     log("Connecting...");
 
+    g_context.fillStyle = "#FFFFFF";
+    g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     g_context.fillStyle = "#000000";
     g_context.fillText(
         "Connecting to polling station... please remain patient, citizen.",
