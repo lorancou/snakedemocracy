@@ -264,6 +264,11 @@ function processPing(message)
     }
 
     g_socket.on("message", function (message) { processMessage(message) });
+    
+    if (g_test)
+    {
+        g_socket.on("testmsg", function (message) { processTestmsg(message) });
+    }
 }
 
 function mouseDown(e)
@@ -358,6 +363,11 @@ function update()
     // plan next update
     //setTimeout("update()", 0.0);
     requestAnimFrame(update);
+    
+    if (g_test)
+    {
+        g_socket.emit("testmsg", { name : "mem" });
+    }
 
     // clear canvas
     //g_context.fillStyle = "#000000";
@@ -848,7 +858,10 @@ function updateSpamBots()
     
     setTimeout("updateSpamBots()", 200); // vote 10 times in 2s
 }
-updateSpamBots();
+if (g_test)
+{
+    updateSpamBots();
+}
 function submitTweaks()
 {
     var element = document.getElementById("moveDelay");
@@ -955,4 +968,16 @@ function processMessage(_message)
     {
         log("ERROR: un-named state");
     }
+}
+
+function processTestmsg(_message)
+{
+    if (_message.name == "mem")
+    {
+        var memUsageElement = document.getElementById("memUsage");
+        if (memUsageElement)
+        {
+            memUsageElement.innerHTML = message.text;
+        }
+    }    
 }

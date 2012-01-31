@@ -232,6 +232,15 @@ io.sockets.on("connection", function (socket)
         {
             processPauseDelayChange(socket, _message.value);
         }
+        else if (_message.name == "mem")
+        {
+            var memUsage = process.memoryUsage();
+            var text = "mem: <br/>";
+            text += "rss: " + memUsage.rss + "<br/>";
+            text += "vsize: " + memUsage.vsize + "<br/>";
+            text += "heap: " + memUsage.heapUsed + "/" + memUsage.heapTotal + "<br/>";
+            socket.emit("testmsg", { name : "mem", text : text });
+        }
     });
     
     // disconnecting clients
@@ -249,8 +258,6 @@ io.sockets.on("connection", function (socket)
 function startGame()
 {
     console.log("Starting game!");
-    
-    console.log(process.memoryUsage().heapUsed);
 
     // start with 3 elements
     // TODO: random?
