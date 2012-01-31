@@ -38,6 +38,8 @@ var g_apples = null;
 var g_opinion = null;
 var g_direction = null;
 var g_state = null;
+var g_turn = 0;
+var g_move = 0;
 var g_moveDelay = 2000;
 var g_pauseDelay = 7000;
 var g_pendingGrow = false;
@@ -151,6 +153,8 @@ function init()
 
     g_direction = "south";
     g_state = { name : "init" };
+    g_turn = 0;
+    g_move = 0;
     g_pendingGrow = false;
 
     // clear timeouts
@@ -158,8 +162,8 @@ function init()
     clearPauseTimeout();
     clearOpinionBroadcast();
     
-    // start first game
-    startGame();
+    // start first turn
+    startTurn();
 }
 
 init();
@@ -193,7 +197,10 @@ io.sockets.on("connection", function (socket)
         //console.log("MESSAGE:" + _message.name + " (" + _message.value + ")");
         if (_message.name == "vote")
         {
-            processVote(socket, _message.value);
+            if (_message.move == g_move) // ignore votes for previous move (net lag)
+            {
+                processVote(socket, _message.value);
+            }
         }
     });
 
@@ -248,9 +255,11 @@ io.sockets.on("connection", function (socket)
     });
 });
 
-// start game session
-function startGame()
+// start one turn
+function startTurn()
 {
+    ++g_turn;
+    
     console.log("Starting game!");
 
     // start with 3 elements
@@ -289,7 +298,7 @@ function clearMoveTimeout()
 
 function planNextMove()
 {
-    console.log("Plan next move, delay: " + g_moveDelay);
+    console.log("Planning next move, delay: " + g_moveDelay);
 
     if (g_moveDelay > 0)
     {
@@ -307,9 +316,9 @@ function clearPauseTimeout()
     }
 }
 
-function planNextGame()
+function planNextTurn()
 {
-    console.log("Plan next game, delay: " + g_pauseDelay);
+    console.log("Planning next turn, delay: " + g_pauseDelay);
 
     // cancel upcoming move & opinion broadcast
     clearMoveTimeout();
@@ -318,7 +327,7 @@ function planNextGame()
     if (g_pauseDelay > 0)
     {
         clearPauseTimeout();
-        g_pauseTimeoutHandle = setTimeout(startGame, g_pauseDelay);
+        g_pauseTimeoutHandle = setTimeout(startTurn, g_pauseDelay);
     }
 }
 
@@ -390,6 +399,8 @@ function processTweet(_screenName, _text)
 
 function move()
 {
+    ++g_move;
+    
     var score = computeScore();
     console.log("Move! Current score: " + score);
 
@@ -404,7 +415,7 @@ function move()
         //g_snake.push();
         newHead = new vec2(10, 10);
 
-        startGame();
+        startTurn();
     }
     else
     {
@@ -479,8 +490,8 @@ function move()
         broadcast(message);
         g_state = message;
 
-        // plan next game
-        planNextGame();
+        // plan next turn
+        planNextTurn();
     }
     // check self-hit
     else if (checkSelf(newHead))
@@ -490,8 +501,8 @@ function move()
         broadcast(message);
         g_state = message;
 
-        // plan next game
-        planNextGame();
+        // plan next turn
+        planNextTurn();
     }
     // check victory
     else if (checkVictory(newHead))
@@ -501,8 +512,8 @@ function move()
         broadcast(message);
         g_state = message;
 
-        // plan next game
-        planNextGame();
+        // plan next turn
+        planNextTurn();
     }
     else
     {
@@ -510,12 +521,12 @@ function move()
         if (g_pendingGrow)
         {
             g_pendingGrow = false;
-            var message = { name : "grow", value : newHead };
+            var message = { name : "grow", turn : g_turn, value : newHead };
             broadcast(message);
         }
         else
         {
-            var message = { name : "move", value : newHead };
+            var message = { name : "move", turn : g_turn, value : newHead };
             broadcast(message);
         }
 

@@ -15,6 +15,7 @@ var g_snake = null;
 var g_apples = null;
 var g_opinion = null;
 var g_state = null;
+var g_move = 0;
 var g_playerCount = 0;
 var g_score = 0;
 var g_clickX = -1;
@@ -32,6 +33,7 @@ var g_numLeftElement = null;
 var g_numForwardElement = null;
 var g_numRightElement = null;
 var g_scoreElement = null;
+var g_moveElement = null;
 var g_test = null;
 
 // assets
@@ -184,6 +186,7 @@ function init(_test)
     g_numForwardElement = document.getElementById("numForward");
     g_numRightElement = document.getElementById("numRight");
     g_scoreElement = document.getElementById("score");
+    g_moveElement = document.getElementById("move");
     if (!g_playerCountElement ||
         !g_numLeftElement ||
         !g_numForwardElement ||
@@ -797,6 +800,10 @@ function updateStats()
     {
         g_scoreElement.innerHTML = g_score;
     }
+    if (g_moveElement)
+    {
+        g_moveElement.innerHTML = g_move;
+    }
 }
 
 // test/cheat/tweaks
@@ -892,7 +899,7 @@ function vote(_value)
     if (g_state.name == "playing")
     {
         //log("vote: " + _value);
-        g_socket.emit("message", { name : "vote", value : _value });
+        g_socket.emit("message", { name : "vote", move : g_move, value : _value });
     }
 }
 
@@ -916,6 +923,8 @@ function processMessage(_message)
     else if (_message.name == "grow")
     {
         g_snake.push(new vec2(_message.value.x, _message.value.y)); // meh??
+            
+        g_move = _message.move;
 
         // reset opinion
         g_opinion = {};
@@ -929,6 +938,8 @@ function processMessage(_message)
         g_snake.shift();
         g_snake.push(new vec2(_message.value.x, _message.value.y)); // meh??
 
+        g_move = _message.move;
+
         // reset opinion
         g_opinion = {};
         g_opinion.current = "forward";
@@ -939,14 +950,17 @@ function processMessage(_message)
     else if (_message.name == "defeat")
     {
         g_state = _message;
+        g_move = 0;
     }
     else if (_message.name == "victory")
     {
         g_state = _message;
+        g_move = 0;
     }
     else if (_message.name == "playing")
     {
         g_state = { name : _message.name  };
+        g_move = 0;
 
         // copy snakes
         g_snake = new Array();
