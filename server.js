@@ -1,7 +1,7 @@
 // usage
-if (process.argv.length != 4)
+if (process.argv.length < 4)
 {
-    console.log("usage: node ./server.js login password");
+    console.log("usage: node ./server.js login password [test]");
     process.exit();
 }
 
@@ -31,6 +31,7 @@ var g_moveTimeoutHandle = null;
 var g_pauseTimeoutHandle = null;
 var g_snakeLengthCache = -1;
 var g_tweets = 0;
+var g_test = (process.argv.length==5) && (process.argv[4]=="test");
 
 // global constants
 var AREA_SIZE = 20;
@@ -55,10 +56,15 @@ app.get("/faq", function (req, res)
 {
     res.sendfile(__dirname + "/credits.html");
 });*/
-app.get("/cheat", function (req, res)
+    
+// serve cheats page on test server only
+if (g_test)
 {
-    res.sendfile(__dirname + "/cheat.html");
-});
+    app.get("/cheat", function (req, res)
+    {
+        res.sendfile(__dirname + "/cheat.html");
+    });
+}
 
 // serve stuff
 // meh. public folder?...
