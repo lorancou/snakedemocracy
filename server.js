@@ -187,7 +187,7 @@ io.sockets.on("connection", function (socket)
         {
             processPauseDelayChange(socket, _message.value);
         }
-    }
+    });
     
     // disconnecting clients
     socket.on('disconnect', function()
