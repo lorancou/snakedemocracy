@@ -145,9 +145,9 @@ console.vlog = function(_msg)
 {
     var memUsage = process.memoryUsage();
     var rss = toMB(memUsage.rss);
-    var heapTotal = toMB(memUsage.vsize);
-    var heapUsed = toMB(memUsage.vsize);
-    console.log("[RSS:" + rss + "MB|HEAP:" + heapUsed + "/" + heapTotal + "MB] " + _msg);
+    var heapTotal = toMB(memUsage.heapTotal);
+    var heapUsed = toMB(memUsage.heapUsed);
+    console.log("SD [rss:" + rss + "MB|heap:" + heapUsed + "/" + heapTotal + "MB] " + _msg);
 }
 
 g_sockets = new Array(); // do NOT put in init
@@ -874,9 +874,9 @@ function broadcast(_message)
     for (var i=0; i<g_sockets.length; i++)
     {
         // *NEVER* spoil bandwidth for idle clients
+        var s = g_sockets[i];
         if (s.clientState != "idle")
         {
-            var s = g_sockets[i];
             s.emit("message", _message);
         }
     }
