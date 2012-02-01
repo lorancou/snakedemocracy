@@ -222,7 +222,7 @@ function setClientState(_socket, _newState)
     if (_socket.clientState == "idle")
     {
         // re-send ping
-        socket.emit("ping", { snake : g_snake, apples : g_apples, state : g_state });
+        _socket.emit("ping", { snake : g_snake, apples : g_apples, state : g_state });
     }
     
     _socket.clientState = _newState;
