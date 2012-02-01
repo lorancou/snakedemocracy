@@ -9,9 +9,10 @@ Client:
  - Detect server restart / DOS
  - Weird socket.io retrieving issue:
      * Chrome: Unexpected response code: 503
-     * Firefox: "NetworkError: 400 Invalid header received from client - http://snakedemocracy.herokuapp.com/socket.io/1/websocket/8976880731893123008"
+     * Firefox: "NetworkError: 400 Invalid header received from client
+     [ http://snakedemocracy.herokuapp.com/socket.io/1/websocket/XXX"
  - Fix for paranoïd security software: this: http://housecall.trendmicro.com/
- - Leaving the game running in a hidden tab brings rendering glitches (Opera, at least)
+ - Leaving the game running in a hidden tab brings rendering glitches (Opera)
  - (Blink or shine or something to indicate when victory is close)
  
 Website
