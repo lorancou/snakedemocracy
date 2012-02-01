@@ -92,7 +92,7 @@ var g_arrowSelectPaths =
 var g_applePath = "files/apple.png";
 var g_fullgridPath = "files/fullgrid.png";
 var g_victoryPath = "files/victory.png";
-var g_defeatPath = "files/fail.png";
+var g_failPath = "files/fail.png";
 
 function log(msg)
 {
@@ -164,7 +164,7 @@ function queueAssets(_mgr)
     _mgr.queueDownload(g_applePath);
     _mgr.queueDownload(g_fullgridPath);
     _mgr.queueDownload(g_victoryPath);
-    _mgr.queueDownload(g_defeatPath);
+    _mgr.queueDownload(g_failPath);
 }
 
 function setClientState(_newState)
@@ -779,7 +779,7 @@ function update()
     else if (g_state.name == "fail")
     {
         g_context.drawImage(
-            g_assets.cache[g_defeatPath],
+            g_assets.cache[g_failPath],
             0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         // TODO: draw countdown
     }
