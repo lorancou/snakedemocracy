@@ -143,7 +143,7 @@ function toMB(_bytes)
 // verbose log
 console.vlog = function(_msg)
 {
-    var memUsage = process.memoryUsage(),
+    var memUsage = process.memoryUsage();
     var rss = toMB(memUsage.rss);
     var heapTotal = toMB(memUsage.vsize);
     var heapUsed = toMB(memUsage.vsize);
@@ -297,9 +297,8 @@ io.sockets.on("connection", function (socket)
         {
             var memUsage = process.memoryUsage();
             var text = "mem: <br/>";
-            text += "rss: " + Math.floor(memUsage.rss / (1024 * 1024)) + "MB<br/>";
-            //text += "vsize: " + memUsage.vsize + "<br/>";
-            text += "heap: " + Math.floor(memUsage.heapUsed / (1024 * 1024)) + "MB / " + Math.floor(memUsage.heapTotal / (1024 * 1024)) + "MB<br/>";
+            text += "rss: " + toMB(memUsage.rss) + "MB<br/>";
+            text += "heap: " + toMB(memUsage.heapUsed) + "/" + toMB(memUsage.heapTotal) + "MB<br/>";
             socket.emit("testmsg", { name : "mem", text : text });
         }
     });
@@ -678,9 +677,8 @@ function move()
     // itself but il will *restart* it, yey!)
     if (MEM_AUTO_CRASH > 0)
     {
-        var memUsageB = process.memoryUsage().rss;
-        var memUsageMB = memUsageB / (1024 * 1024);
-        if (memUsageMB > MEM_AUTO_CRASH)
+        var rssMB = toMB(process.memoryUsage().rss);
+        if (rssMB > MEM_AUTO_CRASH)
         {
             console.error("Eating too much memory. Sepuku!");
             process.exit(2);
