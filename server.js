@@ -149,7 +149,11 @@ console.vlog = function()
     var heapUsed = toMB(memUsage.heapUsed);
 
     var newArgs = new Array();
-    newArgs.push("SD [rss:" + rss + "MB|heap:" + heapUsed + "/" + heapTotal + "MB] ");
+    newArgs.push(
+        "SD [rss:" + rss + "MB|" +
+        "heap:" + heapUsed + "/" + heapTotal + "MB|" +
+        "s:" + g_sockets.length + "]"
+        );
     for (var i=0; i<arguments.length; ++i)
     {
         newArgs.push(arguments[i]);
@@ -372,7 +376,7 @@ function planNextMove()
     }
 
     var activePlayerCount = 0;
-    var inactivePlayerCount = 0;
+    var playerCOunt = g_sockets.length;
     
     // clear vote counts + detect spectators
     for (var i=0; i<g_sockets.length; i++)
@@ -392,16 +396,12 @@ function planNextMove()
         {
             ++activePlayerCount;
         }
-        else
-        {
-            ++inactivePlayerCount;
-        }
     }
 
     // player counter:
     // - active clients in big letters
     // - spectators + idle clients in small letters
-    g_playerCountCache = activePlayerCount + " <small>/ " + inactivePlayerCount + "</small>";
+    g_playerCountCache = activePlayerCount + " <small>/ " + playerCOunt + "</small>";
 }
 
 function clearPauseTimeout()
