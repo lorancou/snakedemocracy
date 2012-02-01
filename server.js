@@ -152,8 +152,8 @@ console.vlog = function()
     newArgs.push(
         "SD [rss:" + rss + "MB|" +                      // rss
         "heap:" + heapUsed + "/" + heapTotal + "MB|" +  // heap
-        "a:" + g_activePlayerCount + "|"                // active
-        "s:" + g_spectatorCount + "|"                   // spectators
+        "a:" + g_activePlayerCount + "|" +              // active
+        "s:" + g_spectatorCount + "|" +                 // spectators
         "t:" + g_sockets.length + "]"                   // total
         );
     for (var i=0; i<arguments.length; ++i)
