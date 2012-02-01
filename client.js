@@ -415,6 +415,13 @@ function update()
 {
     // plan next update
     requestAnimFrame(update);
+
+    // yey! back with us
+    if (g_clientState == "idle")
+    {
+        setClientState("spectator");
+        return; // TODO: wait for backping before updating, just skip one frame for now
+    }
     
     var time = new Date().getTime();
     var dt = time - g_lastTime;
@@ -1074,6 +1081,15 @@ function processMessage(_message)
         {
             g_apples.splice(_message.idx, 1);
         }
+    }
+    else if (_message.name == "backping")
+    {
+        g_snake = _message.snake;
+        g_apples = _message.apples;
+        g_state = _message.state;
+        g_move = _message.move;
+        g_votesThisMove = 0;
+        g_lastVoteMove = g_move;
     }
     if (!g_state.name)
     {
