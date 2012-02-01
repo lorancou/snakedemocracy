@@ -5,6 +5,7 @@
 
 Client:
  - Detect server restart / DOS / sepuku
+    -> Warn users when this is about to happen
  - Weird socket.io retrieving issue:
     * Chrome: Unexpected response code: 503
     * Firefox: "NetworkError: 400 Invalid header received from client
@@ -14,6 +15,7 @@ Client:
  - Fix pingback sometimes glitching (missing snake body parts?)
  - Wait for backping before updating, just skipping one frame for now
     -> cf. early return in update()
+  - Extra vote possible???
  
 Website
  - Display victory condition after 5 apples eaten + tip tail blinks and shine

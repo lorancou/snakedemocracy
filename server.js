@@ -387,7 +387,7 @@ function planNextMove()
         
         // spectator check
         var dmove = g_move - s.lastVoteMove;
-        if (dmove > SPECTATOR_THRESHOLD)
+        if (dmove > SPECTATOR_THRESHOLD && s.clientState == "active")
         {
             setClientState(s, "spectator");
         }
