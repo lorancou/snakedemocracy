@@ -272,7 +272,7 @@ io.sockets.on("connection", function (socket)
         if (dt > IDLE_DELAY)
         {
             setClientState(socket, "idle");
-            socket.lastIdleTime;
+            socket.lastIdleTime = new Date().getTime();
         }
         else
         {
