@@ -55,7 +55,7 @@ var g_test = (process.env.NODE_ENV == "development");//(process.argv.length==5) 
 var AREA_SIZE = 20;
 var STARTUP_APPLE_COUNT = 3;
 var MAX_VOTES_PER_MOVE = 10;
-var MEM_AUTO_CRASH = 400; // MB, set to 0 to disable
+var MEM_AUTO_CRASH = 200; // MB, set to 0 to disable
 
 //app.listen(80);
 var port = process.env.PORT || 3000;
@@ -173,6 +173,11 @@ init();
 
 function reportAbuse(_address, _message)
 {
+    if (g_test)
+    {
+        return;
+    }
+    
     console.warn("ABUSE: " + _address);
     console.dir(_message);
 }
@@ -590,7 +595,7 @@ function move()
     // itself but il will *restart* it, yey!)
     if (MEM_AUTO_CRASH > 0)
     {
-        var memUsageB = process.memoryUsage().heapTotal;
+        var memUsageB = process.memoryUsage().rssTotal;
         var memUsageMB = memUsageB / (1024 * 1024);
         if (memUsageMB > MEM_AUTO_CRASH)
         {
