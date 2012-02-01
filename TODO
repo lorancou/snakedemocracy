@@ -4,7 +4,6 @@
 ---------------------------------------------------------------------------------
 
 Client:
- - Hide score on defeat
  - Detect server restart / DOS / sepuku
  - Weird socket.io retrieving issue:
     * Chrome: Unexpected response code: 503
@@ -18,8 +17,6 @@ Client:
  
 Website
  - Display victory condition after 5 apples eaten + tip tail blinks and shine
- - Victory tweet
- - Side/promote/apple tweet
  - About page
  - Cross with EWSN instead of leftist, rightists, forwardists?
  

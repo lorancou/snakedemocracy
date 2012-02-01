@@ -943,7 +943,14 @@ function updateStats(_dt)
     }
     if (g_scoreElement)
     {
-        g_scoreElement.innerHTML = g_score;
+        if (g_state.name == "playing" || g_state.name == "victory")
+        {
+            g_scoreElement.innerHTML = g_score;
+        }
+        else
+        {
+            g_scoreElement.innerHTML = "&#x2014";
+        }
     }
 
     // optional (test)
