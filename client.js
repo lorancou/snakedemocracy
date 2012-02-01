@@ -43,6 +43,7 @@ var g_test = null;
 var g_clientState = null;
 var g_lastTime = null;
 var g_lastVoteMove = 0;
+var g_pauseStartTime = null;
 
 // assets
 var g_headPaths =
@@ -198,8 +199,8 @@ function init(_test)
 {
     g_test = _test;
     
-    setClientState("active")
-
+    setClientState("active");
+    
     // get canvas element
     g_canvas =  document.getElementById("canvas");
     if (!g_canvas)
@@ -252,7 +253,7 @@ function init(_test)
     g_context.fillStyle = "#000000";
     g_context.fillText(
         "Loading ballot paper... please be patient, citizen.",
-        150, 240);
+        10, 15);
     
     // queue assets, download them, then connect socket
     g_assets = new AssetManager();
@@ -264,12 +265,16 @@ function connect()
 {
     log("Connecting...");
 
-    g_context.fillStyle = "#FFFFFF";
-    g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    // draw grid, now that it's loaded
+    g_context.drawImage(
+        g_assets.cache[g_fullgridPath],
+        0, 0,
+        CANVAS_WIDTH, CANVAS_HEIGHT);
+
     g_context.fillStyle = "#000000";
     g_context.fillText(
         "Connecting to polling station... please remain patient, citizen.",
-        150, 240);
+        10, 15);
 
     // connect to node.js server
     g_socket = io.connect(g_test ? SERVER_TEST_ADDRESS : SERVER_ADDRESS);
@@ -414,11 +419,11 @@ function update()
     // plan next update
     requestAnimFrame(update);
 
-    // yey! back with us
+    // yey! back with us, default to spectator
     if (g_clientState == "idle")
     {
         setClientState("spectator");
-        return; // TODO: wait for backping before updating, just skip one frame for now
+        return;
     }
     
     var time = new Date().getTime();
@@ -770,18 +775,49 @@ function update()
     // draw end game overlay
     if (g_state.name == "victory")
     {
+        // img
         g_context.drawImage(
             g_assets.cache[g_victoryPath],
             0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-        // TODO: draw score
-        // TODO: draw countdown
+        
+        // draw score
+        var bkpFont = g_context.font;
+        var bkpAlign = g_context.textAlign;
+        g_context.font = "30pt Arial Bold";
+        g_context.textAlign = "center";
+        g_context.fillStyle = "#000000";
+        g_context.fillText(g_score, 240, 285);
+        g_context.font = bkpFont;
+        g_context.textAlign = bkpAlign;
+        
+        // draw countdown
+        var message = "Starting a new game soon...";
+        if (g_pauseStartTime)
+        {
+            var dt = g_lastTime - g_pauseStartTime;
+            var countdown = VICTORY_DELAY - dt;
+            message = "Restarting game in " + Math.floor(countdown/1000) + " seconds...";
+        }
+        g_context.fillStyle = "#000000";
+        g_context.fillText(message, 10, 15);
     }
     else if (g_state.name == "fail")
     {
+        // img
         g_context.drawImage(
             g_assets.cache[g_failPath],
             0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-        // TODO: draw countdown
+        
+        // draw countdown
+        var message = "Your fellow citizens failed but the game will restart soon...";
+        if (g_pauseStartTime)
+        {
+            var dt = g_lastTime - g_pauseStartTime;
+            var countdown = FAIL_DELAY - dt;
+            message = "Restarting game in " + Math.floor(countdown/1000) + " seconds...";
+        }
+        g_context.fillStyle = "#000000";
+        g_context.fillText(message, 10, 15);
     }
 
     // reset input
@@ -1047,6 +1083,7 @@ function processMessage(_message)
         g_move = 0;
         g_votesThisMove = 0;
         g_lastVoteMove = 0;
+        g_pauseStartTime = new Date().getTime();
     }
     else if (_message.name == "victory")
     {
@@ -1054,6 +1091,7 @@ function processMessage(_message)
         g_move = 0;
         g_votesThisMove = 0;
         g_lastVoteMove = 0;
+        g_pauseStartTime = new Date().getTime();
     }
     else if (_message.name == "playing")
     {

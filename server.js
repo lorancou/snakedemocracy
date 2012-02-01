@@ -42,15 +42,16 @@ var g_direction = null;
 var g_state = null;
 var g_turn = 0;
 var g_move = 0;
-var g_moveDelay = 2000;
-var g_failDelay = 7000;
-var g_victoryDelay = 15000;
+var g_moveDelay = MOVE_DELAY;
+var g_failDelay = FAIL_DELAY;
+var g_victoryDelay = VICTORY_DELAY;
 var g_pendingGrow = false;
 var g_moveTimeoutHandle = null;
 var g_pauseTimeoutHandle = null;
 var g_opinionTimeoutHandle = null;
 var g_snakeLengthCache = -1;
-var g_playerCountCache = null;
+var g_activePlayerCount = 0;
+var g_spectatorCount = 0;
 var g_tweets = 0;
 var g_test = (process.env.NODE_ENV == "development");//(process.argv.length==5) && (process.argv[4]=="test");
 
@@ -149,9 +150,11 @@ console.vlog = function()
 
     var newArgs = new Array();
     newArgs.push(
-        "SD [rss:" + rss + "MB|" +
-        "heap:" + heapUsed + "/" + heapTotal + "MB|" +
-        "s:" + g_sockets.length + "]"
+        "SD [rss:" + rss + "MB|" +                      // rss
+        "heap:" + heapUsed + "/" + heapTotal + "MB|" +  // heap
+        "a:" + g_activePlayerCount + "|"                // active
+        "s:" + g_spectatorCount + "|"                   // spectators
+        "t:" + g_sockets.length + "]"                   // total
         );
     for (var i=0; i<arguments.length; ++i)
     {
@@ -378,10 +381,9 @@ function planNextMove()
         g_moveTimeoutHandle = setTimeout(move, g_moveDelay);
     }
 
-    var activePlayerCount = 0;
-    var playerCOunt = g_sockets.length;
-    
-    // clear vote counts + detect spectators
+    // clear vote counts + detect spectators + coutn active players
+    g_activePlayerCount = 0;
+    g_spectatorCount = 0;
     for (var i=0; i<g_sockets.length; i++)
     {
         var s = g_sockets[i];
@@ -394,17 +396,10 @@ function planNextMove()
             setClientState(s, "spectator");
         }
         
-        // count active players
-        if (s.clientState == "active")
-        {
-            ++activePlayerCount;
-        }
+        // count active players & spectators
+        if (s.clientState == "active") ++g_activePlayerCount;
+        else if (s.clientState == "spectator") ++g_spectatorCount;
     }
-
-    // player counter:
-    // - active clients in big letters
-    // - spectators + idle clients in small letters
-    g_playerCountCache = activePlayerCount + " <small>/ " + playerCOunt + "</small>";
 }
 
 function clearPauseTimeout()
@@ -881,7 +876,10 @@ function computeScore()
 function broadcast(_message)
 {
     // any time a message is broadcasted, append the number of players...
-    _message.playerCount = g_playerCountCache;
+    // - active clients in big letters
+    // - spectators + idle clients in small letters
+    var text = activePlayerCount + " <small>/ " + playerCount + "</small>";
+    _message.playerCount = text;
 
     // and the current score
     _message.score = computeScore();

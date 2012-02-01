@@ -45,11 +45,24 @@
                   <div class="digits" id="numRight">&#x2014;</div>
                   <div class="filler" id="stats-8">&nbsp;</div>
                   <div class="digits" id="score">&#x2014;</div>
-                  <!--<p id="playerCount">0 player :(</p>
-                  <p id="numLeft">0 left</p>
-                  <p id="numForward">0 forward</p>
-                  <p id="numRight">0 right</p>
-                  <p id="score">score</p>-->
+
+                  <!-- apples widget -->
+                  <div id="twitterApples">
+                    <a href="https://twitter.com/intent/tweet?button_hashtag=snakedemocracy&text=Give%20me%20an%20apple!" class="twitter-hashtag-button" data-size="small" data-related="snakedemocracy" data-url="http://www.snakedemocracy.com">Tweet #snakedemocracy</a>
+                    <script>
+                    !function(d,s,id){
+                        var js,
+                            fjs=d.getElementsByTagName(s)[0];
+                        if(!d.getElementById(id)){
+                            js=d.createElement(s);
+                            js.id=id;
+                            js.src="http://platform.twitter.com/widgets.js";
+                            fjs.parentNode.insertBefore(js,fjs);
+                        }
+                    }(document,"script","twitter-wjs");
+                    </script>
+                  </div>
+                  
                 </div>
                 <div id="canvas-box">
                   <canvas id="canvas" width="480" height="480">
