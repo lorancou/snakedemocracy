@@ -1,8 +1,9 @@
 // usage
-if (process.argv.length < 4)
+if (process.argv.length != 4)
 {
-    console.log("usage: node ./server.js login password");
-    process.exit();
+    console.error("Wrong number of arguments");
+    console.log("Usage: node ./server.js login password");
+    process.exit(1);
 }
 
 // requires
@@ -54,6 +55,7 @@ var g_test = (process.env.NODE_ENV == "development");//(process.argv.length==5) 
 var AREA_SIZE = 20;
 var STARTUP_APPLE_COUNT = 3;
 var MAX_VOTES_PER_MOVE = 10;
+var MEM_AUTO_CRASH = 400; // MB, set to 0 to disable
 
 //app.listen(80);
 var port = process.env.PORT || 3000;
@@ -583,6 +585,19 @@ function move()
     g_snake.push(newHead);
 
     g_snakeLengthCache = -1;
+    
+    // check memory, sepuku if taking too much (Heroku won't kill the server by
+    // itself but il will *restart* it, yey!)
+    if (MEM_AUTO_CRASH > 0)
+    {
+        var memUsageB = process.memoryUsage().heapTotal;
+        var memUsageMB = memUsageB / (1024 * 1024);
+        if (memUsageMB > MEM_AUTO_CRASH)
+        {
+            console.error("Eating too much memory. Sepuku!");
+            process.exit(2);
+        }
+    }
 }
 
 function processMoveDelayChange(_socket, _value)
