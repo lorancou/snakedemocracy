@@ -268,7 +268,7 @@ io.sockets.on("connection", function (socket)
         console.vlog("IDLE: ", address);
         var time = new Date().getTime();
         var dt = time - socket.lastIdleTime;
-        var IDLE_DELAY = 30000;
+        var IDLE_DELAY = 10000;
         if (dt > IDLE_DELAY)
         {
             setClientState(socket, "idle");
