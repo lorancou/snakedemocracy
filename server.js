@@ -147,7 +147,14 @@ console.vlog = function()
     var rss = toMB(memUsage.rss);
     var heapTotal = toMB(memUsage.heapTotal);
     var heapUsed = toMB(memUsage.heapUsed);
-    console.log("SD [rss:" + rss + "MB|heap:" + heapUsed + "/" + heapTotal + "MB] ", arguments);
+
+    var newArgs = new Array();
+    newArgs.push("SD [rss:" + rss + "MB|heap:" + heapUsed + "/" + heapTotal + "MB] ");
+    for (var i=0; i<arguments.length; ++i)
+    {
+        newArgs.push(arguments[i]);
+    }
+    this.log.apply(this, newArgs);
 }
 
 g_sockets = new Array(); // do NOT put in init
