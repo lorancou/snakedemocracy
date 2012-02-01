@@ -26,4 +26,7 @@ Server
  - Kick cheaters?
  - Detect idling + hidden tab clients, pause traffic
  - Bots if too few players?
+ - Find this memleak: https://github.com/felixge/node-memory-leak-tutorial
  
+Common
+ - common.js for common constant

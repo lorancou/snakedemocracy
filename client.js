@@ -6,6 +6,9 @@ var CANVAS_HEIGHT = 480;
 var SPRITE_SIZE = 24;
 var SELECT_FRAMES = 3;
 var MAX_VOTES_PER_MOVE = 10;
+var SPECTATOR_THRESHOLD = 5; // in snake moves
+var IDLE_CHECK_INTERVAL = 1000; // in ms
+var IDLE_THRESHOLD = 10000; // in ms
 
 // global variables
 var g_context = null;
@@ -35,8 +38,13 @@ var g_numLeftElement = null;
 var g_numForwardElement = null;
 var g_numRightElement = null;
 var g_scoreElement = null;
+var g_clientStateElement = null;
 var g_moveElement = null;
+var g_fpsElement = null;
 var g_test = null;
+var g_clientState = null;
+var g_lastTime = null;
+var g_lastVoteMove = 0;
 
 // assets
 var g_headPaths =
@@ -161,11 +169,39 @@ function queueAssets(_mgr)
     _mgr.queueDownload(g_defeatPath);
 }
 
+function setClientState(_newState)
+{
+    if (_newState == g_clientState)
+    {
+        return;
+    }
+    
+    // notify server about idle clients (spectators are detected on the
+    // server to avoid extra traffic)
+    if (g_socket)
+    {
+        if (_newState == "idle")
+        {
+            log("Idle.");
+            g_socket.emit("idle");
+        }
+        else if (g_clientState == "idle")
+        {
+            log("Back!");
+            g_socket.emit("back");
+        }
+    }
+
+    g_clientState = _newState;
+}
+
 // client init, called with body's onload
 function init(_test)
 {
     g_test = _test;
     
+    setClientState("active")
+
     // get canvas element
     g_canvas =  document.getElementById("canvas");
     if (!g_canvas)
@@ -182,13 +218,12 @@ function init(_test)
         return;
     }
 
-    // get stats elements
+    // get mandatory stats elements
     g_playerCountElement = document.getElementById("playerCount");
     g_numLeftElement = document.getElementById("numLeft");
     g_numForwardElement = document.getElementById("numForward");
     g_numRightElement = document.getElementById("numRight");
     g_scoreElement = document.getElementById("score");
-    g_moveElement = document.getElementById("move");
     if (!g_playerCountElement ||
         !g_numLeftElement ||
         !g_numForwardElement ||
@@ -197,6 +232,11 @@ function init(_test)
     {
         log("WARNING: missing some stats elements");
     }
+
+    // get optional stats elements
+    g_clientStateElement = document.getElementById("clientState");
+    g_moveElement = document.getElementById("move");
+    g_fpsElement = document.getElementById("fps");
 
     // plug inputs
 	g_canvas.onmousedown = mouseDown;
@@ -240,7 +280,10 @@ function connect()
         log("Connected! Running!");
         processPing(message);
         
+        g_lastTime = new Date().getTime();
+        g_lastVoteMove = 0;
         update();
+        idleCheck();
         
         if (g_test)
         {
@@ -371,8 +414,10 @@ function getScreenCoords(_coords, _middle)
 function update()
 {
     // plan next update
-    //setTimeout("update()", 0.0);
     requestAnimFrame(update);
+    
+    var time = new Date().getTime();
+    var dt = time - g_lastTime;
     
     if (g_test)
     {
@@ -518,11 +563,6 @@ function update()
             tailCoords.x, tailCoords.y,
             SPRITE_SIZE, SPRITE_SIZE
         );
-        /*g_context.drawImage(
-            g_assets.cache[g_applePath],
-            tailCoords.x, tailCoords.y,
-            SPRITE_SIZE, SPRITE_SIZE
-        );*/
 
         // draw all snake body elements
         for (var i=1; i<g_snake.length-1; i++)
@@ -722,16 +762,6 @@ function update()
         }
     }
 
-    // draw msg
-    /*if (g_state.name != "playing")
-    {
-        g_context.fillStyle = "#FFFFFF";
-        //g_context.font = ;
-        g_context.fillText(
-            g_state.name + ": " + g_state.value,
-            10, 40);
-    }*/
-
     // draw end game overlay
     if (g_state.name == "victory")
     {
@@ -760,12 +790,18 @@ function update()
     if (g_selectWest > 0) --g_selectWest;
     if (g_selectSouth > 0) --g_selectSouth;
     if (g_selectNorth > 0) --g_selectNorth;
+    
+    // chek if not voting
+    spectatorCheck(time);
 
-    updateStats();
+    // stats
+    updateStats(dt);
+    g_lastTime = time;
 }
 
-function updateStats()
+function updateStats(_dt)
 {
+    // mandatory
     if (g_playerCountElement)
     {
         if (g_playerCount == 0)
@@ -802,10 +838,42 @@ function updateStats()
     {
         g_scoreElement.innerHTML = g_score;
     }
+
+    // optional (test)
+    if (g_clientStateElement)
+    {
+        g_clientStateElement.innerHTML = g_clientState;
+    }
     if (g_moveElement)
     {
         g_moveElement.innerHTML = g_move;
     }
+    if (g_fpsElement)
+    {
+        g_fpsElement.innerHTML = Math.floor(1000.0 / _dt);
+    }
+}
+
+// detect spectator client
+function spectatorCheck(_time)
+{
+    var dmove = g_move - g_lastVoteMove;
+    if (dmove > SPECTATOR_THRESHOLD)
+    {
+        setClientState("spectator")
+    }
+}
+
+// detect idle client
+function idleCheck()
+{
+    var time = new Date().getTime();
+    var dt = time - g_lastTime;
+    if (dt > IDLE_THRESHOLD)
+    {
+        setClientState("idle")
+    }
+    setTimeout("idleCheck()", IDLE_CHECK_INTERVAL);
 }
 
 // test/cheat/tweaks
@@ -899,6 +967,8 @@ function submitTweaks()
 // VOTE
 function vote(_value)
 {
+    g_lastVoteMove = g_move;
+    setClientState("active");
     if (g_state.name == "playing" && g_votesThisMove < MAX_VOTES_PER_MOVE)
     {
         //log("vote: " + _value);
@@ -958,18 +1028,21 @@ function processMessage(_message)
         g_state = _message;
         g_move = 0;
         g_votesThisMove = 0;
+        g_lastVoteMove = 0;
     }
     else if (_message.name == "victory")
     {
         g_state = _message;
         g_move = 0;
         g_votesThisMove = 0;
+        g_lastVoteMove = 0;
     }
     else if (_message.name == "playing")
     {
         g_state = { name : _message.name  };
         g_move = 0;
         g_votesThisMove = 0;
+        g_lastVoteMove = 0;
 
         // copy snakes
         g_snake = new Array();

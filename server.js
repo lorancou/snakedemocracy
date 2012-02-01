@@ -48,6 +48,7 @@ var g_moveTimeoutHandle = null;
 var g_pauseTimeoutHandle = null;
 var g_opinionTimeoutHandle = null;
 var g_snakeLengthCache = -1;
+var g_playerCountCache = null;
 var g_tweets = 0;
 var g_test = (process.env.NODE_ENV == "development");//(process.argv.length==5) && (process.argv[4]=="test");
 
@@ -55,6 +56,7 @@ var g_test = (process.env.NODE_ENV == "development");//(process.argv.length==5) 
 var AREA_SIZE = 20;
 var STARTUP_APPLE_COUNT = 3;
 var MAX_VOTES_PER_MOVE = 10;
+var SPECTATOR_THRESHOLD = 5; // in snake moves
 var MEM_AUTO_CRASH = 200; // MB, set to 0 to disable
 
 //app.listen(80);
@@ -131,17 +133,34 @@ app.use(function(err, req, res, next){
   }
 });
 
+// bytes to MB
+function toMB(_bytes)
+{
+    if (!_bytes) return "N/A";
+    return Math.floor(_bytes / (1024 * 1024));
+}
+
+// verbose log
+console.vlog = function(_msg)
+{
+    var memUsage = process.memoryUsage(),
+    var rss = toMB(memUsage.rss);
+    var heapTotal = toMB(memUsage.vsize);
+    var heapUsed = toMB(memUsage.vsize);
+    console.log("[RSS:" + rss + "MB|HEAP:" + heapUsed + "/" + heapTotal + "MB] " + _msg);
+}
+
 g_sockets = new Array(); // do NOT put in init
 
 function init()
 {
     if (g_test)
     {
-        console.log("Init: development mode");
+        console.vlog("Init: development mode");
     }
     else
     {
-        console.log("Init: production mode");
+        console.vlog("Init: production mode");
     }
     
     g_votes = new Array();
@@ -182,12 +201,26 @@ function reportAbuse(_address, _message)
     console.dir(_message);
 }
 
+function setClientState(_socket, _newState)
+{
+    if (_socket.clientState == _newState)
+    {
+        return;
+    }
+
+    if (g_clientState == "idle")
+    {
+        // re-send ping
+        socket.emit("ping", { snake : g_snake, apples : g_apples, state : g_state });
+    }
+    
+    _socket.clientState = _newState;
+}
+
 // client connection sockets
 io.sockets.on("connection", function (socket)
 {
     var address = socket.handshake.address.address;
-    
-    //console.log("Connection: ", address);
     
     // push new socket
     if (g_sockets.indexOf(socket) == -1)
@@ -195,22 +228,40 @@ io.sockets.on("connection", function (socket)
         g_sockets.push(socket);
 
         // log connection, send current state
-        console.log("New client: ", address);
+        console.vlog("New client: ", address);
         socket.emit("ping", { snake : g_snake, apples : g_apples, state : g_state });
+        socket.clientState = "active";
         socket.votesThisMove = 0;
+        socket.lastVoteMove = 0;
     }
 
     // receive client message
     socket.on("message", function (_message)
     {
-        //console.log("MESSAGE:" + _message.name + " (" + _message.value + ")");
+        //console.vlog("MESSAGE:" + _message.name + " (" + _message.value + ")");
         if (_message.name == "vote")
         {
+            // set client as active, remember vote move
+            socket.clientState = "active";
+            socket.lastVoteMove = g_move;
+            
             if (_message.move == g_move) // ignore votes for previous move (net lag)
             {
                 processVote(socket, _message.value);
             }
         }
+    });
+
+    // receive idle on / off messages
+    socket.on("idle", function (_message)
+    {
+        console.vlog("IDLE: ", address);
+        socket.clientState = "idle";
+    });
+    socket.on("back", function (_message)
+    {
+        console.vlog("BACK: ", address);
+        socket.clientState = "spectator";
     });
 
     // those messages are processed with a TEST server only -- you could
@@ -260,7 +311,7 @@ io.sockets.on("connection", function (socket)
         {
 	        return s != socket;
 	    });
-        console.log("Bye bye client: ", address);
+        console.vlog("Bye bye client: ", address);
     });
 });
 
@@ -269,10 +320,9 @@ function startTurn()
 {
     ++g_turn;
     
-    console.log("Starting game!");
+    console.vlog("Starting game!");
 
     // start with 3 elements
-    // TODO: random?
     g_snake = new Array();
     g_snake.push(new vec2(10, 10));
     g_snake.push(new vec2(10, 11));
@@ -307,20 +357,45 @@ function clearMoveTimeout()
 
 function planNextMove()
 {
-    console.log("Planning next move, delay: " + g_moveDelay);
+    console.vlog("Planning next move, delay: " + g_moveDelay);
 
     if (g_moveDelay > 0)
     {
         clearMoveTimeout();
         g_moveTimeoutHandle = setTimeout(move, g_moveDelay);
     }
+
+    var activePlayerCount = 0;
+    var inactivePlayerCount = 0;
     
-    // clear vote counts
+    // clear vote counts + detect spectators
     for (var i=0; i<g_sockets.length; i++)
     {
         var s = g_sockets[i];
         s.votesThisMove = 0;
+        
+        // spectator check
+        var dmove = g_move - g_lastVoteMove;
+        if (dmove > SPECTATOR_THRESHOLD)
+        {
+            s.clientState = "spectator";
+        }
+        
+        // count active players
+        if (s.clientState == "active")
+        {
+            ++activePlayerCount;
+        }
+        else
+        {
+            ++inactivePlayerCount;
+        }
     }
+
+    // player counter:
+    // - active clients in big letters
+    // - spectators + idle clients in small letters
+    g_playerCountCache = activePlayerCount + " <small>/ " + inactivePlayerCount + "</small>";
 }
 
 function clearPauseTimeout()
@@ -334,7 +409,7 @@ function clearPauseTimeout()
 
 function planNextTurn()
 {
-    console.log("Planning next turn, delay: " + g_pauseDelay);
+    console.vlog("Planning next turn, delay: " + g_pauseDelay);
 
     // cancel upcoming move & opinion broadcast
     clearMoveTimeout();
@@ -344,6 +419,13 @@ function planNextTurn()
     {
         clearPauseTimeout();
         g_pauseTimeoutHandle = setTimeout(startTurn, g_pauseDelay);
+    }
+
+    // clear vote markers
+    for (var i=0; i<g_sockets.length; i++)
+    {
+        var s = g_sockets[i];
+        s.lastVoteMove = 0;
     }
 }
 
@@ -361,7 +443,8 @@ function planNextOpinionBroadcast()
     g_opinionTimeoutHandle = setTimeout(opinionBroadcast, 400);
 }
 
-// TODO: this should probably go in a worker thread
+// TODO: this should probably go in a worker thread or a separate process to
+// reduce server load. Maybe.
 function opinionBroadcast()
 {
     var message = { name : "opinion", value : g_opinion };
@@ -371,13 +454,13 @@ function opinionBroadcast()
 
 function processKill()
 {
-    console.log("Dying.");
+    console.vlog("Dying.");
     process.exit(0);
 }
 
 function processRestart(_socket, _value)
 {
-    console.log("Restart!");
+    console.vlog("Restart!");
     init();
 }
 
@@ -409,7 +492,7 @@ function checkVictory(_newHead)
 
 function processTweet(_screenName, _text)
 {
-    console.log("Tweet from " + _screenName, ": ", _text)
+    console.vlog("Tweet from " + _screenName, ": ", _text)
 	g_tweets++;
 }
 
@@ -418,7 +501,7 @@ function move()
     ++g_move;
     
     var score = computeScore();
-    console.log("Move! Current score: " + score);
+    console.vlog("Move! Current score: " + score);
 
     // cache this, as it's "wrong" when broadcasting
     g_snakeLengthCache = g_snake.length;
@@ -595,7 +678,7 @@ function move()
     // itself but il will *restart* it, yey!)
     if (MEM_AUTO_CRASH > 0)
     {
-        var memUsageB = process.memoryUsage().rssTotal;
+        var memUsageB = process.memoryUsage().rss;
         var memUsageMB = memUsageB / (1024 * 1024);
         if (memUsageMB > MEM_AUTO_CRASH)
         {
@@ -607,12 +690,12 @@ function move()
 
 function processMoveDelayChange(_socket, _value)
 {
-    console.log("Changed move delay: " + _value);
+    console.vlog("Changed move delay: " + _value);
     g_moveDelay = _value;
 }
 function processPauseDelayChange(_socket, _value)
 {
-    console.log("Changed pause delay: " + _value);
+    console.vlog("Changed pause delay: " + _value);
     g_pauseDelay = _value;
 }
 
@@ -649,7 +732,7 @@ function processVote(_socket, _value)
         if (ivote.value == "left") { ++g_opinion.numLeft; }
         else if (ivote.value == "forward") { ++g_opinion.numForward; }
         else if (ivote.value == "right") { ++g_opinion.numRight; }
-        else console.log("ERROR: invalid vote: " + ivote.value);
+        else console.vlog("ERROR: invalid vote: " + ivote.value);
     }
     //console.log("left votes: " + g_opinion.numLeft);
     //console.log("right votes: " + g_opinion.numRight);
@@ -762,7 +845,7 @@ function computeScore()
     }
     else
     {
-        console.log("ERROR: computing score without a snake");
+        console.vlog("ERROR: computing score without a snake");
     }
 
     var playerCount = 0;
@@ -772,7 +855,7 @@ function computeScore()
     }
     else
     {
-        console.log("ERROR: computing score without sockets table");
+        console.vlog("ERROR: computing score without sockets table");
     }
 
     var score = snakeLength * playerCount;
@@ -783,7 +866,7 @@ function computeScore()
 function broadcast(_message)
 {
     // any time a message is broadcasted, append the number of players...
-    _message.playerCount = g_sockets.length;
+    _message.playerCount = g_playerCountCache;
 
     // and the current score
     _message.score = computeScore();
@@ -792,8 +875,12 @@ function broadcast(_message)
     //console.log("BROADCAST: " + _message.name);
     for (var i=0; i<g_sockets.length; i++)
     {
-        var s = g_sockets[i];
-        s.emit("message", _message);
+        // *NEVER* spoil bandwidth for idle clients
+        if (s.clientState != "idle")
+        {
+            var s = g_sockets[i];
+            s.emit("message", _message);
+        }
     }
 }
 
