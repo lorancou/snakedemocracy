@@ -30,6 +30,7 @@ io.configure("development", function(){
 // DIRTY don't try this at home
 var fs = require("fs");
 eval(fs.readFileSync("vec2.js")+"");
+eval(fs.readFileSync("common.js")+"");
 
 // global variables
 var g_sockets = null;
@@ -42,7 +43,8 @@ var g_state = null;
 var g_turn = 0;
 var g_move = 0;
 var g_moveDelay = 2000;
-var g_pauseDelay = 7000;
+var g_failDelay = 7000;
+var g_victoryDelay = 15000;
 var g_pendingGrow = false;
 var g_moveTimeoutHandle = null;
 var g_pauseTimeoutHandle = null;
@@ -53,11 +55,8 @@ var g_tweets = 0;
 var g_test = (process.env.NODE_ENV == "development");//(process.argv.length==5) && (process.argv[4]=="test");
 
 // global constants
-var AREA_SIZE = 20;
 var STARTUP_APPLE_COUNT = 3;
-var MAX_VOTES_PER_MOVE = 10;
-var SPECTATOR_THRESHOLD = 5; // in snake moves
-var MEM_AUTO_CRASH = 200; // MB, set to 0 to disable
+var MEM_SEPUKU = 300; // MB, set to 0 to disable
 
 //app.listen(80);
 var port = process.env.PORT || 3000;
@@ -300,9 +299,13 @@ io.sockets.on("connection", function (socket)
         {
             processMoveDelayChange(socket, _message.value);
         }
-        else if (_message.name == "pauseDelayChange")
+        else if (_message.name == "failDelayChange")
         {
-            processPauseDelayChange(socket, _message.value);
+            processFailDelayChange(socket, _message.value);
+        }
+        else if (_message.name == "victoryDelayChange")
+        {
+            processVictoryDelayChange(socket, _message.value);
         }
         else if (_message.name == "mem")
         {
@@ -413,18 +416,20 @@ function clearPauseTimeout()
     }
 }
 
-function planNextTurn()
+function planNextTurn(_victory)
 {
-    console.vlog("Planning next turn, delay: " + g_pauseDelay);
+    var delay = _victory ? g_victoryDelay : g_failDelay;
+     
+    console.vlog("Planning next turn, delay: " + delay);
 
     // cancel upcoming move & opinion broadcast
     clearMoveTimeout();
     clearOpinionBroadcast();
     
-    if (g_pauseDelay > 0)
+    if (delay > 0)
     {
         clearPauseTimeout();
-        g_pauseTimeoutHandle = setTimeout(startTurn, g_pauseDelay);
+        g_pauseTimeoutHandle = setTimeout(startTurn, delay);
     }
 
     // clear vote markers
@@ -590,24 +595,24 @@ function move()
         newHead.x >= AREA_SIZE ||
         newHead.y >= AREA_SIZE)
     {
-        // broadcast defeat
-        var message = { name : "defeat", value : "out" };
+        // broadcast fail
+        var message = { name : "fail", value : "out" };
         broadcast(message);
         g_state = message;
 
         // plan next turn
-        planNextTurn();
+        planNextTurn(false);
     }
     // check self-hit
     else if (checkSelf(newHead))
     {
-        // broadcast defeat
-        var message = { name : "defeat", value : "self" };
+        // broadcast fail
+        var message = { name : "fail", value : "self" };
         broadcast(message);
         g_state = message;
 
         // plan next turn
-        planNextTurn();
+        planNextTurn(false);
     }
     // check victory
     else if (checkVictory(newHead))
@@ -618,7 +623,7 @@ function move()
         g_state = message;
 
         // plan next turn
-        planNextTurn();
+        planNextTurn(true);
     }
     else
     {
@@ -682,10 +687,10 @@ function move()
     
     // check memory, sepuku if taking too much (Heroku won't kill the server by
     // itself but il will *restart* it, yey!)
-    if (MEM_AUTO_CRASH > 0)
+    if (MEM_SEPUKU > 0)
     {
         var rssMB = toMB(process.memoryUsage().rss);
-        if (rssMB > MEM_AUTO_CRASH)
+        if (rssMB > MEM_SEPUKU)
         {
             console.error("Eating too much memory. Sepuku!");
             process.exit(2);
@@ -698,10 +703,15 @@ function processMoveDelayChange(_socket, _value)
     console.vlog("Changed move delay: " + _value);
     g_moveDelay = _value;
 }
-function processPauseDelayChange(_socket, _value)
+function processFailDelayChange(_socket, _value)
 {
-    console.vlog("Changed pause delay: " + _value);
-    g_pauseDelay = _value;
+    console.vlog("Changed fail delay: " + _value);
+    g_failDelay = _value;
+}
+function processVictoryDelayChange(_socket, _value)
+{
+    console.vlog("Changed victory delay: " + _value);
+    g_victoryDelay = _value;
 }
 
 function processVote(_socket, _value)

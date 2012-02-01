@@ -5,13 +5,14 @@
 
 Client:
  - Hide score on defeat
- - Detect server restart / DOS
+ - Detect server restart / DOS / sepuku
  - Weird socket.io retrieving issue:
      * Chrome: Unexpected response code: 503
      * Firefox: "NetworkError: 400 Invalid header received from client
      [ http://snakedemocracy.herokuapp.com/socket.io/1/websocket/XXX"
  - Fix for paranoïd security software: this: http://housecall.trendmicro.com/
  - (Blink or shine or something to indicate when victory is close)
+ - Fix pingback sometimes glitching (missing snake body parts?)
  
 Website
  - Display victory condition after 5 apples eaten + tip tail blinks and shine
@@ -23,9 +24,10 @@ Website
 Server
  - Kick cheaters?
  - Bots if too few players?
- - Find this memleak: https://github.com/felixge/node-memory-leak-tutorial
+ - Find this f*cking memleak: https://github.com/felixge/node-memory-leak-tutorial
+ - Sepuku every turn?
+ - Find a better way to include vec2.js / common.js etc.
  
 Common
- - common.js for common constant
  - better vec2, ready for socket transport
- 
+ - compress those messages

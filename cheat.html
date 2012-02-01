@@ -10,6 +10,7 @@
     <!-- TODO <link rel="shortcut icon" href="icon.ico" /> -->
     <script src="http://snakedemocracy.dyndns.org:3000/socket.io/socket.io.js"></script>
     <script src="vec2.js"></script>
+    <script src="common.js"></script>
     <script src="client.js"></script>
   </head> 
  
@@ -33,11 +34,11 @@
       <input type="button" id="addSpamBot" value="+1024" onclick="addSpamBot(1024)"/> 
       <input type="button" id="rmSpamBot" value="-1024" onclick="rmSpamBot(1024)"/>
     </p>
-    <p><form name="tweak" onsubmit="return submitTweaks(this)">
-      move delay: <input name="moveDelay" id="moveDelay" type="text" value="5000">
-      pause delay: <input name="pauseDelay" id="pauseDelay" type="text"  value="10000"> 
-      <input type="submit">
-    </form></p>
+    <p>
+      move delay: <input id="moveDelay" type="text" value="2000"><input type="button" value="send" onclick="submitMoveDelay()"/><br/>
+      fail delay: <input id="failDelay" type="text" value="7000"><input type="button" value="send" onclick="submitFailDelay()"/><br/>
+      victory delay: <input id="victoryDelay" type="text" value="14000"><input type="button" value="send" onclick="submitVictoryDelay()"/><br/>
+    </p>
     <p>
       player count: <span class="digits" id="playerCount">&#x2014;</span><br/>
       num left: <span class="digits" id="numLeft">&#x2014;</span><br/>

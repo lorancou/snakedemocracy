@@ -5,8 +5,6 @@ var CANVAS_WIDTH = 480;
 var CANVAS_HEIGHT = 480;
 var SPRITE_SIZE = 24;
 var SELECT_FRAMES = 3;
-var MAX_VOTES_PER_MOVE = 10;
-var SPECTATOR_THRESHOLD = 5; // in snake moves
 var IDLE_CHECK_INTERVAL = 1000; // in ms
 var IDLE_THRESHOLD = 10000; // in ms
 
@@ -94,7 +92,7 @@ var g_arrowSelectPaths =
 var g_applePath = "files/apple.png";
 var g_fullgridPath = "files/fullgrid.png";
 var g_victoryPath = "files/victory.png";
-var g_defeatPath = "files/defeat.png";
+var g_defeatPath = "files/fail.png";
 
 function log(msg)
 {
@@ -778,7 +776,7 @@ function update()
         // TODO: draw score
         // TODO: draw countdown
     }
-    else if (g_state.name == "defeat")
+    else if (g_state.name == "fail")
     {
         g_context.drawImage(
             g_assets.cache[g_defeatPath],
@@ -948,7 +946,9 @@ function updateSpamBots()
     
     setTimeout("updateSpamBots()", 200); // vote 10 times in 2s
 }
-function submitTweaks()
+
+// tweaks
+function submitMoveDelay()
 {
     var element = document.getElementById("moveDelay");
     if (!element)
@@ -956,19 +956,30 @@ function submitTweaks()
         log("ERROR: can't get move delay element");
         return false;
     }
-    log("TWEAK: move delay change to " + element.innerHTML);
+    log("TWEAK: move delay change to " + element.value);
     g_socket.emit("testmsg", { name : "moveDelayChange" , value : element.value });
-
-    element = document.getElementById("pauseDelay");
+}
+function submitFailDelay()
+{
+    element = document.getElementById("failDelay");
     if (!element)
     {
-        log("ERROR: can't get pause delay element");
+        log("ERROR: can't get fail delay element");
         return false;
     }
-    log("TWEAK: pause delay change to " + element.innerHTML);
-    g_socket.emit("testmsg", { name : "pauseDelayChange" , value : element.value });
-
-    return true;
+    log("TWEAK: fail delay change to " + element.value);
+    g_socket.emit("testmsg", { name : "failDelayChange" , value : element.value });
+}
+function submitVictoryDelay()
+{
+    element = document.getElementById("victoryDelay");
+    if (!element)
+    {
+        log("ERROR: can't get victory delay element");
+        return false;
+    }
+    log("TWEAK: victory delay change to " + element.value);
+    g_socket.emit("testmsg", { name : "victoryDelayChange" , value : element.value });
 }
 
 // VOTE
@@ -1030,7 +1041,7 @@ function processMessage(_message)
         g_opinion.numRight = 0;
         g_opinion.numForward = 0;
     }
-    else if (_message.name == "defeat")
+    else if (_message.name == "fail")
     {
         g_state = _message;
         g_move = 0;
