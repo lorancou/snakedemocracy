@@ -219,7 +219,7 @@ function setClientState(_socket, _newState)
         return;
     }
 
-    if (g_clientState == "idle")
+    if (_socket.clientState == "idle")
     {
         // re-send ping
         socket.emit("ping", { snake : g_snake, apples : g_apples, state : g_state });
@@ -253,7 +253,7 @@ io.sockets.on("connection", function (socket)
         if (_message.name == "vote")
         {
             // set client as active, remember vote move
-            socket.clientState = "active";
+            setClientState(socket, "active");
             socket.lastVoteMove = g_move;
             
             if (_message.move == g_move) // ignore votes for previous move (net lag)
@@ -267,12 +267,12 @@ io.sockets.on("connection", function (socket)
     socket.on("idle", function (_message)
     {
         console.vlog("IDLE: ", address);
-        socket.clientState = "idle";
+        setClientState(socket, "idle");
     });
     socket.on("back", function (_message)
     {
         console.vlog("BACK: ", address);
-        socket.clientState = "spectator";
+        setClientState(socket, "spectator");
     });
 
     // those messages are processed with a TEST server only -- you could
@@ -388,7 +388,7 @@ function planNextMove()
         var dmove = g_move - s.lastVoteMove;
         if (dmove > SPECTATOR_THRESHOLD)
         {
-            s.clientState = "spectator";
+            setClientState(s, "spectator");
         }
         
         // count active players
