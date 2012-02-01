@@ -829,6 +829,7 @@ function addSpamBot(_count)
         var spamSocket = io.connect(SERVER_TEST_ADDRESS, {"force new connection": true});
         spamSocket.on("ping", function (message)
         {
+            //log("SPAM: ping");
             g_spamBots.push(spamSocket);
         });
     }
@@ -866,7 +867,7 @@ function updateSpamBots()
             else if (pick==2) voteValue = "right";
             else log("ERROR: Math.random went mad?");
             //log("SPAM: " + voteValue);
-            spamSocket.emit("message", { name : "vote", value : voteValue });
+            spamSocket.emit("message", { name : "vote", move : g_move, value : voteValue });
         }
     }
     
