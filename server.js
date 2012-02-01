@@ -98,14 +98,10 @@ app.get("/vec2.js", function (req, res)
 {
     res.sendfile(__dirname + "/vec2.js");
 });
-/*app.get("/files/head.png", function (req, res)
+app.get("/common.js", function (req, res)
 {
-    res.sendfile(__dirname + "/files/head.png");
+    res.sendfile(__dirname + "/common.js");
 });
-app.get("/files/body.png", function (req, res)
-{
-    res.sendfile(__dirname + "/files/body.png");
-});*/
 
 // serve resource files
 // https://github.com/visionmedia/express/blob/master/examples/downloads/app.js
