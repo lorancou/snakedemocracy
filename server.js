@@ -241,9 +241,9 @@ io.sockets.on("connection", function (socket)
         {
             var memUsage = process.memoryUsage();
             var text = "mem: <br/>";
-            text += "rss: " + memUsage.rss + "<br/>";
-            text += "vsize: " + memUsage.vsize + "<br/>";
-            text += "heap: " + memUsage.heapUsed + "/" + memUsage.heapTotal + "<br/>";
+            text += "rss: " + (memUsage.rss / (1024 * 1024)) + "MB<br/>";
+            //text += "vsize: " + memUsage.vsize + "<br/>";
+            text += "heap: " + (memUsage.heapUsed / (1024 * 1024)) + "MB / " + (memUsage.heapTotal / (1024 * 1024)) + "MB<br/>";
             socket.emit("testmsg", { name : "mem", text : text });
         }
     });
