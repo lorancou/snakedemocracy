@@ -1084,8 +1084,23 @@ function processMessage(_message)
     }
     else if (_message.name == "backping")
     {
-        g_snake = _message.snake;
-        g_apples = _message.apples;
+        // copy snakes
+        g_snake = new Array();
+        for (var i=0; i<_message.snake.length; ++i)
+        {
+            g_snake.push(new vec2(_message.snake[i].x, _message.snake[i].y)); // meh??
+        }
+
+        // copy apples
+        g_apples = new Array();
+        for (var i=0; i<_message.apples.length; ++i)
+        {
+            if (_message.apples[i]) // CRASH fix
+            {
+                g_apples.push(new vec2(_message.apples[i].x, _message.apples[i].y)); // meh??
+            }
+        }
+        
         g_state = _message.state;
         g_move = _message.move;
         g_votesThisMove = 0;

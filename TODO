@@ -27,3 +27,5 @@ Server
  
 Common
  - common.js for common constant
+ - better vec2, ready for socket transport
+ 
