@@ -242,6 +242,7 @@ io.sockets.on("connection", function (socket)
         socket.clientState = "active";
         socket.votesThisMove = 0;
         socket.lastVoteMove = 0;
+        socket.lastIdleTime = 0;
     }
 
     // receive client message
@@ -265,7 +266,18 @@ io.sockets.on("connection", function (socket)
     socket.on("idle", function (_message)
     {
         console.vlog("IDLE: ", address);
-        setClientState(socket, "idle");
+        var time = new Date().getTime();
+        var dt = time - socket.lastIdleTime;
+        var IDLE_DELAY = 30000;
+        if (dt > IDLE_DELAY)
+        {
+            setClientState(socket, "idle");
+            socket.lastIdleTime;
+        }
+        else
+        {
+            console.vlog("WARNING: preventing idle/back ping-pong :-/");
+        }
     });
     socket.on("back", function (_message)
     {

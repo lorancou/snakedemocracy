@@ -16,6 +16,7 @@ Client:
  - Wait for backping before updating, just skipping one frame for now
     -> cf. early return in update()
   - Extra vote possible???
+  - Marvelous score of undefined :)
  
 Website
  - Display victory condition after 5 apples eaten + tip tail blinks and shine
@@ -29,6 +30,7 @@ Server
     -> https://github.com/felixge/node-memory-leak-tutorial
  - Sepuku every turn?
  - Find a better way to include vec2.js / common.js etc.
+ - Log idle players, not total
  
 Common
  - better vec2, ready for socket transport
