@@ -62,7 +62,7 @@ var MEM_AUTO_CRASH = 200; // MB, set to 0 to disable
 //app.listen(80);
 var port = process.env.PORT || 3000;
 app.listen(port, function() {
-  console.log("Listening on " + port);
+    console.vlog("Listening on " + port);
 });
 
 // serve *.html
@@ -141,13 +141,13 @@ function toMB(_bytes)
 }
 
 // verbose log
-console.vlog = function(_msg)
+console.vlog = function()
 {
     var memUsage = process.memoryUsage();
     var rss = toMB(memUsage.rss);
     var heapTotal = toMB(memUsage.heapTotal);
     var heapUsed = toMB(memUsage.heapUsed);
-    console.log("SD [rss:" + rss + "MB|heap:" + heapUsed + "/" + heapTotal + "MB] " + _msg);
+    console.log("SD [rss:" + rss + "MB|heap:" + heapUsed + "/" + heapTotal + "MB] ", arguments);
 }
 
 g_sockets = new Array(); // do NOT put in init
@@ -374,7 +374,7 @@ function planNextMove()
         s.votesThisMove = 0;
         
         // spectator check
-        var dmove = g_move - g_lastVoteMove;
+        var dmove = g_move - s.lastVoteMove;
         if (dmove > SPECTATOR_THRESHOLD)
         {
             s.clientState = "spectator";
