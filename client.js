@@ -39,6 +39,7 @@ var g_scoreElement = null;
 var g_clientStateElement = null;
 var g_moveElement = null;
 var g_fpsElement = null;
+var g_victoryTweet = null;
 var g_test = null;
 var g_clientState = null;
 var g_lastTime = null;
@@ -192,6 +193,61 @@ function setClientState(_newState)
     }
 
     g_clientState = _newState;
+}
+
+// VICTORY TWEET!
+function showVictoryTweet()
+{
+    // already shown, do nothing
+    if (g_victoryTweet)
+    {
+        return;
+    }
+
+    // create DOM element
+    g_victoryTweet = document.createElement("iframe");
+    if (!g_victoryTweet)
+    {
+        log("WARNING: can't create iframe ");
+        return;
+    }
+    
+    // basic config
+    g_victoryTweet.id = "victoryTweet";
+    g_victoryTweet.allowTransparency = true;
+    g_victoryTweet.frameBorder = 0;
+    g_victoryTweet.scrolling = "no";
+    
+    // the magic Twitter query string parameters
+    var src = "http://platform.twitter.com/widgets/tweet_button.html"
+    src += "?url=http://www.snakedemocracy.com";
+    src += "&via=snakedemocracy";
+    src += "&hashtags=snakedemocracy";
+    src += "&size=large"; // has no effect :-/
+    src += "&count=none";
+    src += "&text=We, voters, achieved the mighty score of " + g_score + ", come and help us doing better!";
+    g_victoryTweet.src = src;
+
+    // style
+    g_victoryTweet.style.position = "absolute";
+    g_victoryTweet.style.top = "412px";
+    g_victoryTweet.style.left = "115px";
+    g_victoryTweet.style.width = "60px";
+    g_victoryTweet.style.height = "20px";
+    
+    // add to DOM, last in the div, so on top of everything
+    g_canvas.parentNode.insertBefore(g_victoryTweet, null);
+}
+function hideVictoryTweet()
+{
+    // already hidden, do nothing
+    if (!g_victoryTweet)
+    {
+        return;
+    }
+    
+    // remove from DOM
+    g_canvas.parentNode.removeChild(g_victoryTweet);
 }
 
 // client init, called with body's onload
@@ -818,6 +874,16 @@ function update()
         }
         g_context.fillStyle = "#000000";
         g_context.fillText(message, 10, 15);
+    }
+    
+    // show/hide victory tweet
+    if (g_state.name == "victory")
+    {
+        showVictoryTweet();
+    }
+    else
+    {
+        hideVictoryTweet();
     }
 
     // reset input

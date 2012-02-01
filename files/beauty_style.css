@@ -138,6 +138,13 @@ a.nav-item:hover
 	margin-left:16px;
 }
 
+#canvas-box2
+{
+    position:relative;
+    width:480px;
+    height:480px;
+}
+
 #stats
 {
    	float:left;

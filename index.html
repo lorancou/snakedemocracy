@@ -53,6 +53,7 @@
                     !function(d,s,id){
                         var js,
                             fjs=d.getElementsByTagName(s)[0];
+                        console.dir(fjs);
                         if(!d.getElementById(id)){
                             js=d.createElement(s);
                             js.id=id;
@@ -65,17 +66,19 @@
                   
                 </div>
                 <div id="canvas-box">
-                  <canvas id="canvas" width="480" height="480">
-                    <div id="nocanvas">
-                      <p>Your browser doesn't support <a href="http://en.wikipedia.org/wiki/HTML5">HTML5</a>.</p>
-                      <p>To play,
-                      <a href="http://www.firefox.com/">get</a>
-                      <a href="http://www.google.com/chrome/">any</a>
-                      <a href="http://windows.microsoft.com/en-us/internet-explorer/products/ie/home">modern</a>
-                      <a href="http://www.opera.com/browser/">web</a>
-                      <a href="http://www.apple.com/safari/">browser</a>.</p>
-                    </div>
-                  </canvas>
+                  <div id="canvas-box2">
+                    <canvas id="canvas" width="480" height="480">
+                      <div id="nocanvas">
+                        <p>Your browser doesn't support <a href="http://en.wikipedia.org/wiki/HTML5">HTML5</a>.</p>
+                        <p>To play,
+                        <a href="http://www.firefox.com/">get</a>
+                        <a href="http://www.google.com/chrome/">any</a>
+                        <a href="http://windows.microsoft.com/en-us/internet-explorer/products/ie/home">modern</a>
+                        <a href="http://www.opera.com/browser/">web</a>
+                        <a href="http://www.apple.com/safari/">browser</a>.</p>
+                      </div>
+                    </canvas>
+                  </div>
                 </div>
                 <div id="feed">
                 	<script>
