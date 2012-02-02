@@ -45,7 +45,7 @@ var g_move = 0;
 var g_moveDelay = MOVE_DELAY;
 var g_failDelay = FAIL_DELAY;
 var g_victoryDelay = VICTORY_DELAY;
-var g_pendingGrow = false;
+var g_pendingGrow = 0;
 var g_moveTimeoutHandle = null;
 var g_pauseTimeoutHandle = null;
 var g_opinionTimeoutHandle = null;
@@ -191,7 +191,7 @@ function init()
     g_state = { name : "init" };
     g_turn = 0;
     g_move = 0;
-    g_pendingGrow = false;
+    g_pendingGrow = 0;
 
     // clear timeouts
     clearMoveTimeout();
@@ -360,6 +360,8 @@ function startTurn()
     // start with some random apples
     g_apples = new Array();
     spawnApple(STARTUP_APPLE_COUNT, false);
+    
+    g_pendingGrow = 0;
 
     // fix that infinite victory loop. so long!
     g_direction = "south";
@@ -540,13 +542,10 @@ function move()
     else
     {
         // "remove" tail
-        //console.log("pending grow: " + g_pendingGrow);
-        //console.log("snake: " + g_snake);
-        if (!g_pendingGrow)
+        if (g_pendingGrow == 0)
         {
             g_snake.shift();
         }
-        //console.log("new snake: " + g_snake);
 
         // add head in current opinion's direction
         var head = g_snake[g_snake.length-1];
@@ -638,9 +637,9 @@ function move()
     else
     {
         // broadcast move
-        if (g_pendingGrow)
+        if (g_pendingGrow > 0)
         {
-            g_pendingGrow = false;
+            --g_pendingGrow;
             var message = { name : "grow", move : g_move, value : newHead };
             broadcast(message);
         }
@@ -673,7 +672,7 @@ function move()
                 {
                     pickupApple(a);
                     spawnApple(1, true);
-                    g_pendingGrow = true;
+                    g_pendingGrow += 2;
                     break; // 2+ apples at the same spot shouln't not happen. normally.
                 }
             }
