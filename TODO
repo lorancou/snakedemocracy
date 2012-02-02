@@ -8,6 +8,7 @@ Client:
     * Chrome: Unexpected response code: 503
     * Firefox: "NetworkError: 400 Invalid header received from client
     [ http://snakedemocracy.herokuapp.com/socket.io/1/websocket/XXX"
+    -> if fixed, call serverDown on socket error
  - Fix for paranoïd security software: this: http://housecall.trendmicro.com/
  - (Blink or shine or something to indicate when victory is close)
  - Wait for backping before updating, just skipping one frame for now
@@ -25,9 +26,7 @@ Server
     -> https://github.com/felixge/node-memory-leak-tutorial
     -> if there's nothing... seppuku every turn?
  - Find a better way to include vec2.js / common.js etc.
- - One apple grows the snake twice? Or victory when biting one of the last *two*
-  [ tail elements?
- - Redirect to http://snakedemocracy.com
+ - One apple grows the snake twice
  
 Common
  - better vec2, ready for socket transport
@@ -38,5 +37,6 @@ Website
  - About page
  - Cross with EWSN instead of leftist, rightists, forwardists?
 
- Publishing
+Publishing
  - Pokki?
+ - http://WWW.snakedemocracy.com
