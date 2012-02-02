@@ -55,6 +55,8 @@ var g_spectatorCount = 0;
 var g_idleCount = 0;
 var g_tweets = 0;
 var g_test = (process.env.NODE_ENV == "development");//(process.argv.length==5) && (process.argv[4]=="test");
+var g_idleBroadcastMarker = 0;
+var g_idleBroadcastTimeoutHandle = null;
 
 // global constants
 var STARTUP_APPLE_COUNT = 3;
@@ -197,9 +199,13 @@ function init()
     clearMoveTimeout();
     clearPauseTimeout();
     clearOpinionBroadcast();
+    clearIdleBroadcast();
     
     // start first turn
     startTurn();
+    
+    // start broadcasting player count to idle players
+    idleBroadcast();
 }
 
 init();
@@ -473,6 +479,39 @@ function opinionBroadcast()
     var message = { name : "opinion", value : g_opinion };
     broadcast(message);
     planNextOpinionBroadcast();
+}
+
+function clearIdleBroadcast()
+{
+    g_idleBroadcastMarker = 0;
+    if (g_idleBroadcastTimeoutHandle)
+    {
+        clearTimeout(g_idleBroadcastTimeoutHandle);
+        g_idleBroadcastTimeoutHandle = null
+    }
+}
+
+function idleBroadcast()
+{
+    if (g_idleBroadcastMarker >= g_socket.length)
+    {
+        g_idleBroadcastMarker = 0;
+    }
+
+    if (g_sockets[g_idleBroadcastMarker].clientState == "idle")
+    {
+        g_sockets[g_idleBroadcastMarker].emit(
+            "message",
+            {
+                name : "idlebroadcast",
+                activePlayerCount : g_activePlayerCount,
+                totalPlayerCount : g_sockets.length
+            }
+        );
+    }
+    
+    g_idleBroadcastMarker++;
+    g_idleBroadcastTimeoutHandle = setTimeout(idleBroadcast, 123.456);
 }
 
 function processKill()
@@ -915,7 +954,7 @@ function broadcast(_message)
     //console.log("BROADCAST: " + _message.name);
     for (var i=0; i<g_sockets.length; i++)
     {
-        // *NEVER* spoil bandwidth for idle clients
+        // *NEVER* spoil bandwidth for idle clients (except for updating their page title once in a while)
         var s = g_sockets[i];
         if (s.clientState != "idle")
         {

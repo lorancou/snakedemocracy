@@ -21,6 +21,7 @@ var g_state = null;
 var g_move = 0;
 var g_activePlayerCount = 0;
 var g_totalPlayerCount = 0;
+var g_initialTitle = document.title;
 var g_score = 0;
 var g_clickX = -1;
 var g_clickY = -1;
@@ -1112,7 +1113,14 @@ function updateStats(_dt)
         else
         {
             g_playerCountElement.innerHTML = g_activePlayerCount + " <small>/ " + g_totalPlayerCount + "</small>";
-            document.title = "[" + g_activePlayerCount + "/" + g_totalPlayerCount + "]";
+            if (g_clientState == "active")
+            {
+                document.title = g_initialTitle;
+            }
+            else if (g_clientState == "spectator")
+            {
+                document.title = "[" + g_activePlayerCount + "/" + g_totalPlayerCount + "] " + g_initialTitle;
+            }
         }
     }
     if (g_numLeftElement)
@@ -1438,6 +1446,17 @@ function processMessage(_message)
     {
         g_state = { name : _message.name  };
         g_seppukuStartTime = new Date().getTime();
+    }
+    else if (_message.name == "idlebroadcast")
+    {
+        if (g_clientState != "idle")
+        {
+            log("WARNING: received idle broadcast when " + g_clientState);
+        }
+        else
+        {
+            document.title = "[" + _message.activePlayerCount + "/" + _message.totalPlayerCount + "] " + g_initialTitle;
+        }
     }
     else
     {
