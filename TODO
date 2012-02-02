@@ -17,6 +17,7 @@ Client:
     -> cf. early return in update()
   - Extra vote possible???
   - Marvelous score of undefined :)
+  - Client + server version + detect change and refresh page (cf A)
  
 Website
  - Display victory condition after 5 apples eaten + tip tail blinks and shine
@@ -35,3 +36,7 @@ Server
 Common
  - better vec2, ready for socket transport
  - compress those messages
+ - (A) detect reconnecting clients after a reboot / an upgrade
+ 
+Publishing
+ - Pokki?

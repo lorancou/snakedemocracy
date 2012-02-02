@@ -248,6 +248,7 @@ function hideVictoryTweet()
     
     // remove from DOM
     g_canvas.parentNode.removeChild(g_victoryTweet);
+    g_victoryTweet = null;
 }
 
 // client init, called with body's onload
