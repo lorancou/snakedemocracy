@@ -45,6 +45,8 @@ var g_clientState = null;
 var g_lastTime = null;
 var g_lastVoteMove = 0;
 var g_pauseStartTime = null;
+var g_idleCheckTimeoutHandle = null;
+var g_connected = false;
 
 // assets
 var g_serverdownPath = "files/serverdown.png";
@@ -348,6 +350,7 @@ function connect()
         }
         
         // message
+        console.log("Server down :/");
         drawMessage("The server seems to be down... Try to refresh your page in a moment.", true);
         
         // quit
@@ -359,52 +362,91 @@ function connect()
 
     // connect to node.js server
     g_socket = io.connect(g_test ? SERVER_TEST_ADDRESS : SERVER_ADDRESS);
+
+    // error
+    g_socket.on('error', function (reason)
+    {
+        console.error("ERROR: Unable to connect Socket.IO", reason);
+    });
+
+    // connection
+    g_socket.on('connect', function ()
+    {
+        console.info("Connected!");
+        processConnect();
+    });    
+
+    // ping
     g_socket.on("ping", function (message)
     {
-        log("Connected! Running!");
+        log("Running :)");
         processPing(message);
-        
-        g_lastTime = new Date().getTime();
-        g_lastVoteMove = 0;
-        update();
-        idleCheck();
-        
-        if (g_test)
-        {
-            updateSpamBots();
-        }
     });
 }
 
+// connect
+function processConnect()
+{
+    // if already running, cancel updates
+    if (g_connected)
+    {
+        window.cancelRequestAnimFrame();
+        
+        if (g_idleCheckTimeoutHandle)
+        {
+            clearTimeout(g_idleCheckTimeoutHandle);
+            g_idleCheckTimeoutHandle = null;
+        }
+    }
+    
+    g_connected = true;
+}
+
 // ping, first message, inits the snake
-function processPing(message)
+function processPing(_ping)
 {
     // copy initial snake
     g_snake = new Array();
-    for (var i=0; i<message.snake.length; ++i)
+    for (var i=0; i<_ping.snake.length; ++i)
     {
-        g_snake.push(new vec2(message.snake[i].x, message.snake[i].y));
+        g_snake.push(new vec2(_ping.snake[i].x, _ping.snake[i].y));
     }
 
     // copy initial apples
     g_apples = new Array();
-    for (var i=0; i<message.apples.length; ++i)
+    for (var i=0; i<_ping.apples.length; ++i)
     {
-        g_apples.push(new vec2(message.apples[i].x, message.apples[i].y));
+        g_apples.push(new vec2(_ping.apples[i].x, _ping.apples[i].y));
     }
 
     // set game state
-    g_state = message.state;
+    g_state = _ping.state;
     if (!g_state.name)
     {
         log("ERROR: un-named state");
     }
 
-    g_socket.on("message", function (message) { processMessage(message) });
+    g_socket.on("message", function (_message) { processMessage(_message) });
     
     if (g_test)
     {
-        g_socket.on("testmsg", function (message) { processTestmsg(message) });
+        g_socket.on("testmsg", function (_testmsg) { processTestmsg(_testmsg) });
+    }
+    
+    g_lastTime = new Date().getTime();
+    //g_lastVoteMove = 0;
+    
+    //g_state = __ping.state;
+    g_move = _ping.move;
+    g_votesThisMove = 0;
+    g_lastVoteMove = g_move;    
+    
+    update();
+    idleCheck();
+    
+    if (g_test)
+    {
+        updateSpamBots();
     }
 }
 
@@ -488,7 +530,7 @@ function getScreenCoords(_coords, _middle)
 function update()
 {
     // plan next update
-    requestAnimFrame(update);
+    window.requestAnimFrame(update);
 
     // yey! back with us, default to spectator
     if (g_clientState == "idle")
@@ -1000,7 +1042,7 @@ function idleCheck()
     {
         setClientState("idle")
     }
-    setTimeout("idleCheck()", IDLE_CHECK_INTERVAL);
+    g_idleCheckTimeoutHandle = setTimeout("idleCheck()", IDLE_CHECK_INTERVAL);
 }
 
 // test/cheat/tweaks
@@ -1217,31 +1259,7 @@ function processMessage(_message)
             g_apples.splice(_message.idx, 1);
         }
     }
-    else if (_message.name == "backping")
-    {
-        // copy snakes
-        g_snake = new Array();
-        for (var i=0; i<_message.snake.length; ++i)
-        {
-            g_snake.push(new vec2(_message.snake[i].x, _message.snake[i].y)); // meh??
-        }
-
-        // copy apples
-        g_apples = new Array();
-        for (var i=0; i<_message.apples.length; ++i)
-        {
-            if (_message.apples[i]) // CRASH fix
-            {
-                g_apples.push(new vec2(_message.apples[i].x, _message.apples[i].y)); // meh??
-            }
-        }
-        
-        g_state = _message.state;
-        g_move = _message.move;
-        g_votesThisMove = 0;
-        g_lastVoteMove = g_move;
-    }
-    if (!g_state.name)
+    else
     {
         log("ERROR: un-named state");
     }

@@ -18,14 +18,9 @@ Client:
   - Extra vote possible???
   - Marvelous score of undefined :)
   - Client + server version + detect change and refresh page (cf A)
-  - event.layerX and event.layerY are broken and deprecated in WebKit.
+  *** event.layerX and event.layerY are broken and deprecated in WebKit.
   [ They will be removed from the engine in the near future.
   - Display players count in background tab title
- 
-Website
- - Display victory condition after 5 apples eaten + tip tail blinks and shine
- - About page
- - Cross with EWSN instead of leftist, rightists, forwardists?
  
 Server
  - Kick cheaters?
@@ -40,7 +35,13 @@ Server
 Common
  - better vec2, ready for socket transport
  - compress those messages
- - (A) detect reconnecting clients after a reboot / an upgrade
+ *** (A) detect reconnecting clients after a reboot / an upgrade
  
-Publishing
+Website
+ - Display victory condition after 5 apples eaten + tip tail blinks and shine
+ - About page
+ - Cross with EWSN instead of leftist, rightists, forwardists?
+
+ Publishing
+ - Static content on separate server
  - Pokki?
