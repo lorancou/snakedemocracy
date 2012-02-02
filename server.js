@@ -493,7 +493,7 @@ function clearIdleBroadcast()
 
 function idleBroadcast()
 {
-    if (g_idleBroadcastMarker >= g_socket.length)
+    if (g_idleBroadcastMarker >= g_sockets.length)
     {
         g_idleBroadcastMarker = 0;
     }
