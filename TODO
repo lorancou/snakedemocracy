@@ -23,10 +23,11 @@ Server
  - Bots if too few players?
  - Find this f*cking memleaks:
     -> https://github.com/felixge/node-memory-leak-tutorial
- - Sepuku every turn?
+    -> if there's nothing... seppuku every turn?
  - Find a better way to include vec2.js / common.js etc.
  - One apple grows the snake twice? Or victory when biting one of the last *two*
   [ tail elements?
+ - Redirect to http://snakedemocracy.com
  
 Common
  - better vec2, ready for socket transport
@@ -38,5 +39,4 @@ Website
  - Cross with EWSN instead of leftist, rightists, forwardists?
 
  Publishing
- - Static content on separate server
  - Pokki?

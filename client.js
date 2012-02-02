@@ -234,12 +234,12 @@ function showVictoryTweet()
     
     // the magic Twitter query string parameters
     var src = "http://platform.twitter.com/widgets/tweet_button.html"
-    //src += "?url=http://www.snakedemocracy.com";
-    src += "?via=snakedemocracy";
+    src += "?url=http://snakedemocracy.com";
+    //src += "&via=snakedemocracy";
     src += "&hashtags=snakedemocracy";
     src += "&size=large"; // has no effect :-/
     src += "&count=none";
-    src += "&text=I was there when the we reached the score of " + g_score + " on snakedemocracy.com!"
+    src += "&text=I was there when we reached the score of " + g_score + " on "
     //src += "&text=We, voters, achieved the mighty score of " + g_score + ", come and help us doing better!";
     g_victoryTweet.src = src;
 
