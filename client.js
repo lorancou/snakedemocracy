@@ -1124,8 +1124,18 @@ function idleCheck()
 // detect down server
 function serverDownCheck(_time)
 {
+    var threshold = SERVER_DOWN_THRESHOLD;
+    if (g_state.name == "victory")
+    {
+        threshold += VICTORY_DELAY;
+    }
+    else if (g_state.name == "fail")
+    {
+        threshold += FAIL_DELAY;
+    }
+    
     var dmsg = _time - g_lastMessageTime;
-    if (dmsg > SERVER_DOWN_THRESHOLD)
+    if (dmsg > threshold)
     {
         // quit
         serverDown();
