@@ -52,6 +52,7 @@ var g_opinionTimeoutHandle = null;
 var g_snakeLengthCache = -1;
 var g_activePlayerCount = 0;
 var g_spectatorCount = 0;
+var g_idleCount = 0;
 var g_tweets = 0;
 var g_test = (process.env.NODE_ENV == "development");//(process.argv.length==5) && (process.argv[4]=="test");
 
@@ -150,7 +151,7 @@ console.vlog = function()
         "heap:" + heapUsed + "/" + heapTotal + "MB|" +  // heap
         "a:" + g_activePlayerCount + "|" +              // active
         "s:" + g_spectatorCount + "|" +                 // spectators
-        "t:" + g_sockets.length + "]"                   // total
+        "i:" + g_idleCount + "]"                        // idle
         );
     for (var i=0; i<arguments.length; ++i)
     {
@@ -392,6 +393,7 @@ function planNextMove()
     // clear vote counts + detect spectators + coutn active players
     g_activePlayerCount = 0;
     g_spectatorCount = 0;
+    g_idleCount = 0;
     for (var i=0; i<g_sockets.length; i++)
     {
         var s = g_sockets[i];
@@ -407,6 +409,7 @@ function planNextMove()
         // count active players & spectators
         if (s.clientState == "active") ++g_activePlayerCount;
         else if (s.clientState == "spectator") ++g_spectatorCount;
+        else if (s.clientState == "idle") ++g_idleCount;
     }
 }
 

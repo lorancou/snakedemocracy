@@ -33,7 +33,8 @@ Server
     -> https://github.com/felixge/node-memory-leak-tutorial
  - Sepuku every turn?
  - Find a better way to include vec2.js / common.js etc.
- - Log idle players, not total
+ - One apple grows the snake twice? Or victory when biting one of the last *two*
+  [ tail elements?
  
 Common
  - better vec2, ready for socket transport
