@@ -282,7 +282,16 @@ function drawMessage(_msg, _clear)
 function init(_serverAddress, _test)
 {
     g_test = _test;
-    g_serverAddress = _serverAddress;
+    
+    // if no nodejs server is specified, use the current one
+    if (_serverAddress)
+    {
+        g_serverAddress = "/";
+    }
+    else
+    {
+        g_serverAddress = _serverAddress;
+    }
     
     setClientState("active");
     
