@@ -55,6 +55,7 @@ var g_lastMessageTime = null;
 var g_down = false;
 
 // assets
+var g_serverupgradePath = "files/serverupgrade.png";
 var g_serverdownPath = "files/serverdown.png";
 var g_serverfloodPath = "files/serverflood.png";
 var g_headPaths =
@@ -147,6 +148,7 @@ window.cancelRequestAnimFrame = (function() {
 
 function queueAssets(_mgr)
 {
+    _mgr.queueDownload(g_serverupgradePath);
     _mgr.queueDownload(g_serverdownPath);
     _mgr.queueDownload(g_serverfloodPath);
     _mgr.queueDownload(g_headPaths.east);
@@ -381,6 +383,35 @@ function serverDown()
     g_down = true;
 }
 
+function serverUpgrade()
+{
+    // clear canvas
+    g_context.fillStyle = "#FFFFFF";
+    g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // draw server upgrade image, if available
+    if (g_assets.cache[g_serverupgradePath])
+    {
+        g_context.drawImage(
+            g_assets.cache[g_serverupgradePath],
+            0, 0,
+            CANVAS_WIDTH, CANVAS_HEIGHT);
+    }
+    
+    // message
+    console.log("Server upgrade!");
+    drawMessage("The server was just upgraded. Refresh your page. If this doesn't work, try clearing your cache.", true);
+    
+    // exit
+    hideVictoryTweet();
+    cancelUpdates();
+    if (!(typeof io === 'undefined') && g_socket)
+    {
+        g_socket.disconnect();
+    }
+    g_down = true;
+}
+
 function connect()
 {
     // if io isn't defined, this means we didn't receive socker.io.js, so the server is down
@@ -475,6 +506,13 @@ function logVec2Array(_name, _array)
 // ping, first message, inits the snake
 function processPing(_ping)
 {
+    // check revision
+    if (!_ping.revision || _ping.revision != REVISION)
+    {
+        serverUpgrade();
+        return;
+    }
+    
     // copy initial snake
     //logVec2Array("PING SNAKE", _ping.snake);
     g_snake = new Array();

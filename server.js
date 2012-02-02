@@ -221,7 +221,7 @@ function setClientState(_socket, _newState)
     if (_socket.clientState == "idle")
     {
         // re-send ping
-        _socket.emit("ping", { snake : g_snake, apples : g_apples, state : g_state, move : g_move });
+        _socket.emit("ping", { revision : REVISION, snake : g_snake, apples : g_apples, state : g_state, move : g_move });
     }
     
     _socket.clientState = _newState;
@@ -239,7 +239,7 @@ io.sockets.on("connection", function (socket)
 
         // log connection, send current state
         console.vlog("New client: ", address);
-        socket.emit("ping", { snake : g_snake, apples : g_apples, state : g_state, move : g_move });
+        socket.emit("ping", { revision : REVISION, snake : g_snake, apples : g_apples, state : g_state, move : g_move });
         socket.clientState = "active";
         socket.votesThisMove = 0;
         socket.lastVoteMove = 0;

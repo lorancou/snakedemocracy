@@ -4,21 +4,18 @@
 ---------------------------------------------------------------------------------
 
 Client:
- - Detect server restart / DOS / sepuku
-    -> Warn users when this is about to happen
  - Weird socket.io retrieving issue:
     * Chrome: Unexpected response code: 503
     * Firefox: "NetworkError: 400 Invalid header received from client
     [ http://snakedemocracy.herokuapp.com/socket.io/1/websocket/XXX"
  - Fix for paranoïd security software: this: http://housecall.trendmicro.com/
  - (Blink or shine or something to indicate when victory is close)
- - Fix pingback sometimes glitching (missing snake body parts?)
  - Wait for backping before updating, just skipping one frame for now
     -> cf. early return in update()
   - Extra vote possible???
-  - Marvelous score of undefined :) => now it's just wrong
+  - Fix incorrect score when coming back on victory state after idling
   - Client + server version + detect change and refresh page (cf A)
-  *** event.layerX and event.layerY are broken and deprecated in WebKit.
+  - event.layerX and event.layerY are broken and deprecated in WebKit.
   [ They will be removed from the engine in the near future.
   - Display players count in background tab title
  
