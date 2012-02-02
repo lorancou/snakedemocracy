@@ -16,7 +16,7 @@ Client:
  - Wait for backping before updating, just skipping one frame for now
     -> cf. early return in update()
   - Extra vote possible???
-  - Marvelous score of undefined :)
+  - Marvelous score of undefined :) => now it's just wrong
   - Client + server version + detect change and refresh page (cf A)
   *** event.layerX and event.layerY are broken and deprecated in WebKit.
   [ They will be removed from the engine in the near future.

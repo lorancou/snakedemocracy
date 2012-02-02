@@ -371,6 +371,7 @@ function serverDown()
     drawMessage("The server seems to be down... Try to refresh your page in a moment.", true);
     
     // exit
+    hideVictoryTweet();
     cancelUpdates();
     if (!(typeof io === 'undefined') && g_socket)
     {
@@ -398,22 +399,31 @@ function connect()
     // error
     g_socket.on('error', function (reason)
     {
-        console.error("ERROR: Unable to connect Socket.IO", reason);
-        serverDown(); // quit
+        if (!g_down)
+        {
+            console.error("ERROR: Unable to connect Socket.IO", reason);
+            serverDown(); // quit
+        }
     });
 
     // connection
     g_socket.on('connect', function ()
     {
-        console.info("Connected!");
-        processConnect();
+        if (!g_down)
+        {
+            console.info("Connected!");
+            processConnect();
+        }
     });    
 
     // ping
     g_socket.on("ping", function (message)
     {
-        log("Running :)");
-        processPing(message);
+        if (!g_down)
+        {
+            log("Running :)");
+            processPing(message);
+        }
     });
 }
 
@@ -428,11 +438,14 @@ function processConnect()
         // messages
         g_socket.on("message", function (_message)
         {
-            processMessage(_message)
+            if (!g_down)
+            {
+                processMessage(_message)
+            }
         });
 
         // test messages
-        if (g_test)
+        if (g_test && !g_down)
         {
             g_socket.on("testmsg", function (_testmsg)
             {
