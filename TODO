@@ -14,7 +14,6 @@ Client:
     -> cf. early return in update()
   - Extra vote possible???
   - Fix incorrect score when coming back on victory state after idling
-  - Client + server version + detect change and refresh page (cf A)
   - event.layerX and event.layerY are broken and deprecated in WebKit.
   [ They will be removed from the engine in the near future.
   - Display players count in background tab title
@@ -32,7 +31,6 @@ Server
 Common
  - better vec2, ready for socket transport
  - compress those messages
- *** (A) detect reconnecting clients after a reboot / an upgrade
  
 Website
  - Display victory condition after 5 apples eaten + tip tail blinks and shine
