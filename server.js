@@ -505,7 +505,10 @@ function idleBroadcast()
         );
     }
     
-    g_idleBroadcastMarker = (g_idleBroadcastMarker+1) % g_sockets.length;
+    if (g_sockets.length > 0)
+    {
+        g_idleBroadcastMarker = (g_idleBroadcastMarker+1) % g_sockets.length;
+    }
     g_idleBroadcastTimeoutHandle = setTimeout(idleBroadcast, 666.667);
 }
 
