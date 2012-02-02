@@ -48,6 +48,7 @@ var g_pauseStartTime = null;
 var g_updateHandle = null;
 var g_idleCheckTimeoutHandle = null;
 var g_connected = false;
+var g_down = false;
 
 // assets
 var g_serverdownPath = "files/serverdown.png";
@@ -332,29 +333,52 @@ function init(_test)
     g_assets.downloadAll(connect);
 }
 
+function cancelUpdates()
+{
+    if (g_updateHandle)
+    {
+        window.cancelRequestAnimFrame(g_updateHandle);
+        g_updateHandle = null;
+    }
+
+    if (g_idleCheckTimeoutHandle)
+    {
+        clearTimeout(g_idleCheckTimeoutHandle);
+        g_idleCheckTimeoutHandle = null;
+    }
+}
+
+function serverDown()
+{
+    // clear canvas
+    g_context.fillStyle = "#FFFFFF";
+    g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // draw server down image, if available
+    if (g_assets.cache[g_serverdownPath])
+    {
+        g_context.drawImage(
+            g_assets.cache[g_serverdownPath],
+            0, 0,
+            CANVAS_WIDTH, CANVAS_HEIGHT);
+    }
+    
+    // message
+    console.log("Server down :/");
+    drawMessage("The server seems to be down... Try to refresh your page in a moment.", true);
+    
+    // exit
+    cancelUpdates();
+    g_down = true;
+}
+
 function connect()
 {
     // if io isn't defined, this means we didn't receive socker.io.js, so the server is down
     if (typeof io === 'undefined') // http://stackoverflow.com/questions/519145/how-can-i-check-whether-a-variable-is-defined-in-javascript
     {
-        // clear canvas
-        g_context.fillStyle = "#FFFFFF";
-        g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-        // draw server down image, if available
-        if (g_assets.cache[g_serverdownPath])
-        {
-            g_context.drawImage(
-                g_assets.cache[g_serverdownPath],
-                0, 0,
-                CANVAS_WIDTH, CANVAS_HEIGHT);
-        }
-        
-        // message
-        console.log("Server down :/");
-        drawMessage("The server seems to be down... Try to refresh your page in a moment.", true);
-        
         // quit
+        serverDown();
         return;
     }
 
@@ -368,6 +392,7 @@ function connect()
     g_socket.on('error', function (reason)
     {
         console.error("ERROR: Unable to connect Socket.IO", reason);
+        serverDown();
     });
 
     // connection
@@ -388,35 +413,55 @@ function connect()
 // connect
 function processConnect()
 {
-    // if already running, cancel updates
-    if (g_connected)
+    // if not connected, plug the messages callbacks
+    // NB: this has to be done only *one time* otherwise the callbacks get
+    // called once per reconnection, which just brings weird, weird issues
+    if (!g_connected)
     {
-        if (g_updateHandle)
+        // messages
+        g_socket.on("message", function (_message)
         {
-            window.cancelRequestAnimFrame(g_updateHandle);
-            g_updateHandle = null;
-        }
-        
-        if (g_idleCheckTimeoutHandle)
+            processMessage(_message)
+        });
+
+        // test messages
+        if (g_test)
         {
-            clearTimeout(g_idleCheckTimeoutHandle);
-            g_idleCheckTimeoutHandle = null;
-        }
+            g_socket.on("testmsg", function (_testmsg)
+            {
+                processTestmsg(_testmsg)
+            });
+        }        
+    }
+    // if already connected, cancel updates
+    else
+    {
+        cancelUpdates();
     }
     
     g_connected = true;
+}
+
+function logVec2Array(_name, _array)
+{
+    console.log(_name);
+    for (var i=0; i<_array.length; ++i)
+    {
+        console.log(_array[i].x, ",", _array[i].y);
+    }
 }
 
 // ping, first message, inits the snake
 function processPing(_ping)
 {
     // copy initial snake
+    //logVec2Array("PING SNAKE", _ping.snake);
     g_snake = new Array();
-    for (var i=0; i<_ping.snake.length; ++i)
+    for (var i=0; i<message.snake.length; ++i)
     {
-        g_snake.push(new vec2(_ping.snake[i].x, _ping.snake[i].y));
+        g_snake.push(new vec2(message.snake[i].x, message.snake[i].y));
     }
-    console.dir(g_snake);
+    //logVec2Array("CLIENT SNAKE", g_snake);
 
     // copy initial apples
     g_apples = new Array();
@@ -432,13 +477,6 @@ function processPing(_ping)
         log("ERROR: un-named state");
     }
 
-    g_socket.on("message", function (_message) { processMessage(_message) });
-    
-    if (g_test)
-    {
-        g_socket.on("testmsg", function (_testmsg) { processTestmsg(_testmsg) });
-    }
-    
     g_lastTime = new Date().getTime();
     //g_lastVoteMove = 0;
     
@@ -454,6 +492,8 @@ function processPing(_ping)
     {
         updateSpamBots();
     }
+    
+    g_discardMessages = false;
 }
 
 function mouseDown(e)
@@ -536,7 +576,10 @@ function getScreenCoords(_coords, _middle)
 function update()
 {
     // plan next update
-    g_updateHandle = window.requestAnimFrame(update);
+    if (!g_down)
+    {
+        g_updateHandle = window.requestAnimFrame(update);
+    }
 
     // yey! back with us, default to spectator
     if (g_clientState == "idle")
@@ -596,23 +639,22 @@ function update()
         // apply mouse input
         if (g_clickX != -1 && g_clickY != -1)
         {
-            var headPos = g_snake[g_snake.length-1];
             var x = Math.floor(g_clickX / SPRITE_SIZE);
             var y = Math.floor(g_clickY / SPRITE_SIZE);
             
-            //log(headPos.x + "," + headPos.y);
+            //log(head.x + "," + head.y);
             //log(x + "," + y);
             
-            if (y == headPos.y)
+            if (y == head.y)
             {
-                if (x == headPos.x+1)
+                if (x == head.x+1)
                 {
                     if (direction == "north") vote("right");
                     if (direction == "east") vote("forward");
                     if (direction == "south") vote("left");
                     g_selectEast = SELECT_FRAMES;
                 }
-                else if (x == headPos.x-1)
+                else if (x == head.x-1)
                 {
                     if (direction == "south") vote("right");
                     if (direction == "west") vote("forward");
@@ -620,16 +662,16 @@ function update()
                     g_selectWest = SELECT_FRAMES;
                 }
             }
-            else if (x == headPos.x)
+            else if (x == head.x)
             {
-                if (y == headPos.y+1)
+                if (y == head.y+1)
                 {
                     if (direction == "east") vote("right");
                     if (direction == "south") vote("forward");
                     if (direction == "west") vote("left");
                     g_selectSouth = SELECT_FRAMES;
                 }
-                else if (y == headPos.y-1)
+                else if (y == head.y-1)
                 {
                     if (direction == "west") vote("right");
                     if (direction == "north") vote("forward");
@@ -722,7 +764,7 @@ function update()
                 else nextDir = "south";
             }
 
-            var bodyCoords = getScreenCoords(g_snake[i]);
+            var bodyCoords = getScreenCoords(current);
             var bodyImg = null;
             if (prevDir == "east" && nextDir == "west") bodyImg = g_assets.cache[g_bodyPaths.hz];
             else if (nextDir == "east" && prevDir == "west") bodyImg = g_assets.cache[g_bodyPaths.hz];
@@ -1042,13 +1084,17 @@ function spectatorCheck(_time)
 // detect idle client
 function idleCheck()
 {
+    if (!g_down)
+    {
+        g_idleCheckTimeoutHandle = setTimeout("idleCheck()", IDLE_CHECK_INTERVAL);
+    }
+
     var time = new Date().getTime();
     var dt = time - g_lastTime;
     if (dt > IDLE_THRESHOLD)
     {
         setClientState("idle")
     }
-    g_idleCheckTimeoutHandle = setTimeout("idleCheck()", IDLE_CHECK_INTERVAL);
 }
 
 // test/cheat/tweaks
@@ -1090,6 +1136,11 @@ function rmSpamBot(_count)
 }
 function updateSpamBots()
 {
+    if (!g_down)
+    {
+        setTimeout("updateSpamBots()", 200); // vote 10 times in 2s
+    }
+    
     for (var i=0; i<g_spamBots.length; ++i)
     {
         var spamSocket = g_spamBots[i];
@@ -1113,8 +1164,6 @@ function updateSpamBots()
             spamSocket.emit("message", { name : "vote", move : g_move, value : voteValue });
         }
     }
-    
-    setTimeout("updateSpamBots()", 200); // vote 10 times in 2s
 }
 
 // tweaks
@@ -1167,7 +1216,13 @@ function vote(_value)
 
 function processMessage(_message)
 {
-    //log("MESSAGE:" + _message.name + " (" + _message.value + ")");
+    if (g_discardMessages)
+    {
+        log("MESSAGE DISCARDED:" + _message.name + " (" + _message.value + ")");
+        return;
+    }
+    
+    log("MESSAGE:" + _message.name + " (" + _message.value + ")");
 
     // update player count & score
     g_playerCount = _message.playerCount;
@@ -1185,7 +1240,8 @@ function processMessage(_message)
     else if (_message.name == "grow")
     {
         g_snake.push(new vec2(_message.value.x, _message.value.y)); // meh??
-            
+        //logVec2Array("CLIENT SNAKE", g_snake);
+        
         g_move = _message.move;
         g_votesThisMove = 0;
 
@@ -1200,7 +1256,8 @@ function processMessage(_message)
     {
         g_snake.shift();
         g_snake.push(new vec2(_message.value.x, _message.value.y)); // meh??
-
+        //logVec2Array("CLIENT SNAKE", g_snake);
+        
         g_move = _message.move;
         g_votesThisMove = 0;
 
@@ -1240,6 +1297,7 @@ function processMessage(_message)
         {
             g_snake.push(new vec2(_message.snake[i].x, _message.snake[i].y)); // meh??
         }
+        //logVec2Array("CLIENT SNAKE", g_snake);
 
         // copy apples
         g_apples = new Array();
