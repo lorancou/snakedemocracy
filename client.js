@@ -416,6 +416,7 @@ function processPing(_ping)
     {
         g_snake.push(new vec2(_ping.snake[i].x, _ping.snake[i].y));
     }
+    console.dir(g_snake);
 
     // copy initial apples
     g_apples = new Array();

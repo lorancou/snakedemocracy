@@ -222,6 +222,7 @@ function setClientState(_socket, _newState)
     {
         // re-send ping
         socket.emit("ping", { snake : g_snake, apples : g_apples, state : g_state, move : g_move });
+        console.dir(g_snake);
     }
     
     _socket.clientState = _newState;
@@ -266,12 +267,12 @@ io.sockets.on("connection", function (socket)
     // receive idle on / off messages
     socket.on("idle", function (_message)
     {
-        console.vlog("IDLE: ", address);
         var time = new Date().getTime();
         var dt = time - socket.lastIdleTime;
         var IDLE_DELAY = 10000;
         if (dt > IDLE_DELAY)
         {
+            console.vlog("IDLE: ", address);
             setClientState(socket, "idle");
             socket.lastIdleTime = new Date().getTime();
         }
