@@ -47,6 +47,8 @@ var g_lastVoteMove = 0;
 var g_pauseStartTime = null;
 
 // assets
+var g_serverdownPath = "files/serverdown.png";
+var g_serverfloodPath = "files/serverflood.png";
 var g_headPaths =
 {
     east : "files/snake_head_e.png",
@@ -137,6 +139,8 @@ window.cancelRequestAnimFrame = (function() {
 
 function queueAssets(_mgr)
 {
+    _mgr.queueDownload(g_serverdownPath);
+    _mgr.queueDownload(g_serverfloodPath);
     _mgr.queueDownload(g_headPaths.east);
     _mgr.queueDownload(g_headPaths.west);
     _mgr.queueDownload(g_headPaths.south);
@@ -220,18 +224,19 @@ function showVictoryTweet()
     
     // the magic Twitter query string parameters
     var src = "http://platform.twitter.com/widgets/tweet_button.html"
-    src += "?url=http://www.snakedemocracy.com";
-    src += "&via=snakedemocracy";
+    //src += "?url=http://www.snakedemocracy.com";
+    src += "?via=snakedemocracy";
     src += "&hashtags=snakedemocracy";
     src += "&size=large"; // has no effect :-/
     src += "&count=none";
-    src += "&text=We, voters, achieved the mighty score of " + g_score + ", come and help us doing better!";
+    src += "&text=I was there when the we reached the score of " + g_score + " on snakedemocracy.com!"
+    //src += "&text=We, voters, achieved the mighty score of " + g_score + ", come and help us doing better!";
     g_victoryTweet.src = src;
 
     // style
     g_victoryTweet.style.position = "absolute";
-    g_victoryTweet.style.top = "412px";
-    g_victoryTweet.style.left = "115px";
+    g_victoryTweet.style.top = "409px";
+    g_victoryTweet.style.left = "275px";
     g_victoryTweet.style.width = "60px";
     g_victoryTweet.style.height = "20px";
     
@@ -305,8 +310,8 @@ function init(_test)
 
     log("Loading...");
     
-    g_context.fillStyle = "#FFFFFF";
-    g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    //g_context.fillStyle = "#FFFFFF";
+    //g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     g_context.fillStyle = "#000000";
     g_context.fillText(
         "Loading ballot paper... please be patient, citizen.",
@@ -321,6 +326,27 @@ function init(_test)
 function connect()
 {
     log("Connecting...");
+    
+    if (!io)
+    {
+        if (!g_assets.cache[g_serverdownPath])
+        {
+            g_context.fillStyle = "#FFFFFF";
+            g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        }
+        else
+        {
+            g_context.drawImage(
+                g_assets.cache[g_serverdownPath],
+                0, 0,
+                CANVAS_WIDTH, CANVAS_HEIGHT);
+        }
+        g_context.fillStyle = "#000000";
+        g_context.fillText(
+            "The server seems to be down... Try to refresh your page in a moment.",
+            10, 15);
+        return;
+    }
 
     // draw grid, now that it's loaded
     g_context.drawImage(
@@ -440,22 +466,12 @@ AssetManager.prototype.downloadAll = function(callback) {
       var img = new Image();
       img.src = path;
       this.cache[path] = img;
-
       var that = this;
-      /*img.addEventListener("load", function() {
-          that.successCount += 1;
-          if (that.isDone()) { callback(); }
-      });*/
       img.onload = function() 
       {
           that.successCount += 1;
-          //that.cache[path] = this; // yeah...
           if (that.isDone()) { callback(); }
       };          
-      /*img.addEventListener("error", function() {
-          that.errorCount += 1;
-          if (that.isDone()) { callback(); }
-      });*/
   }
 }
 
