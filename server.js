@@ -493,11 +493,7 @@ function clearIdleBroadcast()
 
 function idleBroadcast()
 {
-    if (g_idleBroadcastMarker >= g_sockets.length)
-    {
-        g_idleBroadcastMarker = 0;
-    }
-    else if (g_sockets[g_idleBroadcastMarker].clientState == "idle")
+    if (g_idleBroadcastMarker < g_sockets.length)
     {
         g_sockets[g_idleBroadcastMarker].emit(
             "message",
@@ -509,8 +505,8 @@ function idleBroadcast()
         );
     }
     
-    g_idleBroadcastMarker++;
-    g_idleBroadcastTimeoutHandle = setTimeout(idleBroadcast, 123.456);
+    g_idleBroadcastMarker = (g_idleBroadcastMarker+1) % g_sockets.length;
+    g_idleBroadcastTimeoutHandle = setTimeout(idleBroadcast, 666.667);
 }
 
 function processKill()
