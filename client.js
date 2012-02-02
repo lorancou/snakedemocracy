@@ -256,6 +256,18 @@ function hideVictoryTweet()
     g_victoryTweet = null;
 }
 
+function drawMessage(_msg, _clear)
+{
+    if (_clear)
+    {
+        g_context.fillStyle = "#FFFFFF";
+        g_context.fillRect(0, 0, CANVAS_WIDTH, 25);
+    }
+
+    g_context.fillStyle = "#000000";
+    g_context.fillText(_msg, 10, 15);
+}
+
 // client init, called with body's onload
 function init(_test)
 {
@@ -309,13 +321,7 @@ function init(_test)
     document.onkeyup = keyUp;
 
     log("Loading...");
-    
-    //g_context.fillStyle = "#FFFFFF";
-    //g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    g_context.fillStyle = "#000000";
-    g_context.fillText(
-        "Loading ballot paper... please be patient, citizen.",
-        10, 15);
+    drawMessage("Loading ballot paper... please be patient, citizen.", true);
     
     // queue assets, download them, then connect socket
     g_assets = new AssetManager();
@@ -325,8 +331,6 @@ function init(_test)
 
 function connect()
 {
-    log("Connecting...");
-    
     // if io isn't defined, this means we didn't receive socker.io.js, so the server is down
     if (typeof io === 'undefined') // http://stackoverflow.com/questions/519145/how-can-i-check-whether-a-variable-is-defined-in-javascript
     {
@@ -344,25 +348,14 @@ function connect()
         }
         
         // message
-        g_context.fillStyle = "#000000";
-        g_context.fillText(
-            "The server seems to be down... Try to refresh your page in a moment.",
-            10, 15);
+        drawMessage("The server seems to be down... Try to refresh your page in a moment.", true);
         
         // quit
         return;
     }
 
-    // draw grid, now that it's loaded
-    g_context.drawImage(
-        g_assets.cache[g_fullgridPath],
-        0, 0,
-        CANVAS_WIDTH, CANVAS_HEIGHT);
-
-    g_context.fillStyle = "#000000";
-    g_context.fillText(
-        "Connecting to polling station... please remain patient, citizen.",
-        10, 15);
+    log("Connecting...");
+    drawMessage("Connecting to polling station... please stay patient, citizen.", true);
 
     // connect to node.js server
     g_socket = io.connect(g_test ? SERVER_TEST_ADDRESS : SERVER_ADDRESS);
@@ -876,8 +869,7 @@ function update()
             var countdown = VICTORY_DELAY - dt;
             message = "Restarting game in " + Math.floor(countdown/1000) + " seconds...";
         }
-        g_context.fillStyle = "#000000";
-        g_context.fillText(message, 10, 15);
+        drawMessage(message, false);
     }
     else if (g_state.name == "fail")
     {
@@ -894,8 +886,7 @@ function update()
             var countdown = FAIL_DELAY - dt;
             message = "Restarting game in " + Math.floor(countdown/1000) + " seconds...";
         }
-        g_context.fillStyle = "#000000";
-        g_context.fillText(message, 10, 15);
+        drawMessage(message, false);
     }
     
     // show/hide victory tweet
