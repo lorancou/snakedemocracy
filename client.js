@@ -444,7 +444,7 @@ function connect()
         if (!g_down)
         {
             console.error("ERROR: Unable to connect Socket.IO", reason);
-            serverDown(); // quit
+            // serverDown(); // quit Firefox throws this then works anyway :/
         }
     });
 
