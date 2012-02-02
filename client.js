@@ -284,7 +284,7 @@ function init(_serverAddress, _test)
     g_test = _test;
     
     // if no nodejs server is specified, use the current one
-    if (_serverAddress)
+    if (!_serverAddress)
     {
         g_serverAddress = "/";
     }
