@@ -1,7 +1,7 @@
 // global constants
 var SERVER_ADDRESS = "/";
 var SERVER_TEST_ADDRESS = "snakedemocracy.dyndns.org:3000";
-var SERVER_DOWN_THRESHOLD = 3000; // in ms
+var SERVER_DOWN_THRESHOLD = 20000; // in ms
 var CANVAS_WIDTH = 480;
 var CANVAS_HEIGHT = 480;
 var SPRITE_SIZE = 24;
