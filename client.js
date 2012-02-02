@@ -203,6 +203,7 @@ function setClientState(_newState)
         {
             log("Back!");
             g_socket.emit("back");
+            g_lastMessageTime = new Date().getTime();
         }
     }
 
