@@ -1,10 +1,12 @@
 // global constants
 var SERVER_ADDRESS = "/";
 var SERVER_TEST_ADDRESS = "snakedemocracy.dyndns.org:3000";
+var SERVER_DOWN_THRESHOLD = 3000; // in ms
 var CANVAS_WIDTH = 480;
 var CANVAS_HEIGHT = 480;
 var SPRITE_SIZE = 24;
 var SELECT_FRAMES = 3;
+var IDLE_CHECK_INTERVAL = 1000; // in ms
 var IDLE_CHECK_INTERVAL = 1000; // in ms
 var IDLE_THRESHOLD = 10000; // in ms
 
@@ -48,6 +50,7 @@ var g_pauseStartTime = null;
 var g_updateHandle = null;
 var g_idleCheckTimeoutHandle = null;
 var g_connected = false;
+var g_lastMessageTime = null;
 var g_down = false;
 
 // assets
@@ -369,6 +372,10 @@ function serverDown()
     
     // exit
     cancelUpdates();
+    if (!(typeof io === 'undefined') && g_socket)
+    {
+        g_socket.disconnect();
+    }
     g_down = true;
 }
 
@@ -392,7 +399,7 @@ function connect()
     g_socket.on('error', function (reason)
     {
         console.error("ERROR: Unable to connect Socket.IO", reason);
-        serverDown();
+        serverDown(); // quit
     });
 
     // connection
@@ -457,9 +464,9 @@ function processPing(_ping)
     // copy initial snake
     //logVec2Array("PING SNAKE", _ping.snake);
     g_snake = new Array();
-    for (var i=0; i<message.snake.length; ++i)
+    for (var i=0; i<_ping.snake.length; ++i)
     {
-        g_snake.push(new vec2(message.snake[i].x, message.snake[i].y));
+        g_snake.push(new vec2(_ping.snake[i].x, _ping.snake[i].y));
     }
     //logVec2Array("CLIENT SNAKE", g_snake);
 
@@ -483,7 +490,8 @@ function processPing(_ping)
     //g_state = __ping.state;
     g_move = _ping.move;
     g_votesThisMove = 0;
-    g_lastVoteMove = g_move;    
+    g_lastVoteMove = g_move;
+    g_lastMessageTime = new Date().getTime();
     
     update();
     idleCheck();
@@ -1001,8 +1009,11 @@ function update()
     if (g_selectSouth > 0) --g_selectSouth;
     if (g_selectNorth > 0) --g_selectNorth;
     
-    // chek if not voting
+    // check if not voting
     spectatorCheck(time);
+    
+    // check if server is still online
+    serverDownCheck(time);
 
     // stats
     updateStats(dt);
@@ -1077,7 +1088,7 @@ function spectatorCheck(_time)
     var dmove = g_move - g_lastVoteMove;
     if (dmove > SPECTATOR_THRESHOLD)
     {
-        setClientState("spectator")
+        setClientState("spectator");
     }
 }
 
@@ -1093,7 +1104,18 @@ function idleCheck()
     var dt = time - g_lastTime;
     if (dt > IDLE_THRESHOLD)
     {
-        setClientState("idle")
+        setClientState("idle");
+    }
+}
+
+// detect down server
+function serverDownCheck(_time)
+{
+    var dmsg = _time - g_lastMessageTime;
+    if (dmsg > SERVER_DOWN_THRESHOLD)
+    {
+        // quit
+        serverDown();
     }
 }
 
@@ -1216,14 +1238,11 @@ function vote(_value)
 
 function processMessage(_message)
 {
-    if (g_discardMessages)
-    {
-        log("MESSAGE DISCARDED:" + _message.name + " (" + _message.value + ")");
-        return;
-    }
-    
-    log("MESSAGE:" + _message.name + " (" + _message.value + ")");
+    //log("MESSAGE:" + _message.name + " (" + _message.value + ")");
 
+    // remember message time
+    g_lastMessageTime = new Date().getTime();
+    
     // update player count & score
     g_playerCount = _message.playerCount;
     g_score = _message.score;
