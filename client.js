@@ -978,7 +978,7 @@ function update()
         {
             var dt = g_lastTime - g_pauseStartTime;
             var countdown = VICTORY_DELAY - dt;
-            message = "Restarting game in " + Math.floor(countdown/1000) + " seconds...";
+            message = "Restarting game in " + Math.floor(Math.abs(countdown/1000)) + " seconds...";
         }
         drawMessage(message, false);
     }
@@ -995,7 +995,7 @@ function update()
         {
             var dt = g_lastTime - g_pauseStartTime;
             var countdown = FAIL_DELAY - dt;
-            message = "Restarting game in " + Math.floor(countdown/1000) + " seconds...";
+            message = "Restarting game in " + Math.floor(Math.abs(countdown/1000)) + " seconds...";
         }
         drawMessage(message, false);
     }
