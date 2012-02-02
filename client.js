@@ -330,22 +330,26 @@ function connect()
     // if io isn't defined, this means we didn't receive socker.io.js, so the server is down
     if (typeof io === 'undefined') // http://stackoverflow.com/questions/519145/how-can-i-check-whether-a-variable-is-defined-in-javascript
     {
-        if (!g_assets.cache[g_serverdownPath])
-        {
-            g_context.fillStyle = "#FFFFFF";
-            g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-        }
-        else
+        // clear canvas
+        g_context.fillStyle = "#FFFFFF";
+        g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+        // draw server down image, if available
+        if (g_assets.cache[g_serverdownPath])
         {
             g_context.drawImage(
                 g_assets.cache[g_serverdownPath],
                 0, 0,
                 CANVAS_WIDTH, CANVAS_HEIGHT);
         }
+        
+        // message
         g_context.fillStyle = "#000000";
         g_context.fillText(
             "The server seems to be down... Try to refresh your page in a moment.",
             10, 15);
+        
+        // quit
         return;
     }
 
