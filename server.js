@@ -66,31 +66,7 @@ app.listen(port, function() {
     console.vlog("Listening on " + port);
 });
 
-// serve *.html
-app.get("/", function (req, res)
-{
-    res.sendfile(__dirname + "/index.html");
-});
-app.get("/faq", function (req, res)
-{
-    res.sendfile(__dirname + "/faq.html");
-});
-/*app.get("/credits", function (req, res)
-{
-    res.sendfile(__dirname + "/credits.html");
-});*/
-    
-// serve cheats page on test server only
-if (g_test)
-{
-    app.get("/cheat", function (req, res)
-    {
-        res.sendfile(__dirname + "/cheat.html");
-    });
-}
-
-// serve stuff
-// meh. public folder?...
+// serve scripts
 app.get("/client.js", function (req, res)
 {
     res.sendfile(__dirname + "/client.js");
@@ -104,31 +80,59 @@ app.get("/common.js", function (req, res)
     res.sendfile(__dirname + "/common.js");
 });
 
-// serve resource files
-// https://github.com/visionmedia/express/blob/master/examples/downloads/app.js
-// /files/* is accessed via req.params[0]
-// but here we name it :file
-app.get("/files/:file(*)", function(req, res, next){
-  var file = req.params.file
-    , path = __dirname + "/files/" + file;
+// serve redirect page in prod
+if (!g_test)
+{
+    app.get("/", function (req, res)
+    {
+        res.sendfile(__dirname + "/redirect.html");
+    });
+}
+// serve HTML and assets only on test server
+else
+{
+    // serve *.html
+    app.get("/", function (req, res)
+    {
+        res.sendfile(__dirname + "/index.html");
+    });
+    app.get("/faq", function (req, res)
+    {
+        res.sendfile(__dirname + "/faq.html");
+    });
+        
+    // serve cheats page on test server only
+    app.get("/cheat", function (req, res)
+    {
+        res.sendfile(__dirname + "/cheat.html");
+    });
 
-  res.download(path);
-});
-// error handling middleware. Because it's
-// below our routes, you will be able to
-// "intercept" errors, otherwise Connect
-// will respond with 500 "Internal Server Error".
-app.use(function(err, req, res, next){
-  // log all errors
-  console.error(err.stack);
+    // serve resource files
+    // https://github.com/visionmedia/express/blob/master/examples/downloads/app.js
+    // /files/* is accessed via req.params[0]
+    // but here we name it :file
+    app.get("/files/:file(*)", function(req, res, next){
+      var file = req.params.file
+        , path = __dirname + "/files/" + file;
 
-  // special-case 404s
-  if (404 == err.status) {
-    res.send("Cant find that file, sorry!");
-  } else {
-    next(err);
-  }
-});
+      res.download(path);
+    });
+    // error handling middleware. Because it's
+    // below our routes, you will be able to
+    // "intercept" errors, otherwise Connect
+    // will respond with 500 "Internal Server Error".
+    app.use(function(err, req, res, next){
+      // log all errors
+      console.error(err.stack);
+
+      // special-case 404s
+      if (404 == err.status) {
+        res.send("Cant find that file, sorry!");
+      } else {
+        next(err);
+      }
+    });
+}
 
 // bytes to MB
 function toMB(_bytes)
