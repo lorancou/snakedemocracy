@@ -58,7 +58,7 @@ var g_test = (process.env.NODE_ENV == "development");//(process.argv.length==5) 
 
 // global constants
 var STARTUP_APPLE_COUNT = 3;
-var MEM_SEPUKU = 300; // MB, set to 0 to disable
+var MEM_SEPPUKU = 300; // MB, set to 0 to disable
 
 //app.listen(80);
 var port = process.env.PORT || 3000;
@@ -691,17 +691,30 @@ function move()
 
     g_snakeLengthCache = -1;
     
-    // check memory, sepuku if taking too much (Heroku won't kill the server by
+    // check memory, seppuku if taking too much (Heroku won't kill the server by
     // itself but il will *restart* it, yey!)
-    if (MEM_SEPUKU > 0)
+    if (MEM_SEPPUKU > 0)
     {
         var rssMB = toMB(process.memoryUsage().rss);
-        if (rssMB > MEM_SEPUKU)
+        if (rssMB > MEM_SEPPUKU)
         {
-            console.error("Eating too much memory. Sepuku!");
-            process.exit(2);
+            // clear timeouts
+            clearMoveTimeout();
+            clearPauseTimeout();
+            clearOpinionBroadcast();
+
+            g_state = { name : "seppuku" };
+            broadcast(g_state);
+
+            setTimeout(performSeppuku, MEM_SEPPUKU_DELAY);
         }
     }
+}
+
+function performSeppuku()
+{
+    console.error("Eating too much memory. Seppuku!");
+    process.exit(2);
 }
 
 function processMoveDelayChange(_socket, _value)

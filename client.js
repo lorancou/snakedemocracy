@@ -47,6 +47,7 @@ var g_clientState = null;
 var g_lastTime = null;
 var g_lastVoteMove = 0;
 var g_pauseStartTime = null;
+var g_seppukuStartTime = null;
 var g_updateHandle = null;
 var g_idleCheckTimeoutHandle = null;
 var g_connected = false;
@@ -954,7 +955,7 @@ function update()
         }
     }
 
-    // draw end game overlay
+    // draw overlays
     if (g_state.name == "victory")
     {
         // img
@@ -996,6 +997,23 @@ function update()
             var dt = g_lastTime - g_pauseStartTime;
             var countdown = Math.max(0.0, FAIL_DELAY - dt);
             message = "Restarting game in " + Math.floor(countdown/1000) + " seconds...";
+        }
+        drawMessage(message, false);
+    }
+    else if (g_state.name == "seppuku")
+    {
+        // img
+        g_context.drawImage(
+            g_assets.cache[g_serverfloodPath],
+            0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+        // draw countdown
+        var message = "Server seppuku!";
+        if (g_seppukuStartTime)
+        {
+            var dt = g_lastTime - g_seppukuStartTime;
+            var countdown = Math.max(0.0, FAIL_DELAY - dt);
+            message = "Server seppuku! Attempting a restart in " + Math.floor(countdown/1000) + " seconds...";
         }
         drawMessage(message, false);
     }
@@ -1365,9 +1383,14 @@ function processMessage(_message)
             g_apples.splice(_message.idx, 1);
         }
     }
+    else if (_message.name == "seppuku")
+    {
+        g_state = { name : _message.name  };
+        g_seppukuStartTime = new Date().getTime();
+    }
     else
     {
-        log("ERROR: un-named state");
+        log("ERROR: unkown message ", _message.name);
     }
 }
 
