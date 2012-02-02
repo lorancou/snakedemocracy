@@ -905,8 +905,8 @@ function broadcast(_message)
     // any time a message is broadcasted, append the number of players...
     // - active clients in big letters
     // - spectators + idle clients in small letters
-    var text = g_activePlayerCount + " <small>/ " + g_sockets.length + "</small>";
-    _message.playerCount = text;
+    _message.activePlayerCount = g_activePlayerCount;
+    _message.totalPlayerCount = g_sockets.length;
 
     // and the current score
     _message.score = computeScore();

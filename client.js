@@ -19,7 +19,8 @@ var g_apples = null;
 var g_opinion = null;
 var g_state = null;
 var g_move = 0;
-var g_playerCount = 0;
+var g_activePlayerCount = 0;
+var g_totalPlayerCount = 0;
 var g_score = 0;
 var g_clickX = -1;
 var g_clickY = -1;
@@ -1104,13 +1105,14 @@ function updateStats(_dt)
     // mandatory
     if (g_playerCountElement)
     {
-        if (g_playerCount == 0)
+        if (g_totalPlayerCount == 0)
         {
             g_playerCountElement.innerHTML = " :(";
         }
         else
         {
-            g_playerCountElement.innerHTML = g_playerCount;
+            g_playerCountElement.innerHTML = g_activePlayerCount + " <small>/ " + g_totalPlayerCount + "</small>";
+            document.title = "[" + g_activePlayerCount + "/" + g_totalPlayerCount + "]";
         }
     }
     if (g_numLeftElement)
@@ -1333,7 +1335,8 @@ function processMessage(_message)
     g_lastMessageTime = new Date().getTime();
     
     // update player count & score
-    g_playerCount = _message.playerCount;
+    g_totalPlayerCount = _message.totalPlayerCount;
+    g_activePlayerCount = _message.activePlayerCount;
     g_score = _message.score;
 
     if (_message.name == "opinion")

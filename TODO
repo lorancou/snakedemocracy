@@ -17,7 +17,6 @@ Client:
  - Fix incorrect score when coming back on victory state after idling
  - event.layerX and event.layerY are broken and deprecated in WebKit.
   [ They will be removed from the engine in the near future.
- - Display players count in background tab title
  
 Server
  - Kick cheaters?
@@ -26,7 +25,6 @@ Server
     -> https://github.com/felixge/node-memory-leak-tutorial
     -> if there's nothing... seppuku every turn?
  - Find a better way to include vec2.js / common.js etc.
- - One apple grows the snake twice
  
 Common
  - better vec2, ready for socket transport
