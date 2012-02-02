@@ -45,6 +45,7 @@ var g_clientState = null;
 var g_lastTime = null;
 var g_lastVoteMove = 0;
 var g_pauseStartTime = null;
+var g_updateHandle = null;
 var g_idleCheckTimeoutHandle = null;
 var g_connected = false;
 
@@ -390,7 +391,11 @@ function processConnect()
     // if already running, cancel updates
     if (g_connected)
     {
-        window.cancelRequestAnimFrame();
+        if (g_updateHandle)
+        {
+            window.cancelRequestAnimFrame(g_updateHandle);
+            g_updateHandle = null;
+        }
         
         if (g_idleCheckTimeoutHandle)
         {
@@ -530,7 +535,7 @@ function getScreenCoords(_coords, _middle)
 function update()
 {
     // plan next update
-    window.requestAnimFrame(update);
+    g_updateHandle = window.requestAnimFrame(update);
 
     // yey! back with us, default to spectator
     if (g_clientState == "idle")
