@@ -497,8 +497,7 @@ function idleBroadcast()
     {
         g_idleBroadcastMarker = 0;
     }
-
-    if (g_sockets[g_idleBroadcastMarker].clientState == "idle")
+    else if (g_sockets[g_idleBroadcastMarker].clientState == "idle")
     {
         g_sockets[g_idleBroadcastMarker].emit(
             "message",
