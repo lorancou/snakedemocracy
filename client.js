@@ -327,7 +327,8 @@ function connect()
 {
     log("Connecting...");
     
-    if (!io)
+    // if io isn't defined, this means we didn't receive socker.io.js, so the server is down
+    if (typeof io === 'undefined') // http://stackoverflow.com/questions/519145/how-can-i-check-whether-a-variable-is-defined-in-javascript
     {
         if (!g_assets.cache[g_serverdownPath])
         {
