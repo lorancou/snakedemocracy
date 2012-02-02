@@ -1,6 +1,4 @@
 // global constants
-var SERVER_ADDRESS = "/";
-var SERVER_TEST_ADDRESS = "snakedemocracy.dyndns.org:3000";
 var SERVER_DOWN_THRESHOLD = 20000; // in ms
 var CANVAS_WIDTH = 480;
 var CANVAS_HEIGHT = 480;
@@ -11,6 +9,7 @@ var IDLE_CHECK_INTERVAL = 1000; // in ms
 var IDLE_THRESHOLD = 10000; // in ms
 
 // global variables
+var g_serverAddress = null;
 var g_context = null;
 var g_canvas = null;
 var g_socket = null;
@@ -280,9 +279,10 @@ function drawMessage(_msg, _clear)
 }
 
 // client init, called with body's onload
-function init(_test)
+function init(_serverAddress, _test)
 {
     g_test = _test;
+    g_serverAddress = _serverAddress;
     
     setClientState("active");
     
@@ -427,7 +427,7 @@ function connect()
     drawMessage("Connecting to polling station... please stay patient, citizen.", true);
 
     // connect to node.js server
-    g_socket = io.connect(g_test ? SERVER_TEST_ADDRESS : SERVER_ADDRESS);
+    g_socket = io.connect(g_serverAddress);
 
     // error
     g_socket.on('error', function (reason)
@@ -1217,7 +1217,7 @@ function addSpamBot(_count)
 {
     for (var i=0; i<_count; ++i)
     {
-        var spamSocket = io.connect(SERVER_TEST_ADDRESS, {"force new connection": true});
+        var spamSocket = io.connect(g_serverAddress, {"force new connection": true});
         spamSocket.on("ping", function (message)
         {
             //log("SPAM: ping");

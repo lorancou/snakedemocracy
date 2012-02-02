@@ -12,11 +12,11 @@ Client:
  - (Blink or shine or something to indicate when victory is close)
  - Wait for backping before updating, just skipping one frame for now
     -> cf. early return in update()
-  - Extra vote possible???
-  - Fix incorrect score when coming back on victory state after idling
-  - event.layerX and event.layerY are broken and deprecated in WebKit.
+ - Extra vote possible???
+ - Fix incorrect score when coming back on victory state after idling
+ - event.layerX and event.layerY are broken and deprecated in WebKit.
   [ They will be removed from the engine in the near future.
-  - Display players count in background tab title
+ - Display players count in background tab title
  
 Server
  - Kick cheaters?
