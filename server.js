@@ -493,7 +493,8 @@ function clearIdleBroadcast()
 
 function idleBroadcast()
 {
-    if (g_idleBroadcastMarker < g_sockets.length)
+    if (g_idleBroadcastMarker < g_sockets.length &&
+        g_sockets[g_idleBroadcastMarker].clientState == "idle")
     {
         g_sockets[g_idleBroadcastMarker].emit(
             "message",
