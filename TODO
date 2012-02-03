@@ -10,7 +10,7 @@ Client:
     [ http://snakedemocracy.herokuapp.com/socket.io/1/websocket/XXX"
     -> if fixed, call serverDown on socket error
  - Fix for paranoïd security software: this: http://housecall.trendmicro.com/
- - (Blink or shine or something to indicate when victory is close)
+ - Show victory condition for 5 seconds after 5 apples + tail tip blinks
  - Wait for backping before updating, just skipping one frame for now
     -> cf. early return in update()
  - Extra vote possible???
@@ -37,4 +37,3 @@ Website
 
 Publishing
  - Pokki?
- - http://WWW.snakedemocracy.com
