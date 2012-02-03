@@ -17,6 +17,7 @@ Client:
  - Fix incorrect score when coming back on victory state after idling
  - event.layerX and event.layerY are broken and deprecated in WebKit.
   [ They will be removed from the engine in the near future.
+ - Keyboard input broken after apple tweet, comes back after using the mouse (Chrome)
  
 Server
  - Kick cheaters?
@@ -27,8 +28,8 @@ Server
  - Find a better way to include vec2.js / common.js etc.
  
 Common
- - better vec2, ready for socket transport
- - compress those messages
+ - Better vec2, ready for socket transport
+ - Compress those messages, use as less strings and params as possible
  
 Website
  - Display victory condition after 5 apples eaten + tip tail blinks and shine
