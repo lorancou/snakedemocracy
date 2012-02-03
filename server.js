@@ -1018,7 +1018,7 @@ function initTwitter()
 function initHighscores()
 {
     // get highscores and store them
-    var host = g_test ? "snakedemocracy.dyndns.org" : "localhost";
+    var host = g_test ? "snakedemocracy.dyndns.org" : "snakedemocracy.com";
     var path = "/highscores.php" +
         "?username=" + username +
         "&password=" + password +
@@ -1077,7 +1077,7 @@ function sendScore(_score)
     }
 
     // actually send it to the database
-    var host = g_test ? "snakedemocracy.dyndns.org" : "localhost";
+    var host = g_test ? "snakedemocracy.dyndns.org" : "snakedemocracy.com";
     var path = "/highscores.php" +
         "?username=" + username +
         "&password=" + password +
