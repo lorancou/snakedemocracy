@@ -8,7 +8,7 @@ var App = function() {
     
     // Initialize whatever else needs to be initialized
     
-    
+    init("http://snakedemocracy.dyndns.org:3000/"); // init SD
     
         
     // Kick off what needs to be done whenever the popup is about to be shown
@@ -20,19 +20,19 @@ var App = function() {
     this.onPopupShown = function() {
         // splash elements
         var splash = document.getElementById('splash');
-        var atom = document.getElementById('atom');
+        //var atom = document.getElementById('atom');
         var wrapper = document.getElementById('wrapper');
         
         // animate splash on first run
         if(!splash_ran) {
             splash.classList.add('animate');
-            atom.classList.add('animate');
+            //atom.classList.add('animate');
             wrapper.classList.remove('show');
             
             // allows the css animation to run for some time before removing the animation class
             setTimeout(function() {
                 splash.classList.remove('animate');
-                atom.classList.remove('animate');
+                //atom.classList.remove('animate');
                 wrapper.classList.add('show');
                 
                 // stagger content animation
@@ -47,7 +47,7 @@ var App = function() {
         }
         else if(unloaded.get()) {
             splash.classList.remove('animate');
-            atom.classList.remove('animate');
+            //atom.classList.remove('animate');
             wrapper.classList.add('show');
         }
         unloaded.remove();

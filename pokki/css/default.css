@@ -15,8 +15,8 @@ body {
 /* Used to contain the contents of a Pokki when testing in a web browser using PokkiBrowser.js */
 #wrapper {
     margin: auto;
-    width: 500px;
-    height: 300px;
+    width: 800px;
+    height: 600px;
     position: relative;
     opacity: 0;
     background-image: -webkit-gradient(

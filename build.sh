@@ -50,5 +50,7 @@ cp files/* build/www2/files/
 echo "Building build/pokki..."
 mkdir -p build/pokki
 
-# Copy pokki files
+# Copy pokki & common files
 cp -r pokki/* build/pokki/
+mkdir -p build/pokki/files
+cp files/* build/pokki/files/

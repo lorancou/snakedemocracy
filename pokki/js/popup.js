@@ -1,5 +1,5 @@
 // Global variable for our core app
-var Atom = false;
+var SD = false;
 
 // Add listener for when the popup is first loaded
 // Perform popup page initiation and configuration
@@ -7,7 +7,7 @@ var Atom = false;
 // wait for external resources (like images) to be loaded
 function load() {
 	console.log('Popup page is loaded.');
-	Atom = new App();
+	SD = new App();
 }
 window.addEventListener('DOMContentLoaded', load, false);
 
@@ -17,8 +17,8 @@ window.addEventListener('DOMContentLoaded', load, false);
 function unload() {
     console.log('Popup page is being unloaded.');
 	// Time to save any state
-	if (Atom) {
-		Atom.onPopupUnload();
+	if (SD) {
+		SD.onPopupUnload();
 	}
 }
 pokki.addEventListener('popup_unload', unload);
@@ -26,8 +26,8 @@ pokki.addEventListener('popup_unload', unload);
 // Add listener for when the popup window is showing
 function showing() {
     console.log('Popup window is almost visible.');    
-    if (Atom){
-    	Atom.onPopupShowing();
+    if (SD){
+    	SD.onPopupShowing();
     }
 }
 pokki.addEventListener('popup_showing', showing);
@@ -35,8 +35,8 @@ pokki.addEventListener('popup_showing', showing);
 // Add listener for when the popup window is shown
 function shown() {
     console.log('Popup window is visible.');
-    if (Atom) {
-    	Atom.onPopupShown();
+    if (SD) {
+    	SD.onPopupShown();
     }
 }
 pokki.addEventListener('popup_shown', shown);
@@ -44,8 +44,8 @@ pokki.addEventListener('popup_shown', shown);
 // Add listener for when the pop-up window is hidden
 function hidden() {
     console.log('Popup window was hidden.');
-    if (Atom) {
-    	Atom.onPopupHidden();
+    if (SD) {
+    	SD.onPopupHidden();
     }
 }
 pokki.addEventListener('popup_hidden', hidden);
