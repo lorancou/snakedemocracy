@@ -59,6 +59,7 @@ var g_tweets = 0;
 var g_test = (process.env.NODE_ENV == "development");//(process.argv.length==5) && (process.argv[4]=="test");
 var g_idleBroadcastMarker = 0;
 var g_idleBroadcastTimeoutHandle = null;
+var g_highscores = { bestEver: 0, weeksBest: 0, todaysBest: 0 };
 
 // global constants
 var STARTUP_APPLE_COUNT = 3;
@@ -237,7 +238,7 @@ function setClientState(_socket, _newState)
     if (_socket.clientState == "idle")
     {
         // re-send ping
-        _socket.emit("ping", { revision : REVISION, snake : g_snake, apples : g_apples, state : g_state, move : g_move });
+        _socket.emit("ping", { revision : REVISION, snake : g_snake, apples : g_apples, state : g_state, move : g_move, highscores : g_highscores });
     }
     
     _socket.clientState = _newState;
@@ -255,7 +256,7 @@ io.sockets.on("connection", function (socket)
 
         // log connection, send current state
         console.vlog("New client: ", address);
-        socket.emit("ping", { revision : REVISION, snake : g_snake, apples : g_apples, state : g_state, move : g_move });
+        socket.emit("ping", { revision : REVISION, snake : g_snake, apples : g_apples, state : g_state, move : g_move, highscores : g_highscores });
         socket.clientState = "active";
         socket.votesThisMove = 0;
         socket.lastVoteMove = 0;
@@ -670,8 +671,11 @@ function move()
     // check victory
     else if (checkVictory(newHead))
     {
+        // send score
+        sendScore(computeScore());
+
         // broadcast victory
-        var message = { name : "victory", value : g_snake.length };
+        var message = { name : "victory", value : g_snake.length, highscores : g_highscores };
         broadcast(message);
         g_state = message;
 
@@ -1013,18 +1017,18 @@ function initTwitter()
 // Highscores init
 function initHighscores()
 {
+    // get highscores and store them
+    var host = g_test ? "snakedemocracy.dyndns.org" : "localhost";
     var path = "/highscores.php" +
         "?username=" + username +
         "&password=" + password +
         "&action=best";
-    
     var options = {
-        host: "snakedemocracy.dydns.org",
+        host: host,
         port: 80,
         path: path,
         method: "GET"
     };
-
     var req = http.get(options, function(res)
     {
         var pageData = "";
@@ -1035,9 +1039,77 @@ function initHighscores()
             pageData += chunk;
         });
 
-        res.on("'end", function()
+        res.on("end", function()
         {
-            console.log("Hisghcores: ", pageData);
+            //console.vlog("Highscores: ", pageData);
+            console.vlog("Page data: ", pageData);
+            g_highscores = JSON.parse(pageData);
+            console.vlog("Best score ever: ", g_highscores.bestEver);
+            console.vlog("Week's best: ", g_highscores.weeksBest);
+            console.vlog("Today's best: ", g_highscores.todaysBest);
+        });
+    });
+}
+
+//------------------------------------------------------------------------------
+// Send score
+function sendScore(_score)
+{
+    // new highscore!
+    if (_score > g_highscores.todaysBest)
+    {
+        g_highscores.todaysBest = _score;
+        console.vlog("Today's best score! ", _score);
+        
+        // new weekly highscore
+        if (_score > g_highscores.weeksBest)
+        {
+            g_highscores.weeksBest = _score;
+            console.vlog("This weeks's best score! ", _score);
+            
+            // wow! new best score ever
+            if (_score > g_highscores.bestEver)
+            {
+                g_highscores.bestEver = _score;
+                console.vlog("Best score ever! ", _score);
+            }
+        }
+    }
+
+    // actually send it to the database
+    var host = g_test ? "snakedemocracy.dyndns.org" : "localhost";
+    var path = "/highscores.php" +
+        "?username=" + username +
+        "&password=" + password +
+        "&action=add" +
+        "&score=" + _score;
+    var options = {
+        host: host,
+        port: 80,
+        path: path,
+        method: "GET"
+    };
+    console.vlog("Adding score: ", _score);
+    var req = http.get(options, function(res)
+    {
+        var pageData = "";
+        res.setEncoding("utf8");
+
+        res.on("data", function (chunk)
+        {
+            pageData += chunk;
+        });
+
+        res.on("end", function()
+        {
+            if (pageData == "OK")
+            {
+                console.vlog("Score added.");
+            }
+            else
+            {
+                console.vlog(pageData);
+            }
         });
     });
 }

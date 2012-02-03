@@ -1,127 +1,124 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>SnakeDemocracy &#x2014; RIGHT. LEFT. VOTE.</title>
-    <meta name="description" content="Snake Democracy, SnakeDemocracy &#x2014; RIGHT. LEFT. VOTE." /> 
-    <meta name="keywords" content="snake, democracy, right, left, vote, global, game, jam, ggj12" /> 
-    <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
-    <link rel="shortcut icon" href="files/icon.ico" />
-    <script charset="utf-8" src="http://widgets.twimg.com/j/2/widget.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="vec2.js"></script>
-    <script src="common.js"></script>
-    <script src="client.js"></script>
-    <link href="files/beauty_style.css" rel="stylesheet" type="text/css" />
+  <title>SnakeDemocracy &#x2014; RIGHT. LEFT. VOTE.</title>
+  <meta name="description" content="Snake Democracy, SnakeDemocracy &#x2014; RIGHT. LEFT. VOTE." /> 
+  <meta name="keywords" content="snake, democracy, right, left, vote, global, game, jam, ggj12" /> 
+  <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+  <link rel="shortcut icon" href="files/icon.ico" />
+  <script charset="utf-8" src="http://widgets.twimg.com/j/2/widget.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="vec2.js"></script>
+  <script src="common.js"></script>
+  <script src="client.js"></script>
+  <link href="files/beauty_style.css" rel="stylesheet" type="text/css" />
 </head>
 
 <body onload="init()">
-    <div id="bigone">
-       	<div id="wrap-header">
-            <div id="header">
-          	  <!--<img src="files/headtitle.jpg" alt="TweetingSnake" id="headtitle"/>--><span id="slogan">RIGHT. LEFT. VOTE.</span><p id="quote">"We won't tolerate the dictatorship of one Snake player anymore"<br />Abraham Lincoln, 1860</p>
-            </div>
-        </div>
-        <div id="wrap-content">
-        	<div id="navigation">
-              &nbsp;The game&nbsp;&nbsp;&nbsp;
-              <a class="nav-item" href="faq.html">&nbsp;How to play?&nbsp;</a>&nbsp;&nbsp;
-            </div>
-            <div id="content">
-                <!--<p>
-                    <input type="button" id="cheatTweet" value="cheat tweet" onclick="cheatTweet()"/>
-                    <input type="button" id="cheatClear" value="cheat clear" onclick="cheatClear()"/>
-                    <input type="button" id="voteLeft" value="vote left" onclick="vote('left')"/>
-                    <input type="button" id="voteForward" value="vote forward" onclick="vote('forward')"/>
-                    <input type="button" id="voteRight" value="vote right" onclick="vote('right')"/>
-                </p>-->
-       	        <div id="stats">
-                  <div class="filler" id="stats-0">&nbsp;</div>
-                  <div class="digits" id="playerCount">&#x2014;</div>
-                  <div class="filler" id="stats-2">&nbsp;</div>
-                  <div class="digits" id="numLeft">&#x2014;</div>
-                  <div class="filler" id="stats-4">&nbsp;</div>
-                  <div class="digits" id="numForward">&#x2014;</div>
-                  <div class="filler" id="stats-6">&nbsp;</div>
-                  <div class="digits" id="numRight">&#x2014;</div>
-                  <div class="filler" id="stats-8">&nbsp;</div>
-                  <div class="digits" id="score">&#x2014;</div>
-
-                  <!-- apples widget -->
-                  <div id="twitterApples">
-                    <a href="https://twitter.com/intent/tweet?button_hashtag=snakedemocracy&text=Give%20me%20an%20apple!" class="twitter-hashtag-button" data-size="small" data-related="snakedemocracy" data-url="http://snakedemocracy.com">Tweet #snakedemocracy</a>
-                    <script>
-                    !function(d,s,id){
-                        var js,
-                            fjs=d.getElementsByTagName(s)[0];
-                        if(!d.getElementById(id)){
-                            js=d.createElement(s);
-                            js.id=id;
-                            js.src="http://platform.twitter.com/widgets.js";
-                            fjs.parentNode.insertBefore(js,fjs);
-                        }
-                    }(document,"script","twitter-wjs");
-                    </script>
-                  </div>
-                  
-                </div>
-                <div id="canvas-box">
-                  <div id="canvas-box2">
-                    <canvas id="canvas" width="480" height="480">
-                      <div id="nocanvas">
-                        <p>Your browser doesn't support <a href="http://en.wikipedia.org/wiki/HTML5">HTML5</a>.</p>
-                        <p>To play,
-                        <a href="http://www.firefox.com/">get</a>
-                        <a href="http://www.google.com/chrome/">any</a>
-                        <a href="http://windows.microsoft.com/en-us/internet-explorer/products/ie/home">modern</a>
-                        <a href="http://www.opera.com/browser/">web</a>
-                        <a href="http://www.apple.com/safari/">browser</a>.</p>
-                      </div>
-                    </canvas>
-                  </div>
-                </div>
-                <div id="feed">
-                	<script>
-                    new TWTR.Widget({
-                      version: 2,
-                      type: 'search',
-                      search: '#snakedemocracy',
-                      interval: 4000,
-                      title: 'This is where it feeds',
-                      subject: 'SnakeDemocracy',
-                      width: 224,
-                      height: 394,
-                      theme: {
-                        shell: {
-                          background: '#a5653a',
-                          color: '#fff7ee'
-                        },
-                        tweets: {
-                          background: '#fff7ee',
-                          color: '#331b0d',
-                          links: '#4aa08b'
-                        }
-                      },
-                      features: {
-                        scrollbar: false,
-                        loop: false,
-                        live: true,
-                        behavior: 'all'
-                      }
-                    }).render().start();
-                    </script>
-            	</div>
-            </div>
-		</div>
-        <div id="wrap-footer">
-            <div id="footer">
-            	Game developed during the 2012 Global Game Jam in Paris at ISART Digital in 48 hours (<em>initially</em>) &#x2014; Team : Laurent Couvidou, Alexis Moroz, Christophe Zerr.<br/>
-              Copyright (c) 2012 Laurent Couvidou, Christophe Zerr, Alexis Moroz.
-              Source code and asset are available on <a href="https://github.com/lorancou/snakedemocracy">GitHub</a>.
-              Comment and rate on the <a href="http://globalgamejam.org/2012/snake-democracy">GGJ12 project page.</a><br/>
-              The source code is licensed under <a href="http://www.gnu.org/copyleft/gpl.html">the GNU GPL Version 3</a>.
-              Assets are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/3.0/">Creative Commons Attribution-NonCommercial 3.0 Unported License (CC BY-NC 3.0)</a>.<br/>
-            </div>
+  <div id="bigone">
+    <div id="wrap-header">
+        <div id="header">
+          <!--<img src="files/headtitle.jpg" alt="TweetingSnake" id="headtitle"/>--><span id="slogan">RIGHT. LEFT. VOTE.</span><p id="quote">"We won't tolerate the dictatorship of one Snake player anymore"<br />Abraham Lincoln, 1860</p>
         </div>
     </div>
+    <div id="wrap-content">
+      <div id="navigation">
+        &nbsp;The game&nbsp;&nbsp;&nbsp;
+        <a class="nav-item" href="faq.html">&nbsp;How to play?&nbsp;</a>&nbsp;&nbsp;
+      </div>
+      <div id="content">
+        <div id="stats">
+          <div class="filler" id="stats-0">&nbsp;</div>
+          <div class="digits" id="playerCount">&#x2014;</div>
+          <div class="filler" id="stats-2">&nbsp;</div>
+          <div class="digits" id="numLeft">&#x2014;</div>
+          <div class="filler" id="stats-4">&nbsp;</div>
+          <div class="digits" id="numForward">&#x2014;</div>
+          <div class="filler" id="stats-6">&nbsp;</div>
+          <div class="digits" id="numRight">&#x2014;</div>
+          <div class="filler" id="stats-8">&nbsp;</div>
+          <div class="digits" id="score">&#x2014;</div>
+          <div class="filler" id="stats-10">&nbsp;</div>
+          <div class="bigHighscore">Best: <span id="bestEver">&#x2014;</span></div>
+          <div class="mediumHighscore">This week: <span id="weeksBest">&#x2014;</span></div>
+          <div class="smallHighscore">Today: <span id="todaysBest">&#x2014;</span></div>
+        </div>
+        <div id="canvas-box">
+          <div id="canvas-box2">
+            <canvas id="canvas" width="480" height="480">
+              <div id="nocanvas">
+                <p>Your browser doesn't support <a href="http://en.wikipedia.org/wiki/HTML5">HTML5</a>.</p>
+                <p>To play,
+                <a href="http://www.firefox.com/">get</a>
+                <a href="http://www.google.com/chrome/">any</a>
+                <a href="http://windows.microsoft.com/en-us/internet-explorer/products/ie/home">modern</a>
+                <a href="http://www.opera.com/browser/">web</a>
+                <a href="http://www.apple.com/safari/">browser</a>.</p>
+              </div>
+            </canvas>
+          </div>
+        </div>
+        <!-- feed widget -->
+        <div id="feed">
+          <script>
+            new TWTR.Widget({
+              version: 2,
+              type: 'search',
+              search: '#snakedemocracy',
+              interval: 4000,
+              title: 'This is where it feeds',
+              subject: 'SnakeDemocracy',
+              width: 224,
+              height: 294, //394,
+              theme: {
+                shell: {
+                  background: '#a5653a',
+                  color: '#fff7ee'
+                },
+                tweets: {
+                  background: '#fff7ee',
+                  color: '#331b0d',
+                  links: '#4aa08b'
+                }
+              },
+              features: {
+                scrollbar: false,
+                loop: false,
+                live: true,
+                behavior: 'all'
+              }
+            }).render().start();
+          </script>
+          <!-- apples widget -->
+          <div id="twitterApples">
+            <a href="https://twitter.com/intent/tweet?button_hashtag=snakedemocracy&text=Give%20me%20an%20apple!" class="twitter-hashtag-button" data-size="small" data-related="snakedemocracy" data-url="http://snakedemocracy.com">Tweet #snakedemocracy</a>
+            <script>
+              !function(d,s,id){
+                  var js,
+                      fjs=d.getElementsByTagName(s)[0];
+                  if(!d.getElementById(id)){
+                      js=d.createElement(s);
+                      js.id=id;
+                      js.src="http://platform.twitter.com/widgets.js";
+                      fjs.parentNode.insertBefore(js,fjs);
+                  }
+              }(document,"script","twitter-wjs");
+            </script>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="wrap-footer">
+      <div id="footer">
+        Game developed during the 2012 Global Game Jam in Paris at ISART Digital in 48 hours (<em>initially</em>) &#x2014; Team : Laurent Couvidou, Alexis Moroz, Christophe Zerr.<br/>
+        Copyright (c) 2012 Christophe Zerr, Alexis Moroz, Laurent Couvidou.
+        Source code and assets on <a href="https://github.com/lorancou/snakedemocracy">GitHub</a>.
+        Comment and rate on the <a href="http://globalgamejam.org/2012/snake-democracy">GGJ12 project page.</a>
+        IRC on freenode.net: #snakedemocracy.<br/>
+        The source code is licensed under <a href="http://www.gnu.org/copyleft/gpl.html">the GNU GPL Version 3</a>.
+        Assets are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/3.0/">Creative Commons Attribution-NonCommercial 3.0 Unported License (CC BY-NC 3.0)</a>.<br/>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

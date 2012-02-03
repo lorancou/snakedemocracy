@@ -173,6 +173,10 @@ a.nav-item:hover
 {
 	height:52px;
 }
+#stats-10
+{
+	height:40px;
+}
 
 div.filler
 {
@@ -185,6 +189,30 @@ div.digits
 	font:24px calibri,arial,sans-serif;
 	font-weight:bold;
 	text-align:center;
+}
+
+div.bigHighscore
+{
+	background-color:transparent;
+	color:#000000;
+	font:24px calibri,arial,sans-serif;
+	font-weight:bold;
+	text-align:left;
+}
+div.mediumHighscore
+{
+	background-color:transparent;
+	color:#000000;
+	font:20px calibri,arial,sans-serif;
+	font-weight:bold;
+	text-align:left;
+}
+div.smallHighscore
+{
+	background-color:transparent;
+	color:#000000;
+	font:16px calibri,arial,sans-serif;
+	text-align:left;
 }
 
 #feed
@@ -229,6 +257,13 @@ div.digits
 
 #twitterApples
 {
-    margin-left: 4px;
-    margin-top: 30px;
+    padding-top: 30px;
+    padding-left: 30px;
+    height: 70px;
+    background-image: url(bg-twitterapples.jpg);
+}
+
+#twitterApplesWidget
+{
+    background-image: url(bg-twitterapples.jpg);
 }

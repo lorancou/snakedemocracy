@@ -39,6 +39,9 @@ var g_numLeftElement = null;
 var g_numForwardElement = null;
 var g_numRightElement = null;
 var g_scoreElement = null;
+var g_bestEverElement = null;
+var g_weeksBestElement = null;
+var g_todaysBestElement = null;
 var g_clientStateElement = null;
 var g_moveElement = null;
 var g_fpsElement = null;
@@ -54,6 +57,7 @@ var g_idleCheckTimeoutHandle = null;
 var g_connected = false;
 var g_lastMessageTime = null;
 var g_down = false;
+var g_highscores = { bestEver: 0, weeksBest: 0, todaysBest: 0 };
 
 // assets
 var g_serverupgradePath = "files/serverupgrade.png";
@@ -319,11 +323,16 @@ function init(_serverAddress, _test)
     g_numForwardElement = document.getElementById("numForward");
     g_numRightElement = document.getElementById("numRight");
     g_scoreElement = document.getElementById("score");
+    g_bestEverElement = document.getElementById("bestEver");
+    g_weeksBestElement = document.getElementById("weeksBest");
+    g_todaysBestElement = document.getElementById("todaysBest");
     if (!g_playerCountElement ||
         !g_numLeftElement ||
         !g_numForwardElement ||
         !g_numRightElement ||
-        !g_scoreElement)
+        !g_bestEverElement ||
+        !g_weeksBestElement ||
+        !g_todaysBestElement)
     {
         log("WARNING: missing some stats elements");
     }
@@ -547,6 +556,9 @@ function processPing(_ping)
     {
         log("ERROR: un-named state");
     }
+    
+    // copy highscores
+    g_highscores = _ping.highscores;
 
     g_lastTime = new Date().getTime();
     //g_lastVoteMove = 0;
@@ -1152,8 +1164,20 @@ function updateStats(_dt)
         }
         else
         {
-            g_scoreElement.innerHTML = "&#x2014";
+            g_scoreElement.innerHTML = "&#x2014;";
         }
+    }
+    if (g_bestEverElement)
+    {
+        g_bestEverElement.innerHTML = g_highscores.bestEver>0 ? g_highscores.bestEver : "&#x2014;";
+    }
+    if (g_weeksBestElement)
+    {
+        g_weeksBestElement.innerHTML = g_highscores.weeksBest>0 ? g_highscores.weeksBest : "&#x2014;";
+    }
+    if (g_todaysBestElement)
+    {
+        g_todaysBestElement.innerHTML = g_highscores.todaysBest>0 ? g_highscores.todaysBest : "&#x2014;";
     }
 
     // optional (test)
@@ -1397,11 +1421,12 @@ function processMessage(_message)
     }
     else if (_message.name == "victory")
     {
-        g_state = _message;
+        g_state = { name : _message.name  };
         g_move = 0;
         g_votesThisMove = 0;
         g_lastVoteMove = 0;
         g_pauseStartTime = new Date().getTime();
+        g_highscores = _message.highscores;
     }
     else if (_message.name == "playing")
     {
