@@ -46,6 +46,7 @@ var g_clientStateElement = null;
 var g_moveElement = null;
 var g_fpsElement = null;
 var g_victoryTweet = null;
+var g_highscoreMsg = null;
 var g_test = null;
 var g_clientState = null;
 var g_lastTime = null;
@@ -1016,6 +1017,12 @@ function update()
             }
         }
     }
+    
+    // clear highscore message
+    if (g_state.name != "victory")
+    {
+        g_highscoreMsg = null;
+    }
 
     // draw overlays
     if (g_state.name == "victory")
@@ -1025,16 +1032,27 @@ function update()
             g_assets.cache[g_victoryPath],
             0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         
-        // draw score
         var bkpFont = g_context.font;
         var bkpAlign = g_context.textAlign;
+
+        // draw score
         g_context.font = "30pt Arial Bold";
         g_context.textAlign = "center";
         g_context.fillStyle = "#000000";
         g_context.fillText(g_score, 240, 285);
+        
+        // draw highscore message
+        if (g_highscoreMsg)
+        {
+            g_context.font = "20pt Arial Bold";
+            g_context.textAlign = "center";
+            g_context.fillStyle = "#000000";
+            g_context.fillText(g_highscoreMsg, 240, 330);
+        }
+        
         g_context.font = bkpFont;
         g_context.textAlign = bkpAlign;
-        
+
         // draw countdown
         var message = "Starting a new game soon...";
         if (g_pauseStartTime)
@@ -1426,6 +1444,31 @@ function processMessage(_message)
         g_votesThisMove = 0;
         g_lastVoteMove = 0;
         g_pauseStartTime = new Date().getTime();
+        
+        // show new highscore message
+        if (g_score > g_highscores.todaysBest)
+        {
+            g_highscores.todaysBest = _score;
+            g_highscoreMsg = "Today's best score!"
+            log(g_highscoreMsg + " " + _score);
+            
+            // new weekly highscore
+            if (g_score > g_highscores.weeksBest)
+            {
+                g_highscores.weeksBest = _score;
+                g_highscoreMsg = "This weeks's best score!"
+                log(g_highscoreMsg + " " + _score);
+                
+                // wow! new best score ever
+                if (g_score > g_highscores.bestEver)
+                {
+                    g_highscores.bestEver = _score;
+                    g_highscoreMsg = "Best score ever!"
+                    log(g_highscoreMsg + " " + _score);
+                }
+            }
+        }
+        
         g_highscores = _message.highscores;
     }
     else if (_message.name == "playing")

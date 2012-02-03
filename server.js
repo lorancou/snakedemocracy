@@ -675,7 +675,7 @@ function move()
         sendScore(computeScore());
 
         // broadcast victory
-        var message = { name : "victory", value : g_snake.length, highscores : g_highscores };
+        var message = { name : "victory" };
         broadcast(message);
         g_state = message;
 
