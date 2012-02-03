@@ -2,9 +2,11 @@
 if (process.argv.length != 4)
 {
     console.error("Wrong number of arguments");
-    console.log("Usage: node ./server.js login password");
+    console.log("Usage: node ./server.js username password");
     process.exit(1);
 }
+var username = process.argv[2];
+var password = process.argv[3];
 
 // requires
 var http = require("http");
@@ -171,7 +173,7 @@ console.vlog = function()
 
 g_sockets = new Array(); // do NOT put in init
 
-function init()
+function initGame()
 {
     if (g_test)
     {
@@ -211,7 +213,9 @@ function init()
     idleBroadcast();
 }
 
-init();
+initTwitter();
+initMySQL();
+initGame();
 
 function reportAbuse(_address, _message)
 {
@@ -525,7 +529,7 @@ function processKill()
 function processRestart(_socket, _value)
 {
     console.vlog("Restart!");
-    init();
+    initGame();
 }
 
 function checkSelf(_newHead)
@@ -965,44 +969,70 @@ function broadcast(_message)
     }
 }
 
-// TWITTER
+//------------------------------------------------------------------------------
+// Twitter init
+function initTwitter()
+{
+    var auth = "Basic " + new Buffer(username + ":" + password).toString("base64");
 
-var username = process.argv[2];
-var password = process.argv[3];
+    var options = {
+        host: "stream.twitter.com",
+        port: 443,
+        path: "/1/statuses/filter.json",
+        headers : {"Host": "stream.twitter.com", 
+               "Authorization": auth,
+               "Content-type": "application/x-www-form-urlencoded"},
+        method: "POST"
+    };
 
-var auth = "Basic " + new Buffer(username + ":" + password).toString("base64");
+    // start receiving tweets
+    var buf = "";
+    var req = https.request(options, function(res) {
+        //  console.log("STATUS: " + res.statusCode);
+        //  console.log("HEADERS: " + JSON.stringify(res.headers));
+        res.setEncoding("utf8");
+        res.on("data", function (chunk) {
+        buf += chunk;
+        var a = buf.split("\r\n");
+        buf = a[a.length-1];
 
-
-var options = {
-    host: "stream.twitter.com",
-    port: 443,
-    path: "/1/statuses/filter.json",
-    headers : {"Host": "stream.twitter.com", 
-	       "Authorization": auth,
-	       "Content-type": "application/x-www-form-urlencoded"},
-    method: "POST"
-};
-
-// start receiving tweets
-var buf = "";
-var req = https.request(options, function(res) {
-    //  console.log("STATUS: " + res.statusCode);
-    //  console.log("HEADERS: " + JSON.stringify(res.headers));
-    res.setEncoding("utf8");
-    res.on("data", function (chunk) {
-	buf += chunk;
-	var a = buf.split("\r\n");
-	buf = a[a.length-1];
-
-	for(var i=0; i < a.length-1; i++) {
-	    if (a[i] != "") {
-		    var json = JSON.parse(a[i]);
-		    if (json.user && json.text) {
-                processTweet(json.user.screen_name, json.text);
-		    }
-	    }
-	}
+        for(var i=0; i < a.length-1; i++) {
+            if (a[i] != "") {
+                var json = JSON.parse(a[i]);
+                if (json.user && json.text) {
+                    processTweet(json.user.screen_name, json.text);
+                }
+            }
+        }
+        });
     });
-});
-req.write("track=#snakedemocracy\n\n");
-req.end();
+    req.write("track=#snakedemocracy\n\n");
+    req.end();
+}
+
+//------------------------------------------------------------------------------
+// MySQL init
+function initMySQL()
+{
+    // init client
+    var client = mysql.createClient(
+    {
+        host: "localhost", // TODO snakedemocracy.com
+        port: 3306,
+        database: "snakedemocracy",
+        user: username,
+        password: password
+    });
+    
+    //client.query("USE snakedemocracy");
+    
+    // create highscores table if it doesn't exists
+    client.query(
+        "CREATE TABLE highscores(" +
+        "id INT AUTO_INCREMENT, " +
+        "score INT, " +
+        "server TEXT, " +
+        "created DATETIME, " +
+        "PRIMARY KEY (id))"
+    );
+}
