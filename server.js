@@ -98,13 +98,15 @@ else
     {
         res.sendfile(__dirname + "/index.html");
     });
-    app.get("/faq", function (req, res)
+    app.get("/index.html", function (req, res)
+    {
+        res.sendfile(__dirname + "/index.html");
+    });
+    app.get("/faq.html", function (req, res)
     {
         res.sendfile(__dirname + "/faq.html");
     });
-        
-    // serve cheats page on test server only
-    app.get("/cheat", function (req, res)
+    app.get("/cheat.html", function (req, res)
     {
         res.sendfile(__dirname + "/cheat.html");
     });
