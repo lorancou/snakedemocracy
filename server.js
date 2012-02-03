@@ -13,7 +13,6 @@ var http = require("http");
 var https = require("https");
 var app = require("express").createServer();
 var io = require("socket.io").listen(app);
-var mysql = require("mysql");
 
 // configure socket.io for production
 io.configure("production", function(){
