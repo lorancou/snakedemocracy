@@ -214,7 +214,7 @@ function initGame()
 }
 
 initTwitter();
-initMySQL();
+initHighscores();
 initGame();
 
 function reportAbuse(_address, _message)
@@ -1011,28 +1011,34 @@ function initTwitter()
 }
 
 //------------------------------------------------------------------------------
-// MySQL init
-function initMySQL()
+// Highscores init
+function initHighscores()
 {
-    // init client
-    var client = mysql.createClient(
+    var path = "/highscores.php" +
+        "?username=" + username +
+        "&password=" + password +
+        "&action=best";
+    
+    var options = {
+        host: "snakedemocracy.dydns.org",
+        port: 80,
+        path: path,
+        method: "GET"
+    };
+
+    var req = http.get(options, function(res)
     {
-        host: "localhost", // TODO snakedemocracy.com
-        port: 3306,
-        database: "snakedemocracy",
-        user: username,
-        password: password
+        var pageData = "";
+        res.setEncoding("utf8");
+
+        res.on("data", function (chunk)
+        {
+            pageData += chunk;
+        });
+
+        res.on("'end", function()
+        {
+            console.log("Hisghcores: ", pageData);
+        });
     });
-    
-    //client.query("USE snakedemocracy");
-    
-    // create highscores table if it doesn't exists
-    client.query(
-        "CREATE TABLE highscores(" +
-        "id INT AUTO_INCREMENT, " +
-        "score INT, " +
-        "server TEXT, " +
-        "created DATETIME, " +
-        "PRIMARY KEY (id))"
-    );
 }
