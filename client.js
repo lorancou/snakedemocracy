@@ -1044,10 +1044,10 @@ function update()
         // draw highscore message
         if (g_highscoreMsg)
         {
-            g_context.font = "20pt Arial Bold";
+            g_context.font = "30pt Arial Bold";
             g_context.textAlign = "center";
             g_context.fillStyle = "#000000";
-            g_context.fillText(g_highscoreMsg, 240, 330);
+            g_context.fillText(g_highscoreMsg, 240, 230);
         }
         
         g_context.font = bkpFont;
@@ -1448,28 +1448,26 @@ function processMessage(_message)
         // show new highscore message
         if (g_score > g_highscores.todaysBest)
         {
-            g_highscores.todaysBest = _score;
+            g_highscores.todaysBest = g_score;
             g_highscoreMsg = "Today's best score!"
-            log(g_highscoreMsg + " " + _score);
+            log(g_highscoreMsg + " " + g_score);
             
             // new weekly highscore
             if (g_score > g_highscores.weeksBest)
             {
-                g_highscores.weeksBest = _score;
+                g_highscores.weeksBest = g_score;
                 g_highscoreMsg = "This weeks's best score!"
-                log(g_highscoreMsg + " " + _score);
+                log(g_highscoreMsg + " " + g_score);
                 
                 // wow! new best score ever
                 if (g_score > g_highscores.bestEver)
                 {
-                    g_highscores.bestEver = _score;
+                    g_highscores.bestEver = g_score;
                     g_highscoreMsg = "Best score ever!"
-                    log(g_highscoreMsg + " " + _score);
+                    log(g_highscoreMsg + " " + g_score);
                 }
             }
         }
-        
-        g_highscores = _message.highscores;
     }
     else if (_message.name == "playing")
     {
