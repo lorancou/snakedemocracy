@@ -22,3 +22,9 @@ for i in $(seq 0 2) ; do
     cd ../..
 
 done
+
+# Git push
+cd ../snakedemocracy.heroku
+./publish.sh
+cd ../snakedemocracy.no.de
+./publish.sh
