@@ -1,4 +1,9 @@
-#!/bin/sh
+#!/bin/bash
+
+if [[ -z "$1" ]]; then
+    echo "Usage: ./upload_prod.sh user@host"
+    exit 1
+fi
 
 # Git push
 echo "Committing local changes..."
