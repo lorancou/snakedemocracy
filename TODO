@@ -8,7 +8,8 @@ Client:
     * Firefox: "NetworkError: 400 Invalid header received from client
     [ http://snakedemocracy.herokuapp.com/socket.io/1/websocket/XXX"
     -> if fixed, call serverDown on socket error
- - Fix for paranoïd security software: this: http://housecall.trendmicro.com/
+ - *NO* connection with Firefox w/o Firebug!! (console. ?)
+ - Fix for paranoid security software: this: http://housecall.trendmicro.com/
  - Show victory condition for 5 seconds after 5 apples + tail tip blinks
  - Idle after beeing spectator for too long
  - Wait for backping before updating, just skipping one frame for now
