@@ -5,7 +5,6 @@
 
 Client:
  - Weird socket.io retrieving issue:
-    * Chrome: Unexpected response code: 503
     * Firefox: "NetworkError: 400 Invalid header received from client
     [ http://snakedemocracy.herokuapp.com/socket.io/1/websocket/XXX"
     -> if fixed, call serverDown on socket error
@@ -45,4 +44,3 @@ Publishing
   * Badges... new player? New game started? new apple?
   * Hower state on directional arrows + change mouse pointer
   * Limit user select (user-select:none)
- - Test putting some load on no.de

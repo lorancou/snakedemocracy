@@ -4,53 +4,43 @@
 echo "Cleanup..."
 rm -rf build
 
-# Create build/www/
-echo "Building build/www..."
-mkdir -p build/www
+# Web distribs
+for i in $(seq 0 1) ; do
 
-# HTML
-cp index.html build/www/index.html
-sed -i "s#/socket.io/socket.io.js#http://snakedemocracy.herokuapp.com/socket.io/socket.io.js#g" build/www/index.html
-sed -i "s#vec2.js#http://snakedemocracy.herokuapp.com/vec2.js#g" build/www/index.html
-sed -i "s#common.js#http://snakedemocracy.herokuapp.com/common.js#g" build/www/index.html
-sed -i "s#client.js#http://snakedemocracy.herokuapp.com/client.js#g" build/www/index.html
-sed -i "s#init()#init('http://snakedemocracy.herokuapp.com/')#g" build/www/index.html
-cp faq.html build/www/faq.html
-#cp about.html build/www/about.html
+    if (($i == 0)); then
+        SUBDIR="www"
+        SERVER="http://snakedemocracy2.no.de"
+    elif (($i == 1)); then
+        SUBDIR="www2"
+        SERVER="http://snakedemocracy.herokuapp.com"
+    fi
 
-# PHP
-cp highscores.php build/www/highscores.php
+    # Create build/$SUBDIR/
+    echo "Building build/$SUBDIR..."
+    mkdir -p build/$SUBDIR
 
-# Assets
-mkdir -p build/www/files
-cp files/* build/www/files/
+    # HTML
+    cp index.html build/$SUBDIR/index.html
+    sed -i "s#/socket.io/socket.io.js#$URLsocket.io/socket.io.js#g" build/$SUBDIR/index.html
+    sed -i "s#vec2.js#$SERVER/vec2.js#g" build/$SUBDIR/index.html
+    sed -i "s#common.js#$SERVER/common.js#g" build/$SUBDIR/index.html
+    sed -i "s#client.js#$SERVER/client.js#g" build/$SUBDIR/index.html
+    sed -i "s#init()#init('$SERVER')#g" build/$SUBDIR/index.html
+    cp faq.html build/$SUBDIR/faq.html
+    #cp about.html build/$SUBDIR/about.html
 
-# Create build/www2/
-echo "Building build/www2..."
-mkdir -p build/www2
+    # PHP
+    cp highscores.php build/$SUBDIR/highscores.php
 
-# HTML
-cp index.html build/www2/index.html
-sed -i "s#/socket.io/socket.io.js#http://snakedemocracy2.no.de/socket.io/socket.io.js#g" build/www2/index.html
-sed -i "s#vec2.js#http://snakedemocracy2.no.de/vec2.js#g" build/www2/index.html
-sed -i "s#common.js#http://snakedemocracy2.no.de/common.js#g" build/www2/index.html
-sed -i "s#client.js#http://snakedemocracy2.no.de/client.js#g" build/www2/index.html
-sed -i "s#init()#init('http://snakedemocracy2.no.de/')#g" build/www2/index.html
-cp faq.html build/www2/faq.html
-#cp about.html build/www2/about.html
+    # Assets
+    mkdir -p build/$SUBDIR/files
+    cp files/* build/$SUBDIR/files/
 
-# PHP
-cp highscores.php build/www2/highscores.php
+done
 
-# Assets
-mkdir -p build/www2/files
-cp files/* build/www2/files/
-
-# Create build/pokki/
+# Pokki distrib
 echo "Building build/pokki..."
 mkdir -p build/pokki
-
-# Copy pokki & common files
 cp -r pokki/* build/pokki/
 mkdir -p build/pokki/files
 cp files/* build/pokki/files/
