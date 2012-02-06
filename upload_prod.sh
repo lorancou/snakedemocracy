@@ -1,10 +1,13 @@
 #!/bin/sh
 
 # Git push
+echo "Committing local changes..."
 git status
 git add .
 git commit
+echo "Pushing to stachserver..."
 git push stachserver master
+echo "Pushing to GitHub..."
 git push github master
 
 # Build
