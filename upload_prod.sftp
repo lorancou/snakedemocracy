@@ -2,10 +2,8 @@ dir
 put faq.html
 put index.html
 put highscores.php
-put socket.io.js
-put vec2.js
-put common.js
-put client.js
+put socket.io.min.js
+put client.min.js
 -mkdir files
 cd files
 #mput files/*
