@@ -12,12 +12,10 @@ Client:
  - Show victory condition for 5 seconds after 5 apples + tail tip blinks
  - Wait for backping before updating, just skipping one frame for now
     -> cf. early return in update()
- - Extra vote possible???
  - Fix incorrect score when coming back on victory state after idling
  - event.layerX and event.layerY are broken and deprecated in WebKit.
   [ They will be removed from the engine in the near future.
  - Keyboard input broken after apple tweet, comes back after using the mouse (Chrome)
- - Compile all js and minify (auto-retrieve socket.io.js from... somewhere?)
  
 Server
  - Kick cheaters?
