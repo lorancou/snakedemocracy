@@ -1,5 +1,12 @@
 #!/bin/sh
 
+# Git push
+git status
+git add .
+git commit
+git push stachserver master
+git push github master
+
 # Build
 ./build.sh
 
@@ -18,12 +25,12 @@ for i in $(seq 0 2) ; do
     fi
 
     cd build/$SUBDIR/
-    sftp -b ../../upload.sftp $1:vhosts/$VHOST/htdocs/
+    sftp -b ../../upload_prod.sftp $1:vhosts/$VHOST/htdocs/
     cd ../..
 
 done
 
-# Git push
+# Git pull, repush
 cd ../snakedemocracy.heroku
 ./publish.sh
 cd ../snakedemocracy.no.de
