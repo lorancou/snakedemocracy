@@ -2,3 +2,5 @@ node_modules
 *~
 Procfile
 build
+depcache
+.rsyncignore

@@ -1,15 +1,18 @@
 #!/bin/sh
 
-# Web distribs
+# Build
+./build.sh
+
+# SFTP
 for i in $(seq 0 2) ; do
 
-    if (($i == 0)); then
+    if [ $i -eq 0 ]; then
         SUBDIR="www"
         VHOST="snakedemocracy.com"
-    elif (($i == 1)); then
+    elif [ $i -eq 1 ]; then
         SUBDIR="www"
         VHOST="www.snakedemocracy.com"
-    elif (($i == 2)); then
+    elif [ $i -eq 2 ]; then
         SUBDIR="www2"
         VHOST="www2.snakedemocracy.com"
     fi

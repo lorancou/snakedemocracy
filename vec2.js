@@ -1,6 +1,6 @@
-// https://gist.github.com/1173137
 function vec2(x, y)
 {
+    // https://gist.github.com/1173137
     this.x = x || 0;
     this.y = y || 0;
     this.clone = function() { return new vec2(this.x, this.y); }
