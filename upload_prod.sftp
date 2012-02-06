@@ -6,4 +6,4 @@ put socket.io.min.js
 put client.*
 -mkdir files
 cd files
-#mput files/*
+mput files/*
