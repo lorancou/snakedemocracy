@@ -1221,7 +1221,7 @@ function idleCheck()
 {
     if (!g_down)
     {
-        g_idleCheckTimeoutHandle = setTimeout("idleCheck()", IDLE_CHECK_INTERVAL);
+        g_idleCheckTimeoutHandle = setTimeout(idleCheck, IDLE_CHECK_INTERVAL);
     }
 
     var time = new Date().getTime();
@@ -1294,7 +1294,7 @@ function updateSpamBots()
 {
     if (!g_down)
     {
-        setTimeout("updateSpamBots()", 200); // vote 10 times in 2s
+        setTimeout(updateSpamBots, 200); // vote 10 times in 2s
     }
     
     for (var i=0; i<g_spamBots.length; ++i)
