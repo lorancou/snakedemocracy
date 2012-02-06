@@ -342,11 +342,8 @@ function init(_serverAddress, _test)
 	g_canvas.oncontextmenu = function() { return false; };
     g_canvas.onselectstart = function() {return false;} // ie
     //g_canvas.onmousedown = function() {return false;} // mozilla
-    //document.onkeydown = keyDown;
-    //document.onkeyup = keyUp;
-
-    document.addEventListener('keydown', keyDown, false);
-    document.addEventListener('keyup', keyUp, false);
+    document.onkeydown = keyDown;
+    document.onkeyup = keyUp;
 
     log("Loading...");
     drawMessage("Loading ballot paper... please be patient, citizen.", true);
@@ -600,12 +597,10 @@ function mouseUp(e)
 
 function keyDown(e)
 {
-    log("keyDown");
 }
 
 function keyUp(e)
 {
-    log("keyUp");
     switch (e.keyCode)
     {
     case 37: case 81: case 65: g_keyLeft = true; break;
