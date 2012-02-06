@@ -21,16 +21,23 @@ for i in $(seq 0 1) ; do
 
     # HTML
     cp index.html build/$SUBDIR/index.html
-    sed -i "s#/socket.io/socket.io.js#$URLsocket.io/socket.io.js#g" build/$SUBDIR/index.html
-    sed -i "s#vec2.js#$SERVER/vec2.js#g" build/$SUBDIR/index.html
-    sed -i "s#common.js#$SERVER/common.js#g" build/$SUBDIR/index.html
-    sed -i "s#client.js#$SERVER/client.js#g" build/$SUBDIR/index.html
+    #sed -i "s#/socket.io/socket.io.js#$SERVER/socket.io/socket.io.js#g" build/$SUBDIR/index.html
+    sed -i "s#/socket.io/socket.io.js#socket.io.js#g" build/$SUBDIR/index.html
+    #sed -i "s#vec2.js#$SERVER/vec2.js#g" build/$SUBDIR/index.html
+    #sed -i "s#common.js#$SERVER/common.js#g" build/$SUBDIR/index.html
+    #sed -i "s#client.js#$SERVER/client.js#g" build/$SUBDIR/index.html
     sed -i "s#init()#init('$SERVER')#g" build/$SUBDIR/index.html
     cp faq.html build/$SUBDIR/faq.html
     #cp about.html build/$SUBDIR/about.html
 
     # PHP
     cp highscores.php build/$SUBDIR/highscores.php
+    
+    # JS
+    cp socket.io.js build/$SUBDIR/
+    cp vec2.js build/$SUBDIR/
+    cp common.js build/$SUBDIR/
+    cp client.js build/$SUBDIR/
 
     # Assets
     mkdir -p build/$SUBDIR/files

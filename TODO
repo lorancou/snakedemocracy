@@ -17,6 +17,7 @@ Client:
  - event.layerX and event.layerY are broken and deprecated in WebKit.
   [ They will be removed from the engine in the near future.
  - Keyboard input broken after apple tweet, comes back after using the mouse (Chrome)
+ - Compile all js and minify (auto-retrieve socket.io.js from... somewhere?)
  
 Server
  - Kick cheaters?
