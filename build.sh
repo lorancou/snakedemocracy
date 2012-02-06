@@ -9,11 +9,12 @@ mkdir -p build
 cp depcache/socket.io.min.js build/socket.io.min.js
 
 # Minify client
-echo "// SnakeDemocracy client (c) 2012 Christophe Zerr, Alexis Moroz, Laurent Couvidou" > build/client.min.js
-cat vec2.js >> build/client.min.js
-cat common.js >> build/client.min.js
-cat client.js >> build/client.min.js
-node_modules/uglify-js/bin/uglifyjs --unsafe -mt --lift-vars --overwrite build/client.min.js
+echo "// SnakeDemocracy client (c) 2012 Christophe Zerr, Alexis Moroz, Laurent Couvidou" > build/client.temp.js
+cat vec2.js >> build/client.temp.js
+cat common.js >> build/client.temp.js
+cat client.js >> build/client.temp.js
+#node_modules/uglify-js/bin/uglifyjs --unsafe -mt --lift-vars --overwrite build/client.min.js
+node build.js
 
 # Web distribs
 for i in $(seq 0 2) ; do
