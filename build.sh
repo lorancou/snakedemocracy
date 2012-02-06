@@ -5,6 +5,10 @@ echo "Cleanup..."
 rm -rf build
 mkdir -p build
 
+# Very complicated way to get the revision number, but works
+REVISION=$(head -1 common.js | grep -oE "[[:digit:]]{1,}")
+echo "Building revision $REVISION"
+
 # Copy minified socket.io client
 cp depcache/socket.io.min.js build/socket.io.min.js
 
@@ -15,6 +19,8 @@ cat common.js >> build/client.temp.js
 cat client.js >> build/client.temp.js
 #node_modules/uglify-js/bin/uglifyjs --unsafe -mt --lift-vars --overwrite build/client.min.js
 node build.js
+rm build/client.temp.js
+mv build/client.min.js build/client.$REVISION.min.js
 
 # Web distribs
 for i in $(seq 0 2) ; do
@@ -39,7 +45,7 @@ for i in $(seq 0 2) ; do
     sed -i "s#/socket.io/socket.io.js#socket.io.min.js#g" build/$SUBDIR/index.html
     sed -i 's#<script type="text/javascript" src="vec2.js"></script>#<!-- removed -->#g' build/$SUBDIR/index.html
     sed -i 's#<script type="text/javascript" src="common.js"></script>#<!-- removed -->#g' build/$SUBDIR/index.html
-    sed -i 's#<script type="text/javascript" src="client.js"></script>#<script type="text/javascript" src="client.min.js"></script>#g' build/$SUBDIR/index.html
+    sed -i "s#<script type=\"text/javascript\" src=\"client.js\"></script>#<script type=\"text/javascript\" src=\"client.$REVISION.min.js\"></script>#g" build/$SUBDIR/index.html
     sed -i "s#init()#init('$SERVER')#g" build/$SUBDIR/index.html
     cp faq.html build/$SUBDIR/faq.html
 
@@ -48,7 +54,7 @@ for i in $(seq 0 2) ; do
     
     # JS
     cp build/socket.io.min.js build/$SUBDIR/
-    cp build/client.min.js build/$SUBDIR/
+    cp build/client.$REVISION.min.js build/$SUBDIR/
 
     # Assets
     mkdir -p build/$SUBDIR/files
