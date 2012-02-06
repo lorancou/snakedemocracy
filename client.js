@@ -226,37 +226,30 @@ function showVictoryTweet()
     }
 
     // create DOM element
-    g_victoryTweet = document.createElement("iframe");
+    g_victoryTweet = document.createElement("input");
     if (!g_victoryTweet)
     {
-        log("WARNING: can't create iframe ");
+        log("WARNING: can't create button ");
         return;
     }
     
     // basic config
+    g_victoryTweet.type = "button";
     g_victoryTweet.id = "victoryTweet";
-    g_victoryTweet.allowTransparency = true;
-    g_victoryTweet.frameBorder = 0;
-    g_victoryTweet.scrolling = "no";
-    
-    // the magic Twitter query string parameters
-    var src = "http://platform.twitter.com/widgets/tweet_button.html"
-    src += "?url=http://snakedemocracy.com";
-    //src += "&via=snakedemocracy";
-    src += "&hashtags=snakedemocracy";
-    src += "&size=large"; // has no effect :-/
-    src += "&count=none";
-    src += "&text=I was there when we reached the score of " + g_score + " on "
-    //src += "&text=We, voters, achieved the mighty score of " + g_score + ", come and help us doing better!";
-    g_victoryTweet.src = src;
+    g_victoryTweet.name = "victoryTweet";
+    g_victoryTweet.value = "Tweet";
 
-    // style
-    g_victoryTweet.style.position = "absolute";
-    g_victoryTweet.style.top = "409px";
-    g_victoryTweet.style.left = "275px";
-    g_victoryTweet.style.width = "60px";
-    g_victoryTweet.style.height = "20px";
-    
+    // onclick popup
+    g_victoryTweet.onclick = function()
+    {
+        var src = "https://twitter.com/share"
+        src += "?url=http://snakedemocracy.com";
+        src += "&hashtags=snakedemocracy";
+        src += "&count=none";
+        src += "&text=I was there when we reached the score of " + g_score + " on "
+        window.open(src,"","width=550,height=450");
+    };
+
     // add to DOM, last in the div, so on top of everything
     g_canvas.parentNode.insertBefore(g_victoryTweet, null);
 }
@@ -267,7 +260,7 @@ function hideVictoryTweet()
     {
         return;
     }
-    
+
     // remove from DOM
     g_canvas.parentNode.removeChild(g_victoryTweet);
     g_victoryTweet = null;
@@ -349,8 +342,11 @@ function init(_serverAddress, _test)
 	g_canvas.oncontextmenu = function() { return false; };
     g_canvas.onselectstart = function() {return false;} // ie
     //g_canvas.onmousedown = function() {return false;} // mozilla
-    document.onkeydown = keyDown;
-    document.onkeyup = keyUp;
+    //document.onkeydown = keyDown;
+    //document.onkeyup = keyUp;
+
+    document.addEventListener('keydown', keyDown, false);
+    document.addEventListener('keyup', keyUp, false);
 
     log("Loading...");
     drawMessage("Loading ballot paper... please be patient, citizen.", true);
@@ -604,10 +600,12 @@ function mouseUp(e)
 
 function keyDown(e)
 {
+    log("keyDown");
 }
 
 function keyUp(e)
 {
+    log("keyUp");
     switch (e.keyCode)
     {
     case 37: case 81: case 65: g_keyLeft = true; break;
@@ -1540,4 +1538,15 @@ function processTestmsg(_message)
             memUsageElement.innerHTML = _message.text;
         }
     }    
+}
+
+function appleTweetClick()
+{
+    var src = "https://twitter.com/share"
+    src += "?url=http://snakedemocracy.com";
+    src += "&hashtags=snakedemocracy";
+    src += "&count=none";
+    src += "&text=Give me an apple!"
+    window.open(src,"","width=550,height=450");
+    return true;
 }
