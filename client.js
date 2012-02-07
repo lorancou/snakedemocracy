@@ -7,6 +7,9 @@ var SELECT_FRAMES = 3;
 var IDLE_CHECK_INTERVAL = 1000; // in ms
 var IDLE_CHECK_INTERVAL = 1000; // in ms
 var IDLE_THRESHOLD = 10000; // in ms
+var TAIL_HINT_TRIGGER = 13; // in snake length
+var TAIL_HINT_TIME = 5000; // in ms
+var TAIL_HINT_SWITCH_TIME = 250; // in ms
 
 // global variables
 var g_serverAddress = null;
@@ -59,6 +62,11 @@ var g_connected = false;
 var g_lastMessageTime = null;
 var g_down = false;
 var g_highscores = { bestEver: 0, weeksBest: 0, todaysBest: 0 };
+var g_tailHintTriggered = false;
+var g_tailHintStartTime = null;
+var g_tailHint = false;
+var g_tailHintSwitch = false;
+var g_tailHintSwitchTime = null;
 
 // assets
 var g_serverupgradePath = "files/serverupgrade.png";
@@ -87,6 +95,13 @@ var g_tailPaths =
     north : "files/snake_tails_n.png",
     south : "files/snake_tails_s.png"
 }
+var g_tailBlinkPaths =
+{
+    east : "files/snake_tails_blink_e.png",
+    west : "files/snake_tails_blink_w.png",
+    north : "files/snake_tails_blink_n.png",
+    south : "files/snake_tails_blink_s.png"
+}
 var g_arrowPaths =
 {
     east : "files/arrow_e.png",
@@ -112,6 +127,7 @@ var g_applePath = "files/apple.png";
 var g_fullgridPath = "files/fullgrid.png";
 var g_victoryPath = "files/victory.png";
 var g_failPath = "files/fail.png";
+var g_tailHintPath = "files/tailhint.png";
 
 function log(msg)
 {
@@ -171,6 +187,10 @@ function queueAssets(_mgr)
     _mgr.queueDownload(g_tailPaths.west);
     _mgr.queueDownload(g_tailPaths.south);
     _mgr.queueDownload(g_tailPaths.north);
+    _mgr.queueDownload(g_tailBlinkPaths.east);
+    _mgr.queueDownload(g_tailBlinkPaths.west);
+    _mgr.queueDownload(g_tailBlinkPaths.south);
+    _mgr.queueDownload(g_tailBlinkPaths.north);
     _mgr.queueDownload(g_arrowPaths.east);
     _mgr.queueDownload(g_arrowPaths.west);
     _mgr.queueDownload(g_arrowPaths.south);
@@ -187,6 +207,7 @@ function queueAssets(_mgr)
     _mgr.queueDownload(g_fullgridPath);
     _mgr.queueDownload(g_victoryPath);
     _mgr.queueDownload(g_failPath);
+    _mgr.queueDownload(g_tailHintPath);
 }
 
 function setClientState(_newState)
@@ -801,12 +822,23 @@ function update()
         }
 
         // draw tail tip
+        var tailPath = g_tailPaths;
+        if (g_tailHint)
+        {
+            var hintDT = time - g_tailHintSwitchTime;
+            if (hintDT > TAIL_HINT_SWITCH_TIME)
+            {
+                g_tailHintSwitchTime += TAIL_HINT_SWITCH_TIME;
+                g_tailHintSwitch = !g_tailHintSwitch;
+            }
+            tailPath = g_tailHintSwitch ? g_tailBlinkPaths : g_tailPaths;
+        }
         var tailCoords = getScreenCoords(tail);
         var tailImg = null;
-        if (tailDirection == "east") tailImg = g_assets.cache[g_tailPaths.east];
-        else if (tailDirection == "west") tailImg = g_assets.cache[g_tailPaths.west];
-        else if (tailDirection == "south") tailImg = g_assets.cache[g_tailPaths.south];
-        else /*(tailDirection == "north")*/ tailImg = g_assets.cache[g_tailPaths.north];
+        if (tailDirection == "east") tailImg = g_assets.cache[tailPath.east];
+        else if (tailDirection == "west") tailImg = g_assets.cache[tailPath.west];
+        else if (tailDirection == "south") tailImg = g_assets.cache[tailPath.south];
+        else /*(tailDirection == "north")*/ tailImg = g_assets.cache[tailPath.north];
         g_context.drawImage(
             tailImg,
             tailCoords.x, tailCoords.y,
@@ -1090,6 +1122,49 @@ function update()
         }
         drawMessage(message, false);
     }
+    else if (g_tailHint)
+    {
+        var head = new vec2(0, 0);
+        if (g_snake && g_snake.length>0)
+        {
+            head = g_snake[g_snake.length-1].clone();
+        }
+
+        if (head.x > AREA_SIZE*0.5)
+        {
+            if (head.y > AREA_SIZE*0.5)
+            {
+                // top left
+                g_context.drawImage(
+                    g_assets.cache[g_tailHintPath],
+                    0, 0, CANVAS_WIDTH*0.5, CANVAS_HEIGHT*0.5);
+            }
+            else
+            {
+                // bottom left
+                g_context.drawImage(
+                    g_assets.cache[g_tailHintPath],
+                    0, CANVAS_HEIGHT*0.5, CANVAS_WIDTH*0.5, CANVAS_HEIGHT*0.5);
+            }
+        }
+        else
+        {
+            if (head.y > AREA_SIZE*0.5)
+            {
+                // top right
+                g_context.drawImage(
+                    g_assets.cache[g_tailHintPath],
+                    CANVAS_WIDTH*0.5, 0, CANVAS_WIDTH*0.5, CANVAS_HEIGHT*0.5);
+            }
+            else
+            {
+                // bottom right
+                g_context.drawImage(
+                    g_assets.cache[g_tailHintPath],
+                    CANVAS_WIDTH*0.5, CANVAS_HEIGHT*0.5, CANVAS_WIDTH*0.5, CANVAS_HEIGHT*0.5);
+            }
+        }
+    }
     
     // show/hide victory tweet
     if (g_state.name == "victory")
@@ -1121,6 +1196,10 @@ function update()
 
     // stats
     updateStats(dt);
+
+    // tail hint
+    updateTailHint(time);
+
     g_lastTime = time;
 }
 
@@ -1203,6 +1282,32 @@ function updateStats(_dt)
     if (g_fpsElement)
     {
         g_fpsElement.innerHTML = Math.floor(1000.0 / _dt);
+    }
+}
+
+function updateTailHint(_time)
+{
+    if (!g_tailHintTriggered)
+    {
+        if (g_snake.length >= TAIL_HINT_TRIGGER)
+        {
+            g_tailHintTriggered = true;
+            g_tailHintStartTime = _time;
+            g_tailHint = true;
+            g_tailHintSwitch = true;
+            g_tailHintSwitchTime = _time;
+        }
+    }
+    else if (g_tailHint)
+    {
+        var dt = _time - g_tailHintStartTime;
+        if (dt > TAIL_HINT_TIME)
+        {
+            g_tailHintStartTime = null;
+            g_tailHint = false;
+            g_tailHintSwitch = false;
+            g_tailHintSwitchTime = null;
+        }
     }
 }
 
@@ -1486,6 +1591,13 @@ function processMessage(_message)
                 g_apples.push(new vec2(_message.apples[i].x, _message.apples[i].y)); // meh??
             }
         }
+
+        // reset tail hint
+        g_tailHintTriggered = false;
+        g_tailHintStartTime = null;
+        g_tailHint = false;
+        g_tailHintSwitch = false;
+        g_tailHintSwitchTime = null;
     }
     else if (_message.name == "spawn")
     {

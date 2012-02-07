@@ -27,9 +27,6 @@ Common
  - Better vec2, ready for socket transport
  - Compress those messages, use as less strings and params as possible
  
-Website
- - About page
-
 Publishing
  - Pokki
   * cf. http://developers.pokki.com/docs/review.php

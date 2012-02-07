@@ -24,6 +24,7 @@ io.configure("production", function(){
 
 // configure socket.io for development
 io.configure("development", function(){
+    io.enable("browser client");               // served locally
     io.enable("browser client minification");  // send minified client
     io.enable("browser client etag");          // apply etag caching logic based on version number
     io.enable("browser client gzip");  
