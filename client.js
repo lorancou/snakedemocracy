@@ -385,7 +385,7 @@ function serverDown()
     }
     
     // message
-    console.log("Server down :/");
+    log("Server down :/");
     drawMessage("The server seems to be down... Try to refresh your page in a moment.", true);
     
     // exit
@@ -414,7 +414,7 @@ function serverUpgrade()
     }
     
     // message
-    console.log("Server upgrade!");
+    log("Server upgrade!");
     drawMessage("The server was just upgraded. Refresh your page. If this doesn't work, try clearing your cache.", true);
     
     // exit
@@ -448,7 +448,7 @@ function connect()
     {
         if (!g_down)
         {
-            console.error("ERROR: Unable to connect Socket.IO", reason);
+            log("ERROR: Unable to connect Socket.IO", reason);
             // serverDown(); // quit Firefox throws this then works anyway :/
         }
     });
@@ -458,7 +458,7 @@ function connect()
     {
         if (!g_down)
         {
-            console.info("Connected!");
+            log("Connected!");
             processConnect();
         }
     });    
@@ -511,10 +511,10 @@ function processConnect()
 
 function logVec2Array(_name, _array)
 {
-    console.log(_name);
+    log(_name);
     for (var i=0; i<_array.length; ++i)
     {
-        console.log(_array[i].x, ",", _array[i].y);
+        log(_array[i].x, ",", _array[i].y);
     }
 }
 
