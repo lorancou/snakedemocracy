@@ -429,6 +429,15 @@ function cancelUpdates()
 
 function serverDown()
 {
+    // exit
+    hideVictoryTweet();
+    cancelUpdates();
+    if (!(typeof io === 'undefined') && g_socket)
+    {
+        g_socket.disconnect();
+    }
+    g_down = true;
+
     // clear canvas
     g_context.fillStyle = "#FFFFFF";
     g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -444,8 +453,11 @@ function serverDown()
     
     // message
     log("Server down :/");
-    drawMessage("The server seems to be down... Try to refresh your page in a moment.", true);
-    
+    drawMessage("The server seems to be down... Try to refresh your page in a moment.", false);
+}
+
+function serverUpgrade()
+{
     // exit
     hideVictoryTweet();
     cancelUpdates();
@@ -454,10 +466,7 @@ function serverDown()
         g_socket.disconnect();
     }
     g_down = true;
-}
 
-function serverUpgrade()
-{
     // clear canvas
     g_context.fillStyle = "#FFFFFF";
     g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -474,15 +483,6 @@ function serverUpgrade()
     // message
     log("Server upgrade!");
     drawMessage("The server was just upgraded. Refresh your page. If this doesn't work, try clearing your cache.", true);
-    
-    // exit
-    hideVictoryTweet();
-    cancelUpdates();
-    if (!(typeof io === 'undefined') && g_socket)
-    {
-        g_socket.disconnect();
-    }
-    g_down = true;
 }
 
 function connect()
@@ -1795,6 +1795,10 @@ function appleTweetClick()
 
 function sleep()
 {
+    // exit
+    hideVictoryTweet();
+    cancelUpdates();
+
     // clear canvas
     g_context.fillStyle = "#FFFFFF";
     g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -1810,9 +1814,5 @@ function sleep()
     
     // message
     log("Sleep.");
-    drawMessage("Sleeping. Move your mouse over the game, or press any key to reconnect with the server.", true);
-    
-    // exit
-    hideVictoryTweet();
-    cancelUpdates();
+    drawMessage("Sleeping. Move your mouse over the game, or press any key to reconnect with the server.", true);   
 }
