@@ -593,6 +593,21 @@ function processPing(_ping)
     g_discardMessages = false;
 }
 
+// http://www.quirksmode.org/js/findpos.html
+function findPos(obj)
+{
+	var curleft = curtop = 0;
+    if (obj.offsetParent)
+    {
+        do
+        {
+			curleft += obj.offsetLeft;
+			curtop += obj.offsetTop;
+        } while (obj = obj.offsetParent);
+    }
+    return [curleft,curtop];
+}
+
 function mouseDown(e)
 {
     return false;
@@ -600,15 +615,42 @@ function mouseDown(e)
 
 function mouseUp(e)
 {
-	var button = null;	
+	var button = null;
+
+    //log("mouseUp")
+    
+    if (!e) var e = window.event;
 	if (e.button) button = e.button;
 	else button = e.which;
 	if (button == null ) return;
 
     if (button==1)
     {
-        g_clickX = e.layerX - g_canvas.offsetLeft;
-        g_clickY = e.layerY - g_canvas.offsetTop;
+        //log("left click");
+
+        // http://www.quirksmode.org/js/events_properties.html
+        var posx = 0;
+	    var posy = 0;
+	    if (e.pageX || e.pageY)
+        {
+		    posx = e.pageX;
+		    posy = e.pageY;
+	    }
+	    else if (e.clientX || e.clientY)
+        {
+		    posx = e.clientX + document.body.scrollLeft
+			    + document.documentElement.scrollLeft;
+		    posy = e.clientY + document.body.scrollTop
+			    + document.documentElement.scrollTop;
+	    }
+
+        //log("posx:" + posx + " posy:" + posy);
+
+        var canvasPos = findPos(g_canvas);
+        g_clickX = posx - canvasPos[0];
+        g_clickY = posy - canvasPos[1];
+
+        //log("clickx:" + g_clickX + " clicky:" + g_clickY);
     }
 
     return false;

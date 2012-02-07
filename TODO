@@ -4,8 +4,6 @@
 ---------------------------------------------------------------------------------
 
 Client:
- - event.layerX and event.layerY are broken and deprecated in WebKit.
-  [ They will be removed from the engine in the near future.
  - Weird socket.io retrieving issue:
     * Firefox: "NetworkError: 400 Invalid header received from client
     [ http://snakedemocracy.herokuapp.com/socket.io/1/websocket/XXX"
