@@ -4,8 +4,6 @@
 ---------------------------------------------------------------------------------
 
 Client:
- - Show victory condition for 5 seconds after 5 apples + tail tip blinks
- - Fix incorrect score when coming back on victory state after idling
  - event.layerX and event.layerY are broken and deprecated in WebKit.
   [ They will be removed from the engine in the near future.
  - Weird socket.io retrieving issue:
@@ -15,7 +13,7 @@ Client:
     -> seem allright with Iceweasel... maybe this is only server overload
  - Fix for paranoid security software: this: http://housecall.trendmicro.com/
  - Idle after beeing spectator for too long
- - Wait for backping before updating, just skipping one frame for now
+    + wait for backping before updating, just skipping one frame for now
     -> cf. early return in update()
  
 Server
@@ -25,7 +23,7 @@ Server
  
 Common
  - Better vec2, ready for socket transport
- - Compress those messages, use as less strings and params as possible
+ - Compress those messages (BiSON)
  
 Publishing
  - Pokki

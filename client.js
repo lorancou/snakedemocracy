@@ -221,15 +221,15 @@ function setClientState(_newState)
     // server to avoid extra traffic)
     if (g_socket)
     {
-        if (_newState == "idle")
+        if (_newState == CS_IDLE)
         {
             log("Idle.");
-            g_socket.emit("idle");
+            g_socket.emit(MSG_IDLE);
         }
-        else if (g_clientState == "idle")
+        else if (g_clientState == CS_IDLE)
         {
             log("Back!");
-            g_socket.emit("back");
+            g_socket.emit(MSG_BACK);
             g_lastMessageTime = new Date().getTime();
         }
     }
@@ -314,7 +314,7 @@ function init(_serverAddress, _test)
         g_serverAddress = _serverAddress;
     }
     
-    setClientState("active");
+    setClientState(CS_ACTIVE);
     
     // get canvas element
     g_canvas =  document.getElementById("canvas");
@@ -465,7 +465,7 @@ function connect()
     g_socket = io.connect(g_serverAddress);
 
     // error
-    g_socket.on('error', function (reason)
+    g_socket.on(MSG_ERROR, function (reason)
     {
         if (!g_down)
         {
@@ -475,7 +475,7 @@ function connect()
     });
 
     // connection
-    g_socket.on('connect', function ()
+    g_socket.on(MSG_CONNECT, function ()
     {
         if (!g_down)
         {
@@ -485,7 +485,7 @@ function connect()
     });    
 
     // ping
-    g_socket.on("ping", function (message)
+    g_socket.on(MSG_PING, function (message)
     {
         if (!g_down)
         {
@@ -504,7 +504,7 @@ function processConnect()
     if (!g_connected)
     {
         // messages
-        g_socket.on("message", function (_message)
+        g_socket.on(MSG_MESSAGE, function (_message)
         {
             if (!g_down)
             {
@@ -515,7 +515,7 @@ function processConnect()
         // test messages
         if (g_test && !g_down)
         {
-            g_socket.on("testmsg", function (_testmsg)
+            g_socket.on(MSG_TESTMSG, function (_testmsg)
             {
                 processTestmsg(_testmsg)
             });
@@ -567,10 +567,9 @@ function processPing(_ping)
 
     // set game state
     g_state = _ping.state;
-    if (!g_state.name)
-    {
-        log("ERROR: un-named state");
-    }
+
+    // copy score
+    g_score = _ping.score;
     
     // copy highscores
     g_highscores = _ping.highscores;
@@ -578,7 +577,6 @@ function processPing(_ping)
     g_lastTime = new Date().getTime();
     //g_lastVoteMove = 0;
     
-    //g_state = __ping.state;
     g_move = _ping.move;
     g_votesThisMove = 0;
     g_lastVoteMove = g_move;
@@ -681,9 +679,9 @@ function update()
     }
 
     // yey! back with us, default to spectator
-    if (g_clientState == "idle")
+    if (g_clientState == CS_IDLE)
     {
-        setClientState("spectator");
+        setClientState(CS_SPECTATOR);
         return;
     }
     
@@ -692,7 +690,7 @@ function update()
     
     if (g_test)
     {
-        g_socket.emit("testmsg", { name : "mem" });
+        g_socket.emit(MSG_TESTMSG, { name : TMSGN_MEM });
     }
 
     // clear canvas
@@ -703,7 +701,7 @@ function update()
         0, 0,
         CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    if (g_snake.length > 1 && g_state.name == "playing")
+    if (g_snake.length > 1 && g_state == GS_PLAYING)
     {
         // determine head direction...
         var head = g_snake[g_snake.length-1].clone();
@@ -711,13 +709,13 @@ function update()
         var direction = null;
         if (head.x != neck.x)
         {
-            if (head.x > neck.x) direction = "east";
-            else direction = "west";
+            if (head.x > neck.x) direction = EAST;
+            else direction = WEST;
         }
         else
         {
-            if (head.y > neck.y) direction = "south";
-            else direction = "north";
+            if (head.y > neck.y) direction = SOUTH;
+            else direction = NORTH;
         }
 
         // .. and tail direction
@@ -726,13 +724,13 @@ function update()
         var tailDirection = null;
         if (pretail.x != tail.x)
         {
-            if (pretail.x > tail.x) tailDirection = "east";
-            else tailDirection = "west";
+            if (pretail.x > tail.x) tailDirection = EAST;
+            else tailDirection = WEST;
         }
         else
         {
-            if (pretail.y > tail.y) tailDirection = "south";
-            else tailDirection = "north";
+            if (pretail.y > tail.y) tailDirection = SOUTH;
+            else tailDirection = NORTH;
         }
 
         // apply mouse input
@@ -748,16 +746,16 @@ function update()
             {
                 if (x == head.x+1)
                 {
-                    if (direction == "north") vote("right");
-                    if (direction == "east") vote("forward");
-                    if (direction == "south") vote("left");
+                    if (direction == NORTH) vote(OP_RIGHT);
+                    if (direction == EAST) vote(OP_FORWARD);
+                    if (direction == SOUTH) vote(OP_LEFT);
                     g_selectEast = SELECT_FRAMES;
                 }
                 else if (x == head.x-1)
                 {
-                    if (direction == "south") vote("right");
-                    if (direction == "west") vote("forward");
-                    if (direction == "north") vote("left");
+                    if (direction == SOUTH) vote(OP_RIGHT);
+                    if (direction == WEST) vote(OP_FORWARD);
+                    if (direction == NORTH) vote(OP_LEFT);
                     g_selectWest = SELECT_FRAMES;
                 }
             }
@@ -765,16 +763,16 @@ function update()
             {
                 if (y == head.y+1)
                 {
-                    if (direction == "east") vote("right");
-                    if (direction == "south") vote("forward");
-                    if (direction == "west") vote("left");
+                    if (direction == EAST) vote(OP_RIGHT);
+                    if (direction == SOUTH) vote(OP_FORWARD);
+                    if (direction == WEST) vote(OP_LEFT);
                     g_selectSouth = SELECT_FRAMES;
                 }
                 else if (y == head.y-1)
                 {
-                    if (direction == "west") vote("right");
-                    if (direction == "north") vote("forward");
-                    if (direction == "east") vote("left");
+                    if (direction == WEST) vote(OP_RIGHT);
+                    if (direction == NORTH) vote(OP_FORWARD);
+                    if (direction == EAST) vote(OP_LEFT);
                     g_selectNorth = SELECT_FRAMES;
                 }
             }
@@ -783,31 +781,31 @@ function update()
         // apply keyboard input
         if (g_keyLeft)
         {
-            if (direction == "west") vote("forward");
-            else if (direction == "south") vote("right");
-            else if (direction == "north") vote("left");
-            if (direction != "east") g_selectWest = SELECT_FRAMES;
+            if (direction == WEST) vote(OP_FORWARD);
+            else if (direction == SOUTH) vote(OP_RIGHT);
+            else if (direction == NORTH) vote(OP_LEFT);
+            if (direction != EAST) g_selectWest = SELECT_FRAMES;
         }
         else if (g_keyUp)
         {
-            if (direction == "north") vote("forward");
-            else if (direction == "east") vote("left");
-            else if (direction == "west") vote("right");
-            if (direction != "south") g_selectNorth = SELECT_FRAMES;
+            if (direction == NORTH) vote(OP_FORWARD);
+            else if (direction == EAST) vote(OP_LEFT);
+            else if (direction == WEST) vote(OP_RIGHT);
+            if (direction != SOUTH) g_selectNorth = SELECT_FRAMES;
         }
         else if (g_keyRight)
         {
-            if (direction == "south") vote("left");
-            else if (direction == "east") vote("forward");
-            else if (direction == "north") vote("right");
-            if (direction != "west") g_selectEast = SELECT_FRAMES;
+            if (direction == SOUTH) vote(OP_LEFT);
+            else if (direction == EAST) vote(OP_FORWARD);
+            else if (direction == NORTH) vote(OP_RIGHT);
+            if (direction != WEST) g_selectEast = SELECT_FRAMES;
         }
         else if (g_keyDown)
         {
-            if (direction == "south") vote("forward");
-            else if (direction == "east") vote("right");
-            else if (direction == "west") vote("left");
-            if (direction != "north") g_selectSouth = SELECT_FRAMES;
+            if (direction == SOUTH) vote(OP_FORWARD);
+            else if (direction == EAST) vote(OP_RIGHT);
+            else if (direction == WEST) vote(OP_LEFT);
+            if (direction != NORTH) g_selectSouth = SELECT_FRAMES;
         }
 
         // draw apples
@@ -835,10 +833,10 @@ function update()
         }
         var tailCoords = getScreenCoords(tail);
         var tailImg = null;
-        if (tailDirection == "east") tailImg = g_assets.cache[tailPath.east];
-        else if (tailDirection == "west") tailImg = g_assets.cache[tailPath.west];
-        else if (tailDirection == "south") tailImg = g_assets.cache[tailPath.south];
-        else /*(tailDirection == "north")*/ tailImg = g_assets.cache[tailPath.north];
+        if (tailDirection == EAST) tailImg = g_assets.cache[tailPath.east];
+        else if (tailDirection == WEST) tailImg = g_assets.cache[tailPath.west];
+        else if (tailDirection == SOUTH) tailImg = g_assets.cache[tailPath.south];
+        else /*(tailDirection == NORTH)*/ tailImg = g_assets.cache[tailPath.north];
         g_context.drawImage(
             tailImg,
             tailCoords.x, tailCoords.y,
@@ -855,39 +853,39 @@ function update()
             var nextDir = null;
             if (previous.x != current.x)
             {
-                if (previous.x > current.x) prevDir = "east";
-                else prevDir = "west";
+                if (previous.x > current.x) prevDir = EAST;
+                else prevDir = WEST;
             }
             else
             {
-                if (previous.y > current.y) prevDir = "south";
-                else prevDir = "north";
+                if (previous.y > current.y) prevDir = SOUTH;
+                else prevDir = NORTH;
             }
             if (current.x != next.x)
             {
-                if (current.x > next.x) nextDir = "west";
-                else nextDir = "east";
+                if (current.x > next.x) nextDir = WEST;
+                else nextDir = EAST;
             }
             else
             {
-                if (current.y > next.y) nextDir = "north";
-                else nextDir = "south";
+                if (current.y > next.y) nextDir = NORTH;
+                else nextDir = SOUTH;
             }
 
             var bodyCoords = getScreenCoords(current);
             var bodyImg = null;
-            if (prevDir == "east" && nextDir == "west") bodyImg = g_assets.cache[g_bodyPaths.hz];
-            else if (nextDir == "east" && prevDir == "west") bodyImg = g_assets.cache[g_bodyPaths.hz];
-            else if (prevDir == "south" && nextDir == "north") bodyImg = g_assets.cache[g_bodyPaths.vt];
-            else if (nextDir == "south" && prevDir == "north") bodyImg = g_assets.cache[g_bodyPaths.vt];
-            else if (prevDir == "east" && nextDir == "south") bodyImg = g_assets.cache[g_bodyPaths.es];
-            else if (nextDir == "east" && prevDir == "south") bodyImg = g_assets.cache[g_bodyPaths.es];
-            else if (prevDir == "south" && nextDir == "west") bodyImg = g_assets.cache[g_bodyPaths.sw];
-            else if (nextDir == "south" && prevDir == "west") bodyImg = g_assets.cache[g_bodyPaths.sw];
-            else if (prevDir == "west" && nextDir == "north") bodyImg = g_assets.cache[g_bodyPaths.wn];
-            else if (nextDir == "west" && prevDir == "north") bodyImg = g_assets.cache[g_bodyPaths.wn];
-            else if (prevDir == "north" && nextDir == "east") bodyImg = g_assets.cache[g_bodyPaths.ne];
-            else /*(nextDir == "north" && prevDir == "east")*/ bodyImg = g_assets.cache[g_bodyPaths.ne];
+            if (prevDir == EAST && nextDir == WEST) bodyImg = g_assets.cache[g_bodyPaths.hz];
+            else if (nextDir == EAST && prevDir == WEST) bodyImg = g_assets.cache[g_bodyPaths.hz];
+            else if (prevDir == SOUTH && nextDir == NORTH) bodyImg = g_assets.cache[g_bodyPaths.vt];
+            else if (nextDir == SOUTH && prevDir == NORTH) bodyImg = g_assets.cache[g_bodyPaths.vt];
+            else if (prevDir == EAST && nextDir == SOUTH) bodyImg = g_assets.cache[g_bodyPaths.es];
+            else if (nextDir == EAST && prevDir == SOUTH) bodyImg = g_assets.cache[g_bodyPaths.es];
+            else if (prevDir == SOUTH && nextDir == WEST) bodyImg = g_assets.cache[g_bodyPaths.sw];
+            else if (nextDir == SOUTH && prevDir == WEST) bodyImg = g_assets.cache[g_bodyPaths.sw];
+            else if (prevDir == WEST && nextDir == NORTH) bodyImg = g_assets.cache[g_bodyPaths.wn];
+            else if (nextDir == WEST && prevDir == NORTH) bodyImg = g_assets.cache[g_bodyPaths.wn];
+            else if (prevDir == NORTH && nextDir == EAST) bodyImg = g_assets.cache[g_bodyPaths.ne];
+            else /*(nextDir == NORTH && prevDir == EAST)*/ bodyImg = g_assets.cache[g_bodyPaths.ne];
             g_context.drawImage(
                 bodyImg,
                 bodyCoords.x, bodyCoords.y,
@@ -898,10 +896,10 @@ function update()
         // draw head
         var headCoords = getScreenCoords(head);
         var headImg = null;
-        if (direction == "east") headImg = g_assets.cache[g_headPaths.east];
-        else if (direction == "west") headImg = g_assets.cache[g_headPaths.west];
-        else if (direction == "south") headImg = g_assets.cache[g_headPaths.south];
-        else /*(direction == "north")*/ headImg = g_assets.cache[g_headPaths.north];
+        if (direction == EAST) headImg = g_assets.cache[g_headPaths.east];
+        else if (direction == WEST) headImg = g_assets.cache[g_headPaths.west];
+        else if (direction == SOUTH) headImg = g_assets.cache[g_headPaths.south];
+        else /*(direction == NORTH)*/ headImg = g_assets.cache[g_headPaths.north];
         g_context.drawImage(
             headImg,
             headCoords.x, headCoords.y,
@@ -917,39 +915,39 @@ function update()
             var drawNorth = true;
 
             // east
-            if (direction == "east")
+            if (direction == EAST)
             {
                 drawWest = false;
-                if (g_opinion.current == "forward") drawGold = "east";
-                else if (g_opinion.current == "left") drawGold = "north";
-                else if (g_opinion.current == "right") drawGold = "south";
+                if (g_opinion.current == OP_FORWARD) drawGold = EAST;
+                else if (g_opinion.current == OP_LEFT) drawGold = NORTH;
+                else if (g_opinion.current == OP_RIGHT) drawGold = SOUTH;
             }
             // west
-            else if (direction == "west")
+            else if (direction == WEST)
             {
-                direction = "west";
+                direction = WEST;
                 drawEast = false;
-                if (g_opinion.current == "forward") drawGold = "west";
-                else if (g_opinion.current == "left") drawGold = "south";
-                else if (g_opinion.current == "right") drawGold = "north";
+                if (g_opinion.current == OP_FORWARD) drawGold = WEST;
+                else if (g_opinion.current == OP_LEFT) drawGold = SOUTH;
+                else if (g_opinion.current == OP_RIGHT) drawGold = NORTH;
             }
             // south
-            else if (direction == "south")
+            else if (direction == SOUTH)
             {
-                direction = "south";
+                direction = SOUTH;
                 drawNorth = false;
-                if (g_opinion.current == "forward") drawGold = "south";
-                else if (g_opinion.current == "left") drawGold = "east";
-                else if (g_opinion.current == "right") drawGold = "west";
+                if (g_opinion.current == OP_FORWARD) drawGold = SOUTH;
+                else if (g_opinion.current == OP_LEFT) drawGold = EAST;
+                else if (g_opinion.current == OP_RIGHT) drawGold = WEST;
             }
             // north
             else
             {
-                direction = "north";
+                direction = NORTH;
                 drawSouth = false;
-                if (g_opinion.current == "forward") drawGold = "north";
-                else if (g_opinion.current == "left") drawGold = "west";
-                else if (g_opinion.current == "right") drawGold = "east";
+                if (g_opinion.current == OP_FORWARD) drawGold = NORTH;
+                else if (g_opinion.current == OP_LEFT) drawGold = WEST;
+                else if (g_opinion.current == OP_RIGHT) drawGold = EAST;
             }
 
             if (drawEast)
@@ -957,7 +955,7 @@ function update()
                 var point = new vec2(head.x+1, head.y);
                 var coords = getScreenCoords(point);
                 g_context.drawImage(
-                    (drawGold == "east")
+                    (drawGold == EAST)
                         ? g_assets.cache[g_arrowGoldPaths.east]
                         : g_assets.cache[g_arrowPaths.east],
                     coords.x, coords.y,
@@ -979,7 +977,7 @@ function update()
                 var point = new vec2(head.x-1, head.y);
                 var coords = getScreenCoords(point);
                 g_context.drawImage(
-                    (drawGold == "west")
+                    (drawGold == WEST)
                         ? g_assets.cache[g_arrowGoldPaths.west]
                         : g_assets.cache[g_arrowPaths.west],
                     coords.x, coords.y,
@@ -1001,7 +999,7 @@ function update()
                 var point = new vec2(head.x, head.y+1);
                 var coords = getScreenCoords(point);
                 g_context.drawImage(
-                    (drawGold == "south")
+                    (drawGold == SOUTH)
                         ? g_assets.cache[g_arrowGoldPaths.south]
                         : g_assets.cache[g_arrowPaths.south],
                     coords.x, coords.y,
@@ -1023,7 +1021,7 @@ function update()
                 var point = new vec2(head.x, head.y-1);
                 var coords = getScreenCoords(point);
                 g_context.drawImage(
-                    (drawGold == "north")
+                    (drawGold == NORTH)
                         ? g_assets.cache[g_arrowGoldPaths.north]
                         : g_assets.cache[g_arrowPaths.north],
                     coords.x, coords.y,
@@ -1044,13 +1042,13 @@ function update()
     }
     
     // clear highscore message
-    if (g_state.name != "victory")
+    if (g_state != GS_VICTORY)
     {
         g_highscoreMsg = null;
     }
 
     // draw overlays
-    if (g_state.name == "victory")
+    if (g_state == GS_VICTORY)
     {
         // img
         g_context.drawImage(
@@ -1088,7 +1086,7 @@ function update()
         }
         drawMessage(message, false);
     }
-    else if (g_state.name == "fail")
+    else if (g_state == GS_FAIL)
     {
         // img
         g_context.drawImage(
@@ -1105,7 +1103,7 @@ function update()
         }
         drawMessage(message, false);
     }
-    else if (g_state.name == "seppuku")
+    else if (g_state == GS_SEPPUKU)
     {
         // img
         g_context.drawImage(
@@ -1167,7 +1165,7 @@ function update()
     }
     
     // show/hide victory tweet
-    if (g_state.name == "victory")
+    if (g_state == GS_VICTORY)
     {
         showVictoryTweet();
     }
@@ -1215,11 +1213,11 @@ function updateStats(_dt)
         else
         {
             g_playerCountElement.innerHTML = g_activePlayerCount + " <small>/ " + g_totalPlayerCount + "</small>";
-            if (g_clientState == "active")
+            if (g_clientState == CS_ACTIVE)
             {
                 document.title = g_initialTitle;
             }
-            else if (g_clientState == "spectator")
+            else if (g_clientState == CS_SPECTATOR)
             {
                 document.title = "[" + g_activePlayerCount + "/" + g_totalPlayerCount + "] " + g_initialTitle;
             }
@@ -1248,7 +1246,7 @@ function updateStats(_dt)
     }
     if (g_scoreElement)
     {
-        if (g_state.name == "playing" || g_state.name == "victory")
+        if (g_state == GS_PLAYING || g_state == GS_VICTORY)
         {
             g_scoreElement.innerHTML = g_score;
         }
@@ -1317,7 +1315,7 @@ function spectatorCheck(_time)
     var dmove = g_move - g_lastVoteMove;
     if (dmove > SPECTATOR_THRESHOLD)
     {
-        setClientState("spectator");
+        setClientState(CS_SPECTATOR);
     }
 }
 
@@ -1333,7 +1331,7 @@ function idleCheck()
     var dt = time - g_lastTime;
     if (dt > IDLE_THRESHOLD)
     {
-        setClientState("idle");
+        setClientState(CS_IDLE);
     }
 }
 
@@ -1341,11 +1339,11 @@ function idleCheck()
 function serverDownCheck(_time)
 {
     var threshold = SERVER_DOWN_THRESHOLD;
-    if (g_state.name == "victory")
+    if (g_state == GS_VICTORY)
     {
         threshold += VICTORY_DELAY;
     }
-    else if (g_state.name == "fail")
+    else if (g_state == GS_FAIL)
     {
         threshold += FAIL_DELAY;
     }
@@ -1361,15 +1359,15 @@ function serverDownCheck(_time)
 // test/cheat/tweaks
 function cheatKill()
 {
-    g_socket.emit("testmsg", { name : "cheatKill" });
+    g_socket.emit(MSG_TESTMSG, { name : TMSGN_KILL });
 }
 function cheatRestart()
 {
-    g_socket.emit("testmsg", { name : "cheatRestart" });
+    g_socket.emit(MSG_TESTMSG, { name : TMSGN_RESTART });
 }
 function cheatTweet()
 {
-    g_socket.emit("testmsg", { name : "cheatTweet" });
+    g_socket.emit(MSG_TESTMSG, { name : TMSGN_CHEATTWEET });
 }
 var g_spamBots = new Array();
 function addSpamBot(_count)
@@ -1377,7 +1375,7 @@ function addSpamBot(_count)
     for (var i=0; i<_count; ++i)
     {
         var spamSocket = io.connect(g_serverAddress, {"force new connection": true});
-        spamSocket.on("ping", function (message)
+        spamSocket.on(MSG_PING, function (message)
         {
             //log("SPAM: ping");
             g_spamBots.push(spamSocket);
@@ -1413,16 +1411,16 @@ function updateSpamBots()
         }
         
         // cast random vote
-        if (g_state.name == "playing")
+        if (g_state == GS_PLAYING)
         {
             var pick = Math.floor(Math.random()*3);
             var voteValue = null;
-            if (pick==0) voteValue = "left";
-            else if (pick==1) voteValue = "forward";
-            else if (pick==2) voteValue = "right";
+            if (pick==0) voteValue = OP_LEFT;
+            else if (pick==1) voteValue = OP_FORWARD;
+            else if (pick==2) voteValue = OP_RIGHT;
             else log("ERROR: Math.random went mad?");
             //log("SPAM: " + voteValue);
-            spamSocket.emit("message", { name : "vote", move : g_move, value : voteValue });
+            spamSocket.emit(MSG_MESSAGE, { name : MSGN_VOTE, move : g_move, value : voteValue });
         }
     }
 }
@@ -1437,7 +1435,7 @@ function submitMoveDelay()
         return false;
     }
     log("TWEAK: move delay change to " + element.value);
-    g_socket.emit("testmsg", { name : "moveDelayChange" , value : element.value });
+    g_socket.emit(MSG_TESTMSG, { name : TMSGN_MOVEDELAY , value : element.value });
 }
 function submitFailDelay()
 {
@@ -1448,7 +1446,7 @@ function submitFailDelay()
         return false;
     }
     log("TWEAK: fail delay change to " + element.value);
-    g_socket.emit("testmsg", { name : "failDelayChange" , value : element.value });
+    g_socket.emit(MSG_TESTMSG, { name : TMSGN_FAILDELAY , value : element.value });
 }
 function submitVictoryDelay()
 {
@@ -1459,18 +1457,18 @@ function submitVictoryDelay()
         return false;
     }
     log("TWEAK: victory delay change to " + element.value);
-    g_socket.emit("testmsg", { name : "victoryDelayChange" , value : element.value });
+    g_socket.emit(MSG_TESTMSG, { name : TMSGN_VICTORYDELAY , value : element.value });
 }
 
 // VOTE
 function vote(_value)
 {
     g_lastVoteMove = g_move;
-    setClientState("active");
-    if (g_state.name == "playing" && g_votesThisMove < MAX_VOTES_PER_MOVE)
+    setClientState(CS_ACTIVE);
+    if (g_state == GS_PLAYING && g_votesThisMove < MAX_VOTES_PER_MOVE)
     {
         //log("vote: " + _value);
-        g_socket.emit("message", { name : "vote", move : g_move, value : _value });
+        g_socket.emit(MSG_MESSAGE, { name : MSGN_VOTE, move : g_move, value : _value });
         ++g_votesThisMove;
     }
 }
@@ -1487,7 +1485,7 @@ function processMessage(_message)
     g_activePlayerCount = _message.activePlayerCount;
     g_score = _message.score;
 
-    if (_message.name == "opinion")
+    if (_message.name == MSGN_OPINION)
     {
         g_opinion = {};
         g_opinion.current = _message.value.current;
@@ -1496,133 +1494,106 @@ function processMessage(_message)
         g_opinion.numForward = _message.value.numForward;
         //log(g_opinion.numLeft);
     }
-    else if (_message.name == "grow")
+    else if (_message.name == MSGN_GROW)
     {
         g_snake.push(new vec2(_message.value.x, _message.value.y)); // meh??
         //logVec2Array("CLIENT SNAKE", g_snake);
         
-        g_move = _message.move;
-        g_votesThisMove = 0;
-
-        // reset opinion
-        g_opinion = {};
-        g_opinion.current = "forward";
-        g_opinion.numLeft = 0;
-        g_opinion.numRight = 0;
-        g_opinion.numForward = 0;
+        processMoveGrow(_message);
     }
-    else if (_message.name == "move")
+    else if (_message.name == MSGN_MOVE)
     {
         g_snake.shift();
         g_snake.push(new vec2(_message.value.x, _message.value.y)); // meh??
         //logVec2Array("CLIENT SNAKE", g_snake);
         
-        g_move = _message.move;
-        g_votesThisMove = 0;
-
-        // reset opinion
-        g_opinion = {};
-        g_opinion.current = "forward";
-        g_opinion.numLeft = 0;
-        g_opinion.numRight = 0;
-        g_opinion.numForward = 0;
+        processMoveGrow(_message);
     }
-    else if (_message.name == "fail")
+    else if (_message.name == MSGN_NEWSTATE)
     {
-        g_state = _message;
-        g_move = 0;
-        g_votesThisMove = 0;
-        g_lastVoteMove = 0;
-        g_pauseStartTime = new Date().getTime();
-    }
-    else if (_message.name == "victory")
-    {
-        g_state = { name : _message.name  };
-        g_move = 0;
-        g_votesThisMove = 0;
-        g_lastVoteMove = 0;
-        g_pauseStartTime = new Date().getTime();
-        
-        // show new highscore message
-        if (g_score > g_highscores.todaysBest)
+        if (_message.state == GS_FAIL)
         {
-            g_highscores.todaysBest = g_score;
-            g_highscoreMsg = "Today's best score!"
-            log(g_highscoreMsg + " " + g_score);
+            g_state = GS_FAIL;
+            g_move = 0;
+            g_votesThisMove = 0;
+            g_lastVoteMove = 0;
+            g_pauseStartTime = new Date().getTime();
+        }
+        else if (_message.state == GS_VICTORY)
+        {
+            g_state = GS_VICTORY;
+            g_move = 0;
+            g_votesThisMove = 0;
+            g_lastVoteMove = 0;
+            g_pauseStartTime = new Date().getTime();
             
-            // new weekly highscore
-            if (g_score > g_highscores.weeksBest)
+            // show new highscore message
+            if (g_score > g_highscores.todaysBest)
             {
-                g_highscores.weeksBest = g_score;
-                g_highscoreMsg = "This weeks's best score!"
+                g_highscores.todaysBest = g_score;
+                g_highscoreMsg = "Today's best score!"
                 log(g_highscoreMsg + " " + g_score);
                 
-                // wow! new best score ever
-                if (g_score > g_highscores.bestEver)
+                // new weekly highscore
+                if (g_score > g_highscores.weeksBest)
                 {
-                    g_highscores.bestEver = g_score;
-                    g_highscoreMsg = "Best score ever!"
+                    g_highscores.weeksBest = g_score;
+                    g_highscoreMsg = "This week's best score!"
                     log(g_highscoreMsg + " " + g_score);
+                    
+                    // wow! new best score ever
+                    if (g_score > g_highscores.bestEver)
+                    {
+                        g_highscores.bestEver = g_score;
+                        g_highscoreMsg = "Best score ever!"
+                        log(g_highscoreMsg + " " + g_score);
+                    }
                 }
             }
         }
-    }
-    else if (_message.name == "playing")
-    {
-        g_state = { name : _message.name  };
-        g_move = 0;
-        g_votesThisMove = 0;
-        g_lastVoteMove = 0;
-
-        // copy snakes
-        g_snake = new Array();
-        for (var i=0; i<_message.snake.length; ++i)
+        else if (_message.state == GS_PLAYING)
         {
-            g_snake.push(new vec2(_message.snake[i].x, _message.snake[i].y)); // meh??
-        }
-        //logVec2Array("CLIENT SNAKE", g_snake);
-
-        // copy apples
-        g_apples = new Array();
-        for (var i=0; i<_message.apples.length; ++i)
-        {
-            if (_message.apples[i]) // CRASH fix
+            g_state = GS_PLAYING;
+            g_move = 0;
+            g_votesThisMove = 0;
+            g_lastVoteMove = 0;
+            
+            // copy snakes
+            g_snake = new Array();
+            for (var i=0; i<_message.snake.length; ++i)
             {
-                g_apples.push(new vec2(_message.apples[i].x, _message.apples[i].y)); // meh??
+                g_snake.push(new vec2(_message.snake[i].x, _message.snake[i].y)); // meh??
             }
+            //logVec2Array("CLIENT SNAKE", g_snake);
+            
+            // copy apples
+            g_apples = new Array();
+            for (var i=0; i<_message.apples.length; ++i)
+            {
+                if (_message.apples[i]) // CRASH fix
+                {
+                    g_apples.push(new vec2(_message.apples[i].x, _message.apples[i].y)); // meh??
+                }
+            }
+            
+            // reset tail hint
+            g_tailHintTriggered = false;
+            g_tailHintStartTime = null;
+            g_tailHint = false;
+            g_tailHintSwitch = false;
+            g_tailHintSwitchTime = null;
         }
-
-        // reset tail hint
-        g_tailHintTriggered = false;
-        g_tailHintStartTime = null;
-        g_tailHint = false;
-        g_tailHintSwitch = false;
-        g_tailHintSwitchTime = null;
-    }
-    else if (_message.name == "spawn")
-    {
-        if (_message.value == "apple")
+        else if (_message.state == GS_SEPPUKU)
         {
-            g_apples.push(new vec2(_message.position.x, _message.position.y));
+            g_state = GS_SEPPUKU;
+            g_seppukuStartTime = new Date().getTime();
         }
     }
-    else if (_message.name == "pickup")
+    else if (_message.name == MSGN_IDLEBROADCAST)
     {
-        if (_message.value == "apple")
+        if (g_clientState != CS_IDLE)
         {
-            g_apples.splice(_message.idx, 1);
-        }
-    }
-    else if (_message.name == "seppuku")
-    {
-        g_state = { name : _message.name  };
-        g_seppukuStartTime = new Date().getTime();
-    }
-    else if (_message.name == "idlebroadcast")
-    {
-        if (g_clientState != "idle")
-        {
-            log("WARNING: received idle broadcast when " + g_clientState);
+            log("WARNING: received idle broadcast wit client state= " + g_clientState);
         }
         else
         {
@@ -1631,13 +1602,38 @@ function processMessage(_message)
     }
     else
     {
-        log("ERROR: unkown message ", _message.name);
+        log("ERROR: unkown message: ", _message.name);
+    }
+}
+
+function processMoveGrow(_message)
+{
+    g_move = _message.move;
+    g_votesThisMove = 0;
+    
+    // reset opinion
+    g_opinion = {};
+    g_opinion.current = OP_FORWARD;
+    g_opinion.numLeft = 0;
+    g_opinion.numRight = 0;
+    g_opinion.numForward = 0;
+
+    // apple pickup
+    if (_message.pickup != -1)
+    {
+        g_apples.splice(_message.pickup, 1);
+    }
+
+    // apple spawn
+    for (var i=0; i<_message.newApples.length; ++i)
+    {
+        g_apples.push(new vec2(_message.newApples[i].x, _message.newApples[i].y));
     }
 }
 
 function processTestmsg(_message)
 {
-    if (_message.name == "mem")
+    if (_message.name == TMSGN_MEM)
     {
         var memUsageElement = document.getElementById("memUsage");
         if (memUsageElement)

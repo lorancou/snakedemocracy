@@ -46,6 +46,7 @@ var g_apples = null;
 var g_opinion = null;
 var g_direction = null;
 var g_state = null;
+var g_score = 0;
 var g_turn = 0;
 var g_move = 0;
 var g_moveDelay = MOVE_DELAY;
@@ -60,7 +61,7 @@ var g_activePlayerCount = 0;
 var g_spectatorCount = 0;
 var g_idleCount = 0;
 var g_tweets = 0;
-var g_test = (process.env.NODE_ENV == "development");//(process.argv.length==5) && (process.argv[4]=="test");
+var g_test = (process.env.NODE_ENV == "development");
 var g_idleBroadcastMarker = 0;
 var g_idleBroadcastTimeoutHandle = null;
 var g_highscores = { bestEver: 0, weeksBest: 0, todaysBest: 0 };
@@ -197,13 +198,13 @@ function initGame()
     g_apples = new Array();
 
     g_opinion = {};
-    g_opinion.current = "forward";
+    g_opinion.current = OP_FORWARD;
     g_opinion.numLeft = 0;
     g_opinion.numRight = 0;
     g_opinion.numForward = 0;
 
-    g_direction = "south";
-    g_state = { name : "init" };
+    g_direction = SOUTH;
+    g_state = GS_INIT;
     g_turn = 0;
     g_move = 0;
     g_pendingGrow = 0;
@@ -243,10 +244,10 @@ function setClientState(_socket, _newState)
         return;
     }
 
-    if (_socket.clientState == "idle")
+    if (_socket.clientState == CS_IDLE)
     {
         // re-send ping
-        _socket.emit("ping", { revision : REVISION, snake : g_snake, apples : g_apples, state : g_state, move : g_move, highscores : g_highscores });
+        _socket.emit(MSG_PING, { revision: REVISION, state: g_state, score: g_score, snake: g_snake, apples: g_apples, move: g_move, highscores: g_highscores });
     }
     
     _socket.clientState = _newState;
@@ -264,21 +265,21 @@ io.sockets.on("connection", function (socket)
 
         // log connection, send current state
         console.vlog("New client: ", address);
-        socket.emit("ping", { revision : REVISION, snake : g_snake, apples : g_apples, state : g_state, move : g_move, highscores : g_highscores });
-        socket.clientState = "active";
+        socket.emit(MSG_PING, { revision: REVISION, state: g_state, score: g_score, snake: g_snake, apples: g_apples, move: g_move, highscores: g_highscores });
+        socket.clientState = CS_ACTIVE;
         socket.votesThisMove = 0;
         socket.lastVoteMove = 0;
         socket.lastIdleTime = 0;
     }
 
     // receive client message
-    socket.on("message", function (_message)
+    socket.on(MSG_MESSAGE, function (_message)
     {
         //console.vlog("MESSAGE:" + _message.name + " (" + _message.value + ")");
-        if (_message.name == "vote")
+        if (_message.name == MSGN_VOTE)
         {
             // set client as active, remember vote move
-            setClientState(socket, "active");
+            setClientState(socket, CS_ACTIVE);
             socket.lastVoteMove = g_move;
             
             if (_message.move == g_move) // ignore votes for previous move (net lag)
@@ -286,10 +287,14 @@ io.sockets.on("connection", function (socket)
                 processVote(socket, _message.value);
             }
         }
+        else
+        {
+            reportAbuse(address, _message);
+        }
     });
 
     // receive idle on / off messages
-    socket.on("idle", function (_message)
+    socket.on(MSG_IDLE, function (_message)
     {
         var time = new Date().getTime();
         var dt = time - socket.lastIdleTime;
@@ -297,7 +302,7 @@ io.sockets.on("connection", function (socket)
         if (dt > IDLE_DELAY)
         {
             console.vlog("IDLE: ", address);
-            setClientState(socket, "idle");
+            setClientState(socket, CS_IDLE);
             socket.lastIdleTime = new Date().getTime();
         }
         else
@@ -305,57 +310,57 @@ io.sockets.on("connection", function (socket)
             console.vlog("WARNING: preventing idle/back ping-pong :-/");
         }
     });
-    socket.on("back", function (_message)
+    socket.on(MSG_BACK, function (_message)
     {
         console.vlog("BACK: ", address);
-        setClientState(socket, "spectator");
+        setClientState(socket, CS_SPECTATOR);
     });
 
     // those messages are processed with a TEST server only -- you could
     // try sending those to a prod server but you don't want to get banned, do
     // you?
-    socket.on("testmsg", function (_message)
+    socket.on(MSG_TESTMSG, function (_message)
     {
         if (!g_test)
         {
             reportAbuse(address, _message);
         }
-        else if (_message.name == "cheatTweet")
+        else if (_message.name == TMSGN_CHEATTWEET)
         {
             processTweet("cheat", "cheat");
         }
-        else if (_message.name == "cheatRestart")
+        else if (_message.name == TMSGN_RESTART)
         {
             processRestart(socket, _message.value);
         }
-        else if (_message.name == "cheatKill")
+        else if (_message.name == TMSGN_KILL)
         {
             processKill();
         }
-        else if (_message.name == "moveDelayChange")
+        else if (_message.name == TMSGN_MOVEDELAY)
         {
             processMoveDelayChange(socket, _message.value);
         }
-        else if (_message.name == "failDelayChange")
+        else if (_message.name == TMSGN_FAILDELAY)
         {
             processFailDelayChange(socket, _message.value);
         }
-        else if (_message.name == "victoryDelayChange")
+        else if (_message.name == TMSGN_VICTORYDELAY)
         {
             processVictoryDelayChange(socket, _message.value);
         }
-        else if (_message.name == "mem")
+        else if (_message.name == TMSGN_MEM)
         {
             var memUsage = process.memoryUsage();
             var text = "mem: <br/>";
             text += "rss: " + toMB(memUsage.rss) + "MB<br/>";
             text += "heap: " + toMB(memUsage.heapUsed) + "/" + toMB(memUsage.heapTotal) + "MB<br/>";
-            socket.emit("testmsg", { name : "mem", text : text });
+            socket.emit(MSG_TESTMSG, { name : TMSGN_MEM, text : text });
         }
     });
     
     // disconnecting clients
-    socket.on("disconnect", function()
+    socket.on(MSG_DISCONNECT, function()
     {
 	    g_sockets = g_sockets.filter(function(s)
         {
@@ -380,16 +385,17 @@ function startTurn()
 
     // start with some random apples
     g_apples = new Array();
-    spawnApple(STARTUP_APPLE_COUNT, false);
+    spawnApple(STARTUP_APPLE_COUNT, null);
     
     g_pendingGrow = 0;
 
     // fix that infinite victory loop. so long!
-    g_direction = "south";
+    g_direction = SOUTH;
 
     // "unlock" clients, time to play and vote!!
-    g_state = { name : "playing", snake : g_snake, apples : g_apples };
-    broadcast(g_state);
+    g_state = GS_PLAYING;
+    var message = { name: MSGN_NEWSTATE, state : g_state, snake : g_snake, apples : g_apples };
+    broadcast(message);
     
     // plan next move
     planNextMove();
@@ -428,15 +434,15 @@ function planNextMove()
         
         // spectator check
         var dmove = g_move - s.lastVoteMove;
-        if (dmove > SPECTATOR_THRESHOLD && s.clientState == "active")
+        if (dmove > SPECTATOR_THRESHOLD && s.clientState == CS_ACTIVE)
         {
-            setClientState(s, "spectator");
+            setClientState(s, CS_SPECTATOR);
         }
         
         // count active players & spectators
-        if (s.clientState == "active") ++g_activePlayerCount;
-        else if (s.clientState == "spectator") ++g_spectatorCount;
-        else if (s.clientState == "idle") ++g_idleCount;
+        if (s.clientState == CS_ACTIVE) ++g_activePlayerCount;
+        else if (s.clientState == CS_SPECTATOR) ++g_spectatorCount;
+        else if (s.clientState == CS_IDLE) ++g_idleCount;
     }
 }
 
@@ -491,7 +497,7 @@ function planNextOpinionBroadcast()
 // reduce server load. Maybe.
 function opinionBroadcast()
 {
-    var message = { name : "opinion", value : g_opinion };
+    var message = { name : MSGN_OPINION, value : g_opinion };
     broadcast(message);
     planNextOpinionBroadcast();
 }
@@ -509,12 +515,12 @@ function clearIdleBroadcast()
 function idleBroadcast()
 {
     if (g_idleBroadcastMarker < g_sockets.length &&
-        g_sockets[g_idleBroadcastMarker].clientState == "idle")
+        g_sockets[g_idleBroadcastMarker].clientState == CS_IDLE)
     {
         g_sockets[g_idleBroadcastMarker].emit(
-            "message",
+            MSG_MESSAGE,
             {
-                name : "idlebroadcast",
+                name : MSGN_IDLEBROADCAST,
                 activePlayerCount : g_activePlayerCount,
                 totalPlayerCount : g_sockets.length
             }
@@ -576,8 +582,8 @@ function move()
 {
     ++g_move;
     
-    var score = computeScore();
-    console.vlog("Move! Current score: " + score);
+    g_score = computeScore();
+    console.vlog("Move! Current score: " + g_score);
 
     // cache this, as it's "wrong" when broadcasting
     g_snakeLengthCache = g_snake.length;
@@ -609,37 +615,37 @@ function move()
         //console.log(absX +","+absY);
 
         // set new direction
-        if (g_direction == "east")
+        if (g_direction == EAST)
         {
-            if (g_opinion.current == "left") g_direction = "north";
-            if (g_opinion.current == "right") g_direction = "south";
+            if (g_opinion.current == OP_LEFT) g_direction = NORTH;
+            if (g_opinion.current == OP_RIGHT) g_direction = SOUTH;
         }
-        else if (g_direction == "west")
+        else if (g_direction == WEST)
         {
-            if (g_opinion.current == "left") g_direction = "south";
-            if (g_opinion.current == "right") g_direction = "north";
+            if (g_opinion.current == OP_LEFT) g_direction = SOUTH;
+            if (g_opinion.current == OP_RIGHT) g_direction = NORTH;
         }
-        else if (g_direction == "south")
+        else if (g_direction == SOUTH)
         {
-            if (g_opinion.current == "left") g_direction = "east";
-            if (g_opinion.current == "right") g_direction = "west";
+            if (g_opinion.current == OP_LEFT) g_direction = EAST;
+            if (g_opinion.current == OP_RIGHT) g_direction = WEST;
         }
         else // north
         {
-            if (g_opinion.current == "left") g_direction = "west";
-            if (g_opinion.current == "right") g_direction = "east";
+            if (g_opinion.current == OP_LEFT) g_direction = WEST;
+            if (g_opinion.current == OP_RIGHT) g_direction = EAST;
         }
 
         // set new head position
-        if (g_direction == "east")
+        if (g_direction == EAST)
         {
             ++newHead.x;
         }
-        else if (g_direction == "west")
+        else if (g_direction == WEST)
         {
             --newHead.x;
         }
-        else if (g_direction == "south")
+        else if (g_direction == SOUTH)
         {
             ++newHead.y;
         }
@@ -658,9 +664,8 @@ function move()
         newHead.y >= AREA_SIZE)
     {
         // broadcast fail
-        var message = { name : "fail", value : "out" };
-        broadcast(message);
-        g_state = message;
+        g_state = GS_FAIL;
+        broadcast({ name: MSGN_NEWSTATE, state: g_state });
 
         // plan next turn
         planNextTurn(false);
@@ -669,9 +674,8 @@ function move()
     else if (checkSelf(newHead))
     {
         // broadcast fail
-        var message = { name : "fail", value : "self" };
-        broadcast(message);
-        g_state = message;
+        g_state = GS_FAIL;
+        broadcast({ name: MSGN_NEWSTATE, state: g_state });
 
         // plan next turn
         planNextTurn(false);
@@ -679,46 +683,24 @@ function move()
     // check victory
     else if (checkVictory(newHead))
     {
-        // send score
-        sendScore(computeScore());
+        // send score to database
+        g_score = computeScore();
+        sendScore(g_score);
 
         // broadcast victory
-        var message = { name : "victory" };
-        broadcast(message);
-        g_state = message;
+        g_state = GS_VICTORY;
+        broadcast({ name: MSGN_NEWSTATE, state: g_state });
 
         // plan next turn
         planNextTurn(true);
     }
     else
     {
-        // broadcast move
-        if (g_pendingGrow > 0)
-        {
-            --g_pendingGrow;
-            var message = { name : "grow", move : g_move, value : newHead };
-            broadcast(message);
-        }
-        else
-        {
-            var message = { name : "move", move : g_move, value : newHead };
-            broadcast(message);
-        }
-
-        // reset opinion
-        g_votes = new Array();
-        g_opinion = {};
-        g_opinion.current = "forward";
-        g_opinion.numLeft = 0;
-        g_opinion.numRight = 0;
-        g_opinion.numForward = 0;
-        
-        // broadcast it
-        //var message = { name : "opinion", value : g_opinion };
-        //broadcast(message);
-        // => done when the "move" or "grow" event is received
+        var previousPendingGrow = g_pendingGrow;
 
         // check for apples pickup
+        var pickup = -1;
+        var newApples = new Array();
         for (var a=0; a<g_apples.length; ++a)
         {
             if (g_apples[a]) // CRASHFIX? callback hell?
@@ -726,20 +708,47 @@ function move()
                 if (g_apples[a].x == newHead.x &&
                     g_apples[a].y == newHead.y)
                 {
+                    pickup = a;
                     pickupApple(a);
-                    spawnApple(1, true);
+                    spawnApple(1, newApples);
                     g_pendingGrow += 2;
                     break; // 2+ apples at the same spot shouln't not happen. normally.
                 }
             }
         }
 
+        if (pickup != -1)
+        {
+            console.vlog("pickup " + pickup);
+        }
+
         // check for apples from Twitter (+broadcast)
         if (g_tweets > 0)
         {
-            spawnApple(g_tweets, true);
+            spawnApple(g_tweets, newApples);
             g_tweets = 0;
         }
+
+        // broadcast grow/move
+        if (previousPendingGrow > 0)
+        {
+            --g_pendingGrow;
+            var message = { name : MSGN_GROW, move : g_move, value : newHead, pickup: pickup, newApples: newApples };
+            broadcast(message);
+        }
+        else
+        {
+            var message = { name : MSGN_MOVE, move : g_move, value : newHead, pickup: pickup, newApples: newApples };
+            broadcast(message);
+        }
+
+        // reset opinion
+        g_votes = new Array();
+        g_opinion = {};
+        g_opinion.current = OP_FORWARD;
+        g_opinion.numLeft = 0;
+        g_opinion.numRight = 0;
+        g_opinion.numForward = 0;
 
         // plan next move
         planNextMove();
@@ -762,8 +771,9 @@ function move()
             clearPauseTimeout();
             clearOpinionBroadcast();
 
-            g_state = { name : "seppuku" };
-            broadcast(g_state);
+            // broadcast (pending) seppuku
+            g_state = GS_SEPPUKU;
+            broadcast({ name: MSGN_NEWSTATE, state: g_state });
 
             setTimeout(performSeppuku, MEM_SEPPUKU_DELAY);
         }
@@ -822,9 +832,9 @@ function processVote(_socket, _value)
     for (var i=0; i<g_votes.length; i++)
     {
         var ivote = g_votes[i];
-        if (ivote.value == "left") { ++g_opinion.numLeft; }
-        else if (ivote.value == "forward") { ++g_opinion.numForward; }
-        else if (ivote.value == "right") { ++g_opinion.numRight; }
+        if (ivote.value == OP_LEFT) { ++g_opinion.numLeft; }
+        else if (ivote.value == OP_FORWARD) { ++g_opinion.numForward; }
+        else if (ivote.value == OP_RIGHT) { ++g_opinion.numRight; }
         else console.vlog("ERROR: invalid vote: " + ivote.value);
     }
     //console.log("left votes: " + g_opinion.numLeft);
@@ -834,23 +844,19 @@ function processVote(_socket, _value)
     var max = Math.max(g_opinion.numLeft, g_opinion.numRight, g_opinion.numForward);
     if (max == g_opinion.numForward || g_opinion.numLeft == g_opinion.numRight)
     {
-        g_opinion.current = "forward";
+        g_opinion.current = OP_FORWARD;
     }
     else if (max == g_opinion.numLeft)
     {
-        g_opinion.current = "left";
+        g_opinion.current = OP_LEFT;
     }
     else // max == g_opinion.numRight
     {
-        g_opinion.current = "right";
+        g_opinion.current = OP_RIGHT;
     }
-
-    // broadcast opinion
-    //var message = { name : "opinion", value : g_opinion };
-    //broadcast(message);
 }
 
-function spawnApple(_count, _broadcast)
+function spawnApple(_count, _newApples)
 {
     // collect available slots
     var slots = new Array();
@@ -901,14 +907,12 @@ function spawnApple(_count, _broadcast)
         // pick a random slot
         var idx = Math.floor(Math.random()*slots.length);
         g_apples.push(slots[idx]);
-        
-        // broadcast spawn
-        if (_broadcast)
-        {
-            var message = { name : "spawn", value : "apple", position : slots[idx] };
-            broadcast(message);
-        }
 
+        if (_newApples)
+        {
+            _newApples.push(slots[idx]);
+        }
+        
         // remove slot from array
         slots.splice(idx, 1); 
     }
@@ -916,10 +920,8 @@ function spawnApple(_count, _broadcast)
 
 function pickupApple(_idx)
 {
-    // remove apple, broadcast
+    // remove apple
     g_apples.splice(_idx, 1);
-    var message = { name : "pickup", value : "apple", idx : _idx };
-    broadcast(message);
 }
 
 function computeScore()
@@ -965,7 +967,7 @@ function broadcast(_message)
     _message.totalPlayerCount = g_sockets.length;
 
     // and the current score
-    _message.score = computeScore();
+    _message.score = g_score;
 
     // actually broadcast
     //console.log("BROADCAST: " + _message.name);
@@ -973,9 +975,9 @@ function broadcast(_message)
     {
         // *NEVER* spoil bandwidth for idle clients (except for updating their page title once in a while)
         var s = g_sockets[i];
-        if (s.clientState != "idle")
+        if (s.clientState != CS_IDLE)
         {
-            s.emit("message", _message);
+            s.emit(MSG_MESSAGE, _message);
         }
     }
 }
