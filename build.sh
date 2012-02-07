@@ -48,6 +48,7 @@ for i in $(seq 0 2) ; do
     sed -i "s#<script type=\"text/javascript\" src=\"client.js\"></script>#<script type=\"text/javascript\" src=\"client.$REVISION.min.js\"></script>#g" build/$SUBDIR/index.html
     sed -i "s#init()#init('$SERVER')#g" build/$SUBDIR/index.html
     cp faq.html build/$SUBDIR/faq.html
+    cp about.html build/$SUBDIR/about.html
 
     # PHP
     cp highscores.php build/$SUBDIR/highscores.php

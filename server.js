@@ -98,6 +98,10 @@ else
     {
         res.sendfile(__dirname + "/faq.html");
     });
+    app.get("/about.html", function (req, res)
+    {
+        res.sendfile(__dirname + "/about.html");
+    });
     app.get("/cheat.html", function (req, res)
     {
         res.sendfile(__dirname + "/cheat.html");
