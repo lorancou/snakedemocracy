@@ -62,6 +62,7 @@ var g_updateHandle = null;
 var g_idleCheckTimeoutHandle = null;
 var g_connected = false;
 var g_lastMessageTime = null;
+var g_updating = false;
 var g_down = false;
 var g_highscores = { bestEver: 0, weeksBest: 0, todaysBest: 0 };
 var g_tailHintTriggered = false;
@@ -425,10 +426,14 @@ function cancelUpdates()
         clearTimeout(g_idleCheckTimeoutHandle);
         g_idleCheckTimeoutHandle = null;
     }
+    
+    g_updating = false;
 }
 
 function serverDown()
 {
+    var wasUpdating = g_updating;
+    
     // exit
     hideVictoryTweet();
     cancelUpdates();
@@ -437,7 +442,15 @@ function serverDown()
         g_socket.disconnect();
     }
     g_down = true;
+    
+    if (!wasUpdating)
+    {
+        drawServerDown();
+    }
+}
 
+function drawServerDown()
+{
     // clear canvas
     g_context.fillStyle = "#FFFFFF";
     g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -620,6 +633,8 @@ function processPing(_ping)
     g_lastMessageTime = new Date().getTime();
     g_lastActivityTime = new Date().getTime();
     
+    g_updating = true;
+    
     update();
     idleCheck();
     
@@ -782,6 +797,11 @@ function update()
     if (!g_down)
     {
         g_updateHandle = window.requestAnimFrame(update);
+    }
+    else
+    {
+        drawServerDown();
+        return;
     }
 
     // yey! back with us, default to spectator
