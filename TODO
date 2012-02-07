@@ -5,15 +5,14 @@
 
 Client:
  - Weird socket.io retrieving issue:
-    * Chrome: Unexpected response code: 503
     * Firefox: "NetworkError: 400 Invalid header received from client
     [ http://snakedemocracy.herokuapp.com/socket.io/1/websocket/XXX"
     -> if fixed, call serverDown on socket error
  - Fix for paranoïd security software: this: http://housecall.trendmicro.com/
  - Show victory condition for 5 seconds after 5 apples + tail tip blinks
+ - Idle after beeing spectator for too long
  - Wait for backping before updating, just skipping one frame for now
     -> cf. early return in update()
- - Extra vote possible???
  - Fix incorrect score when coming back on victory state after idling
  - event.layerX and event.layerY are broken and deprecated in WebKit.
   [ They will be removed from the engine in the near future.
@@ -27,13 +26,19 @@ Server
  - Find a better way to include vec2.js / common.js etc.
  
 Common
- - better vec2, ready for socket transport
- - compress those messages
+ - Better vec2, ready for socket transport
+ - Compress those messages, use as less strings and params as possible
  
 Website
  - Display victory condition after 5 apples eaten + tip tail blinks and shine
  - About page
- - Cross with EWSN instead of leftist, rightists, forwardists?
 
 Publishing
- - Pokki?
+ - Pokki
+  * cf. http://developers.pokki.com/docs/review.php
+  * HTML layout (< 710x910 px)
+  * Remove victory tweet?
+  * Idle when minimized (cf. Idle detect)
+  * Badges... new player? New game started? new apple?
+  * Hower state on directional arrows + change mouse pointer
+  * Limit user select (user-select:none)

@@ -7,14 +7,14 @@
   <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
   <link rel="shortcut icon" href="files/icon.ico" />
   <script charset="utf-8" src="http://widgets.twimg.com/j/2/widget.js"></script>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="vec2.js"></script>
-  <script src="common.js"></script>
-  <script src="client.js"></script>
+  <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+  <script type="text/javascript" src="vec2.js"></script>
+  <script type="text/javascript" src="common.js"></script>
+  <script type="text/javascript" src="client.js"></script>
   <link href="files/beauty_style.css" rel="stylesheet" type="text/css" />
 </head>
 
-<body onload="init()">
+<body onload="init()" id="body">
   <div id="bigone">
     <div id="wrap-header">
         <div id="header">
@@ -89,21 +89,9 @@
               }
             }).render().start();
           </script>
-          <!-- apples widget -->
+          <!-- apple tweet -->
           <div id="twitterApples">
-            <a href="https://twitter.com/intent/tweet?button_hashtag=snakedemocracy&text=Give%20me%20an%20apple!" class="twitter-hashtag-button" data-size="small" data-related="snakedemocracy" data-url="http://snakedemocracy.com">Tweet #snakedemocracy</a>
-            <script>
-              !function(d,s,id){
-                  var js,
-                      fjs=d.getElementsByTagName(s)[0];
-                  if(!d.getElementById(id)){
-                      js=d.createElement(s);
-                      js.id=id;
-                      js.src="http://platform.twitter.com/widgets.js";
-                      fjs.parentNode.insertBefore(js,fjs);
-                  }
-              }(document,"script","twitter-wjs");
-            </script>
+            <input type="button" id="appleTweet" name="appleTweet" value="Tweet #snakedemocracy" onclick="appleTweetClick()" />
           </div>
         </div>
       </div>

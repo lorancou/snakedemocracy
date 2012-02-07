@@ -16,16 +16,19 @@ var io = require("socket.io").listen(app);
 
 // configure socket.io for production
 io.configure("production", function(){
-    io.enable("browser client minification");  // send minified client
-    io.enable("browser client etag");          // apply etag caching logic based on version number
-    io.enable("browser client gzip");          // gzip the file
-    io.set("force new connection", false);     // no spam bots BULLSHIT: this just doesn't work :(
+    io.disable("browser client");              // served via main server
+    io.set("force new connection", false);     // no spam bots NO EFFECT :(
+    io.disable("force new connection");        // no spam bots NO EFFECT :(
     io.set("log level", 0);                    // no logging
 });
 
-// configure socket.io for production
+// configure socket.io for development
 io.configure("development", function(){
-    io.set("force new connection", true);      // allow spam bots
+    io.enable('browser client minification');  // send minified client
+    io.enable('browser client etag');          // apply etag caching logic based on version number
+    io.enable('browser client gzip');  
+    io.set("force new connection", true);      // allow spam bots NO EFFECT :(
+    io.enable("force new connection");         // allow spam bots NO EFFECT :(
     io.set("log level", 0);                    // no logging
 });
     
@@ -71,20 +74,6 @@ app.listen(port, function() {
     console.vlog("Listening on " + port);
 });
 
-// serve scripts
-app.get("/client.js", function (req, res)
-{
-    res.sendfile(__dirname + "/client.js");
-});
-app.get("/vec2.js", function (req, res)
-{
-    res.sendfile(__dirname + "/vec2.js");
-});
-app.get("/common.js", function (req, res)
-{
-    res.sendfile(__dirname + "/common.js");
-});
-
 // serve redirect page in prod
 if (!g_test)
 {
@@ -112,6 +101,20 @@ else
     app.get("/cheat.html", function (req, res)
     {
         res.sendfile(__dirname + "/cheat.html");
+    });
+
+    // serve scripts
+    app.get("/client.js", function (req, res)
+    {
+        res.sendfile(__dirname + "/client.js");
+    });
+    app.get("/vec2.js", function (req, res)
+    {
+        res.sendfile(__dirname + "/vec2.js");
+    });
+    app.get("/common.js", function (req, res)
+    {
+        res.sendfile(__dirname + "/common.js");
     });
 
     // serve resource files

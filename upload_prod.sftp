@@ -1,0 +1,9 @@
+dir
+put faq.html
+put index.html
+put highscores.php
+put socket.io.min.js
+put client.*
+-mkdir files
+cd files
+put files/*
