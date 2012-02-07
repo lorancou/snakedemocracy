@@ -12,7 +12,7 @@ var IDLE_THRESHOLD = 10000; // in ms
 var TAIL_HINT_TRIGGER = 13; // in snake length
 var TAIL_HINT_TIME = 5000; // in ms
 var TAIL_HINT_SWITCH_TIME = 250; // in ms
-var MAX_SOCKET_ERROR = 666;
+var MAX_SOCKET_ERROR = 5;
 
 // global variables
 var g_serverAddress = null;
@@ -522,7 +522,7 @@ function connect()
         if (!g_down)
         {
             g_socketErrorCount++;
-            log("WARNING: socket.io reports an error: ", reason, " (count: ", g_socketErrorCount, ")");
+            log("WARNING: socket.io reports an error (count: " + g_socketErrorCount + ") ", reason);
             if (g_socketErrorCount > MAX_SOCKET_ERROR)
             {
                 // quit

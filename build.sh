@@ -30,10 +30,12 @@ for i in $(seq 0 2) ; do
         SERVER="snakedemocracy.dyndns.org:3000"
     elif [ $i -eq 1 ]; then
         SUBDIR="www"
-        SERVER="http://snakedemocracy2.no.de"
+        SERVER="http://snakedemocracy.herokuapp.com"
+        #SERVER="http://snakedemocracy2.no.de"
     elif [ $i -eq 2 ]; then
         SUBDIR="www2"
-        SERVER="http://snakedemocracy.herokuapp.com"
+        #SERVER="http://snakedemocracy.herokuapp.com"
+        SERVER="http://snakedemocracy2.no.de"
     fi
 
     # Create build/$SUBDIR/
