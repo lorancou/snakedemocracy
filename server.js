@@ -59,11 +59,12 @@ var g_opinionTimeoutHandle = null;
 var g_snakeLengthCache = -1;
 var g_activePlayerCount = 0;
 var g_spectatorCount = 0;
+var g_sleepCount = 0;
 var g_idleCount = 0;
 var g_tweets = 0;
 var g_test = (process.env.NODE_ENV == "development");
-var g_idleBroadcastMarker = 0;
-var g_idleBroadcastTimeoutHandle = null;
+var g_lightBroadcastMarker = 0;
+var g_lightBroadcastTimeoutHandle = null;
 var g_highscores = { bestEver: 0, weeksBest: 0, todaysBest: 0 };
 
 // global constants
@@ -171,6 +172,7 @@ console.vlog = function()
         "heap:" + heapUsed + "/" + heapTotal + "MB|" +  // heap
         "a:" + g_activePlayerCount + "|" +              // active
         "s:" + g_spectatorCount + "|" +                 // spectators
+        "b:" + g_sleepCount + "|" +                     // sleep (b for bed)
         "i:" + g_idleCount + "]"                        // idle
         );
     for (var i=0; i<arguments.length; ++i)
@@ -218,8 +220,8 @@ function initGame()
     // start first turn
     startTurn();
     
-    // start broadcasting player count to idle players
-    idleBroadcast();
+    // start broadcasting player count to sleeping & idle players
+    lightBroadcast();
 }
 
 initTwitter();
@@ -244,9 +246,10 @@ function setClientState(_socket, _newState)
         return;
     }
 
-    if (_socket.clientState == CS_IDLE)
+    if ((_socket.clientState == CS_IDLE && _newState != CS_SLEEP) ||
+        (_socket.clientState == CS_SLEEP && _newState != CS_IDLE))
     {
-        // re-send ping
+        // back ping
         _socket.emit(MSG_PING, { revision: REVISION, state: g_state, score: g_score, snake: g_snake, apples: g_apples, move: g_move, highscores: g_highscores });
     }
     
@@ -270,12 +273,13 @@ io.sockets.on("connection", function (socket)
         socket.votesThisMove = 0;
         socket.lastVoteMove = 0;
         socket.lastIdleTime = 0;
+        socket.lastSleepTime = 0;
     }
 
     // receive client message
     socket.on(MSG_MESSAGE, function (_message)
     {
-        //console.vlog("MESSAGE:" + _message.name + " (" + _message.value + ")");
+        //console.vlog("MESSAGE: " + _message.name + " (" + _message.value + ")");
         if (_message.name == MSGN_VOTE)
         {
             // set client as active, remember vote move
@@ -287,33 +291,27 @@ io.sockets.on("connection", function (socket)
                 processVote(socket, _message.value);
             }
         }
+        else if (_message.name == MSGN_CLIENTSTATE)
+        {
+            if (socket.clientState == _message.state)
+            {
+                reportAbuse(address, _message);
+            }
+
+            switch (_message.state)
+            {
+            case CS_ACTIVE: reportAbuse(address, _message); break; // this should not happen
+            case CS_SPECTATOR: console.vlog("SPECTATOR: ", address); break;
+            case CS_SLEEP: console.vlog("SLEEP: ", address); break;
+            case CS_IDLE: console.vlog("IDLE: ", address); break;
+            default: console.vlog("ERROR: unknown client state: ", _message.state, " ", address);
+            }
+            setClientState(socket, _message.state);
+        }
         else
         {
             reportAbuse(address, _message);
         }
-    });
-
-    // receive idle on / off messages
-    socket.on(MSG_IDLE, function (_message)
-    {
-        var time = new Date().getTime();
-        var dt = time - socket.lastIdleTime;
-        var IDLE_DELAY = 10000;
-        if (dt > IDLE_DELAY)
-        {
-            console.vlog("IDLE: ", address);
-            setClientState(socket, CS_IDLE);
-            socket.lastIdleTime = new Date().getTime();
-        }
-        else
-        {
-            console.vlog("WARNING: preventing idle/back ping-pong :-/");
-        }
-    });
-    socket.on(MSG_BACK, function (_message)
-    {
-        console.vlog("BACK: ", address);
-        setClientState(socket, CS_SPECTATOR);
     });
 
     // those messages are processed with a TEST server only -- you could
@@ -423,25 +421,20 @@ function planNextMove()
         g_moveTimeoutHandle = setTimeout(move, g_moveDelay);
     }
 
-    // clear vote counts + detect spectators + coutn active players
+    // clear vote counts + detect spectators + count active players
     g_activePlayerCount = 0;
     g_spectatorCount = 0;
+    g_sleepCount = 0;
     g_idleCount = 0;
     for (var i=0; i<g_sockets.length; i++)
     {
         var s = g_sockets[i];
         s.votesThisMove = 0;
         
-        // spectator check
-        var dmove = g_move - s.lastVoteMove;
-        if (dmove > SPECTATOR_THRESHOLD && s.clientState == CS_ACTIVE)
-        {
-            setClientState(s, CS_SPECTATOR);
-        }
-        
         // count active players & spectators
         if (s.clientState == CS_ACTIVE) ++g_activePlayerCount;
         else if (s.clientState == CS_SPECTATOR) ++g_spectatorCount;
+        else if (s.clientState == CS_SLEEP) ++g_sleepCount;
         else if (s.clientState == CS_IDLE) ++g_idleCount;
     }
 }
@@ -504,34 +497,37 @@ function opinionBroadcast()
 
 function clearIdleBroadcast()
 {
-    g_idleBroadcastMarker = 0;
-    if (g_idleBroadcastTimeoutHandle)
+    g_lightBroadcastMarker = 0;
+    if (g_lightBroadcastTimeoutHandle)
     {
-        clearTimeout(g_idleBroadcastTimeoutHandle);
-        g_idleBroadcastTimeoutHandle = null
+        clearTimeout(g_lightBroadcastTimeoutHandle);
+        g_lightBroadcastTimeoutHandle = null
     }
 }
 
-function idleBroadcast()
+function lightBroadcast()
 {
-    if (g_idleBroadcastMarker < g_sockets.length &&
-        g_sockets[g_idleBroadcastMarker].clientState == CS_IDLE)
+    if (g_lightBroadcastMarker < g_sockets.length)
     {
-        g_sockets[g_idleBroadcastMarker].emit(
-            MSG_MESSAGE,
-            {
-                name : MSGN_IDLEBROADCAST,
-                activePlayerCount : g_activePlayerCount,
-                totalPlayerCount : g_sockets.length
-            }
-        );
+        var cs = g_sockets[g_lightBroadcastMarker].clientState;
+        if (cs == CS_SLEEP || cs == CS_IDLE)
+        {
+            g_sockets[g_lightBroadcastMarker].emit(
+                MSG_MESSAGE,
+                {
+                    name : MSGN_LIGHTBROADCAST,
+                    activePlayerCount : g_activePlayerCount,
+                    totalPlayerCount : g_sockets.length
+                }
+            );
+        }
     }
     
     if (g_sockets.length > 0)
     {
-        g_idleBroadcastMarker = (g_idleBroadcastMarker+1) % g_sockets.length;
+        g_lightBroadcastMarker = (g_lightBroadcastMarker+1) % g_sockets.length;
     }
-    g_idleBroadcastTimeoutHandle = setTimeout(idleBroadcast, 666.667);
+    g_lightBroadcastTimeoutHandle = setTimeout(lightBroadcast, 666.667);
 }
 
 function processKill()
@@ -973,9 +969,10 @@ function broadcast(_message)
     //console.log("BROADCAST: " + _message.name);
     for (var i=0; i<g_sockets.length; i++)
     {
-        // *NEVER* spoil bandwidth for idle clients (except for updating their page title once in a while)
+        // *NEVER* spoil bandwidth for idle or sleeping clients (except for
+        // updating their page title once in a while)
         var s = g_sockets[i];
-        if (s.clientState != CS_IDLE)
+        if (s.clientState != CS_SLEEP && s.clientState != CS_IDLE)
         {
             s.emit(MSG_MESSAGE, _message);
         }

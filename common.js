@@ -1,7 +1,6 @@
 var REVISION = 15;
 var AREA_SIZE = 20;
 var MAX_VOTES_PER_MOVE = 10;
-var SPECTATOR_THRESHOLD = 5; // in snake moves
 var MOVE_DELAY = 2000;
 var FAIL_DELAY = 10000;
 var VICTORY_DELAY = 30000;
@@ -17,7 +16,8 @@ var GS_SEPPUKU = 4;
 // client states
 var CS_ACTIVE = 1;
 var CS_SPECTATOR = 2;
-var CS_IDLE = 3;
+var CS_SLEEP = 3;
+var CS_IDLE = 4;
 
 // opinion
 var OP_LEFT = 1;
@@ -37,8 +37,6 @@ var MSG_ERROR = "error"; // ibid.
 var MSG_PING = "p";
 var MSG_MESSAGE = "m";
 var MSG_TESTMSG = "t";
-var MSG_IDLE = "i";
-var MSG_BACK = "b";
 
 // message names
 var MSGN_VOTE = 1;
@@ -46,7 +44,8 @@ var MSGN_OPINION = 2;
 var MSGN_GROW = 3;
 var MSGN_MOVE = 4;
 var MSGN_NEWSTATE = 5;
-var MSGN_IDLEBROADCAST = 6;
+var MSGN_LIGHTBROADCAST = 6;
+var MSGN_CLIENTSTATE = 7;
 
 // test/dev message names
 var TMSGN_MEM = 1;

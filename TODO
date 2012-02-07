@@ -10,9 +10,6 @@ Client:
     -> if fixed, call serverDown on socket error
     -> seem allright with Iceweasel... maybe this is only server overload
  - Fix for paranoid security software: this: http://housecall.trendmicro.com/
- - Idle after beeing spectator for too long
-    + wait for backping before updating, just skipping one frame for now
-    -> cf. early return in update()
  
 Server
  - Kick cheaters?
