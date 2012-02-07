@@ -579,7 +579,6 @@ function move()
     ++g_move;
     
     g_score = computeScore();
-    console.vlog("Move! Current score: " + g_score);
 
     // cache this, as it's "wrong" when broadcasting
     g_snakeLengthCache = g_snake.length;
@@ -715,7 +714,7 @@ function move()
 
         if (pickup != -1)
         {
-            console.vlog("pickup " + pickup);
+            console.vlog("Apple picked up: " + pickup);
         }
 
         // check for apples from Twitter (+broadcast)
@@ -728,12 +727,14 @@ function move()
         // broadcast grow/move
         if (previousPendingGrow > 0)
         {
+            console.vlog("Grow! Current score: " + g_score);
             --g_pendingGrow;
             var message = { name : MSGN_GROW, move : g_move, value : newHead, pickup: pickup, newApples: newApples };
             broadcast(message);
         }
         else
         {
+            console.vlog("Move! Current score: " + g_score);
             var message = { name : MSGN_MOVE, move : g_move, value : newHead, pickup: pickup, newApples: newApples };
             broadcast(message);
         }

@@ -12,6 +12,7 @@ var IDLE_THRESHOLD = 10000; // in ms
 var TAIL_HINT_TRIGGER = 13; // in snake length
 var TAIL_HINT_TIME = 5000; // in ms
 var TAIL_HINT_SWITCH_TIME = 250; // in ms
+var MAX_SOCKET_ERROR = 666;
 
 // global variables
 var g_serverAddress = null;
@@ -61,6 +62,7 @@ var g_seppukuStartTime = null;
 var g_updateHandle = null;
 var g_idleCheckTimeoutHandle = null;
 var g_connected = false;
+var g_socketErrorCount = 0;
 var g_lastMessageTime = null;
 var g_updating = false;
 var g_down = false;
@@ -235,12 +237,6 @@ function setClientState(_newState)
     // server to avoid extra traffic)
     if (g_socket)
     {
-        // server infers active players from vote messages
-        if (_newState != CS_ACTIVE)
-        {
-            g_socket.emit(MSG_MESSAGE, { name: MSGN_CLIENTSTATE, state: _newState});
-        }
-
         if (_newState == CS_IDLE)
         {
             log("Idle.");
@@ -269,6 +265,12 @@ function setClientState(_newState)
 
             g_context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); // show loading = clear canvas
             drawMessage("Reconnecting to polling station... please stay patient, citizen.", true);
+        }
+
+        // server infers active players from vote messages
+        if (_newState != CS_ACTIVE)
+        {
+            g_socket.emit(MSG_MESSAGE, { name: MSGN_CLIENTSTATE, state: _newState});
         }
     }
 
@@ -519,8 +521,15 @@ function connect()
     {
         if (!g_down)
         {
-            log("ERROR: Unable to connect Socket.IO", reason);
-            serverDown(); // quit (NB: sometimes Firefox throws this then works anyway :/)
+            g_socketErrorCount++;
+            log("WARNING: socket.io reports an error: ", reason, " (count: ", g_socketErrorCount, ")");
+            if (g_socketErrorCount > MAX_SOCKET_ERROR)
+            {
+                // quit
+                // NB: sometimes Firefox throws this then works anyways, so
+                // we're giving it some tolerance :/
+                serverDown();
+            }
         }
     });
 
@@ -578,6 +587,7 @@ function processConnect()
     }
     
     g_connected = true;
+    g_socketErrorCount = 0;
 }
 
 function logVec2Array(_name, _array)

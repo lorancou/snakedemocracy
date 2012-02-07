@@ -4,11 +4,6 @@
 ---------------------------------------------------------------------------------
 
 Client:
- - Weird socket.io retrieving issue:
-    * Firefox: "NetworkError: 400 Invalid header received from client
-    [ http://snakedemocracy.herokuapp.com/socket.io/1/websocket/XXX"
-    -> if fixed, call serverDown on socket error
-    -> seem allright with Iceweasel... maybe this is only server overload
  - Fix for paranoid security software: this: http://housecall.trendmicro.com/
  
 Server
