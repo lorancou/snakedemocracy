@@ -1,4 +1,4 @@
-var REVISION = 15;
+var REVISION = 16;
 var AREA_SIZE = 20;
 var MAX_VOTES_PER_MOVE = 10;
 var MOVE_DELAY = 2000;
