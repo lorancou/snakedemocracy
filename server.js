@@ -24,9 +24,9 @@ io.configure("production", function(){
 
 // configure socket.io for development
 io.configure("development", function(){
-    io.enable('browser client minification');  // send minified client
-    io.enable('browser client etag');          // apply etag caching logic based on version number
-    io.enable('browser client gzip');  
+    io.enable("browser client minification");  // send minified client
+    io.enable("browser client etag");          // apply etag caching logic based on version number
+    io.enable("browser client gzip");  
     io.set("force new connection", true);      // allow spam bots NO EFFECT :(
     io.enable("force new connection");         // allow spam bots NO EFFECT :(
     io.set("log level", 0);                    // no logging
