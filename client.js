@@ -29,6 +29,8 @@ var g_initialTitle = document.title;
 var g_score = 0;
 var g_clickX = -1;
 var g_clickY = -1;
+var g_mouseX = -1;
+var g_mouseY = -1;
 var g_keyLeft = false;
 var g_keyUp = false;
 var g_keyRight = false;
@@ -128,6 +130,13 @@ var g_arrowSelectPaths =
     north : "files/arrow_select_n.png",
     south : "files/arrow_select_s.png"
 }
+var g_arrowHoverPaths =
+{
+    east : "files/arrow_hover_e.png",
+    west : "files/arrow_hover_w.png",
+    north : "files/arrow_hover_n.png",
+    south : "files/arrow_hover_s.png"
+}
 var g_applePath = "files/apple.png";
 var g_fullgridPath = "files/fullgrid.png";
 var g_victoryPath = "files/victory.png";
@@ -212,6 +221,10 @@ function queueAssets(_mgr)
     _mgr.queueDownload(g_arrowSelectPaths.west);
     _mgr.queueDownload(g_arrowSelectPaths.south);
     _mgr.queueDownload(g_arrowSelectPaths.north);
+    _mgr.queueDownload(g_arrowHoverPaths.east);
+    _mgr.queueDownload(g_arrowHoverPaths.west);
+    _mgr.queueDownload(g_arrowHoverPaths.south);
+    _mgr.queueDownload(g_arrowHoverPaths.north);
     _mgr.queueDownload(g_applePath);
     _mgr.queueDownload(g_fullgridPath);
     _mgr.queueDownload(g_victoryPath);
@@ -400,6 +413,9 @@ function stop(_callback, _disconnect)
         log("Disconnect");
         g_socket.disconnect();
     }
+    
+    // reset cursor
+    g_canvas.style.cursor = "default";
     
     // stop
     log("Stop!");
@@ -716,19 +732,34 @@ function processPing(_ping)
     }
 }
 
-// http://www.quirksmode.org/js/findpos.html
-function findPos(obj)
+function findPos(e, obj)
 {
-	var curleft = curtop = 0;
+    // http://www.quirksmode.org/js/events_properties.html
+    var posx = 0;
+    var posy = 0;
+    if (e.pageX || e.pageY)
+    {
+        posx = e.pageX;
+        posy = e.pageY;
+    }
+    else if (e.clientX || e.clientY)
+    {
+        posx = e.clientX + document.body.scrollLeft
+            + document.documentElement.scrollLeft;
+        posy = e.clientY + document.body.scrollTop
+            + document.documentElement.scrollTop;
+    }
+
+    // http://www.quirksmode.org/js/findpos.html
     if (obj.offsetParent)
     {
         do
         {
-			curleft += obj.offsetLeft;
-			curtop += obj.offsetTop;
+			posx -= obj.offsetLeft;
+			posy -= obj.offsetTop;
         } while (obj = obj.offsetParent);
     }
-    return [curleft,curtop];
+    return [posx,posy];
 }
 
 function mouseDown(e)
@@ -758,27 +789,9 @@ function mouseUp(e)
     {
         //log("left click");
 
-        // http://www.quirksmode.org/js/events_properties.html
-        var posx = 0;
-	    var posy = 0;
-	    if (e.pageX || e.pageY)
-        {
-		    posx = e.pageX;
-		    posy = e.pageY;
-	    }
-	    else if (e.clientX || e.clientY)
-        {
-		    posx = e.clientX + document.body.scrollLeft
-			    + document.documentElement.scrollLeft;
-		    posy = e.clientY + document.body.scrollTop
-			    + document.documentElement.scrollTop;
-	    }
-
-        //log("posx:" + posx + " posy:" + posy);
-
-        var canvasPos = findPos(g_canvas);
-        g_clickX = posx - canvasPos[0];
-        g_clickY = posy - canvasPos[1];
+        var canvasPos = findPos(e, g_canvas);
+        g_clickX = canvasPos[0];
+        g_clickY = canvasPos[1];
 
         //log("clickx:" + g_clickX + " clicky:" + g_clickY);
     }
@@ -796,6 +809,10 @@ function mouseMove(e)
         requestBackPing();
         return;
     }
+    
+    var canvasPos = findPos(e, g_canvas);
+    g_mouseX = canvasPos[0];
+    g_mouseY = canvasPos[1];
 }
 
 function keyDown(e)
@@ -929,6 +946,48 @@ function update()
             else tailDirection = NORTH;
         }
 
+        // mouse hover
+        var hover = -1;
+        if (g_mouseX != -1 && g_mouseY != -1)
+        {
+            var x = Math.floor(g_mouseX / SPRITE_SIZE);
+            var y = Math.floor(g_mouseY / SPRITE_SIZE);
+            
+            if (y == head.y)
+            {
+                if (x == head.x+1)
+                {
+                    hover = EAST;
+                }
+                else if (x == head.x-1)
+                {
+                    hover = WEST;
+                }
+            }
+            else if (x == head.x)
+            {
+                if (y == head.y+1)
+                {
+                    hover = SOUTH;
+                }
+                else if (y == head.y-1)
+                {
+                    hover = NORTH;
+                }
+            }            
+        }
+        //if (hover != -1) log("hover " + hover);
+        
+        // update mouse pointer
+        if (hover == -1)
+        {
+            g_canvas.style.cursor = "default";
+        }
+        else
+        {
+            g_canvas.style.cursor = "pointer";
+        }
+        
         // apply mouse input
         if (g_clickX != -1 && g_clickY != -1)
         {
@@ -1168,6 +1227,16 @@ function update()
                     SPRITE_SIZE, SPRITE_SIZE
                 );
             }
+            else if (drawEast && hover == EAST)
+            {
+                var point = new vec2(head.x+1, head.y);
+                var coords = getScreenCoords(point);
+                g_context.drawImage(
+                    g_assets.cache[g_arrowHoverPaths.east],
+                    coords.x, coords.y,
+                    SPRITE_SIZE, SPRITE_SIZE
+                );
+            }
             if (drawWest)
             {
                 var point = new vec2(head.x-1, head.y);
@@ -1186,6 +1255,16 @@ function update()
                 var coords = getScreenCoords(point);
                 g_context.drawImage(
                     g_assets.cache[g_arrowSelectPaths.west],
+                    coords.x, coords.y,
+                    SPRITE_SIZE, SPRITE_SIZE
+                );
+            }
+            else if (drawWest && hover == WEST)
+            {
+                var point = new vec2(head.x-1, head.y);
+                var coords = getScreenCoords(point);
+                g_context.drawImage(
+                    g_assets.cache[g_arrowHoverPaths.west],
                     coords.x, coords.y,
                     SPRITE_SIZE, SPRITE_SIZE
                 );
@@ -1212,6 +1291,16 @@ function update()
                     SPRITE_SIZE, SPRITE_SIZE
                 );
             }
+            else if (drawSouth && hover == SOUTH)
+            {
+                var point = new vec2(head.x, head.y+1);
+                var coords = getScreenCoords(point);
+                g_context.drawImage(
+                    g_assets.cache[g_arrowHoverPaths.south],
+                    coords.x, coords.y,
+                    SPRITE_SIZE, SPRITE_SIZE
+                );
+            }
             if (drawNorth)
             {
                 var point = new vec2(head.x, head.y-1);
@@ -1230,6 +1319,16 @@ function update()
                 var coords = getScreenCoords(point);
                 g_context.drawImage(
                     g_assets.cache[g_arrowSelectPaths.north],
+                    coords.x, coords.y,
+                    SPRITE_SIZE, SPRITE_SIZE
+                );
+            }
+            else if (drawNorth && hover == NORTH)
+            {
+                var point = new vec2(head.x, head.y-1);
+                var coords = getScreenCoords(point);
+                g_context.drawImage(
+                    g_assets.cache[g_arrowHoverPaths.north],
                     coords.x, coords.y,
                     SPRITE_SIZE, SPRITE_SIZE
                 );

@@ -330,3 +330,8 @@ div.smallHighscore
 	text-align:right;
 	text-shadow: 0px 0px 30px #ff9900;
 }
+a.pokki-link:hover
+{
+	color:black;
+	text-decoration:none;
+}

@@ -10,6 +10,7 @@ body {
     /* use this to keep all text from being selectable to maintain a more app-like experience
     otherwise it's possible to highlight/select an entire pokki window  */
     -webkit-user-select: none;
+    cursor: default;
 }
 
 /* Pokki wrapper div */
