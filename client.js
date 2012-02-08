@@ -55,6 +55,8 @@ var g_victoryTweet = null;
 var g_highscoreMsg = null;
 var g_test = null;
 var g_pokki = null;
+var g_pokkiHidePlayerCount = -1;
+var g_pokkiBadges = null;
 var g_clientState = null;
 var g_lastTime = null;
 var g_lastVoteMove = 0;
@@ -955,13 +957,23 @@ function updateStats(_dt)
         else
         {
             g_playerCountElement.innerHTML = g_activePlayerCount + " <small>/ " + g_totalPlayerCount + "</small>";
-            if (g_clientState == CS_ACTIVE)
+            
+            // for WWW, notify of player count via title
+            if (!g_pokki)
             {
-                document.title = g_initialTitle;
+                if (g_clientState == CS_ACTIVE)
+                {
+                    document.title = g_initialTitle;
+                }
+                else
+                {
+                    document.title = "[" + g_activePlayerCount + "/" + g_totalPlayerCount + "] " + g_initialTitle;
+                }
             }
+            // for Pokki, notify of player count via badge
             else
             {
-                document.title = "[" + g_activePlayerCount + "/" + g_totalPlayerCount + "] " + g_initialTitle;
+                applyPokkiBadge();
             }
         }
     }
@@ -1918,7 +1930,17 @@ function processMessage(_message)
         {
             g_activePlayerCount = _message.activePlayerCount;
             g_totalPlayerCount = _message.totalPlayerCount;
-            document.title = "[" + g_activePlayerCount + "/" + g_totalPlayerCount + "] " + g_initialTitle;
+
+            // for WWW, notify of player count via title
+            if (!g_pokki)
+            {
+                document.title = "[" + g_activePlayerCount + "/" + g_totalPlayerCount + "] " + g_initialTitle;
+            }
+            // for Pokki, notify of player count via badge
+            else
+            {
+                applyPokkiBadge();
+            }
         }
     }
     else
@@ -1995,9 +2017,14 @@ function pokkiShowing()
         return;
     }
     
+    // clear remembrance of player count
+    g_pokkiHidePlayerCount = -1;
+
     // (re)start drawing
     // Pokki Requirement: Pausing computationally intensive tasks
     g_drawPaused = false;
+    
+    pokki.removeIconBadge();
 }
 function pokkiShown()
 {
@@ -2024,6 +2051,9 @@ function pokkiHidden()
     // stop drawing
     // Pokki Requirement: Pausing computationally intensive tasks
     g_drawPaused = true;
+    
+    // remember how many people are playing
+    g_pokkiHidePlayerCount = g_activePlayerCount;
 }
 function pokkiUnload()
 {
@@ -2039,4 +2069,81 @@ function pokkiUnload()
         g_socket.disconnect();
     }
 }
+function applyPokkiBadge()
+{
+    if (g_pokkiHidePlayerCount >= 0 && g_pokkiBadges.get())
+    {
+        var diff = g_activePlayerCount - g_pokkiHidePlayerCount;
+        if (diff > 0)
+        {
+            pokki.setIconBadge(diff);
+        }
+        else
+        {
+            pokki.removeIconBadge();
+        }
+    }
+    else
+    {
+        pokki.removeIconBadge();
+    }
+}
+function pokkiBadgesInit(_badges)
+{
+    g_pokkiBadges = _badges;
+    pokkiBadges(_badges.get(), true);
+}
+function pokkiBadges(_onOff, _force)
+{
+    if (!g_pokki)
+    {
+        log("WARNING: called pokkiBadges but I'm no Pokki, thanks.");
+        return;
+    }
+    
+    if (g_pokkiBadges.get()==_onOff && !_force)
+    {
+        return;
+    }
 
+    var badgeOnElement = document.getElementById("pokki-badgeon");
+    var badgeOffElement = document.getElementById("pokki-badgeoff");
+    if (!badgeOnElement || !badgeOffElement)
+    {
+        log("ERROR: missing badge element(s).");
+        return;
+    }
+    
+    g_pokkiBadges.set(_onOff);
+    applyPokkiBadge();
+
+    // update buttons
+    if (_onOff)
+    {
+        log("Badges on.");
+        
+        badgeOnElement.style.backgroundImage = "url(files/on_set.png)";
+        badgeOnElement.onmouseover = function() {};
+        badgeOnElement.onmouseout = function() {};
+        badgeOnElement.style.cursor = "default";
+        
+        badgeOffElement.style.backgroundImage = "url(files/off_unset.png)";
+        badgeOffElement.onmouseover = function() { this.style.backgroundImage = "url(files/off_hover.png)"; };
+        badgeOffElement.onmouseout = function() { this.style.backgroundImage = "url(files/off_unset.png)"; };
+        badgeOffElement.style.cursor = "pointer";
+    }
+    else
+    {
+        log("Badges off.");
+
+        badgeOnElement.style.backgroundImage = "url(files/on_unset.png)";
+        badgeOnElement.onmouseover = function() { this.style.backgroundImage = "url(files/on_hover.png)"; };
+        badgeOnElement.onmouseout = function() { this.style.backgroundImage = "url(files/on_unset.png)"; };
+        badgeOnElement.style.cursor = "pointer";
+
+        badgeOffElement.style.backgroundImage = "url(files/off_set.png)";
+        badgeOffElement.onmouseover = function() {};
+        badgeOffElement.onmouseout = function() {};
+        badgeOffElement.style.cursor = "default";
+    }
+}

@@ -16,6 +16,8 @@ Common
 Publishing
  - Pokki
   * cf. http://developers.pokki.com/docs/review.php
-  * Badges... new player? New game started? new apple?
-  * Clear notifications in context menu?
+  * Fix notification on/off button sometimes glitching
+  * Notifications on/off in context menu
+  * Most pokki functions should prob. move to app.js
+  * Fade-in sometimes *very long* to come
  - Kongregate

@@ -306,17 +306,23 @@ div.smallHighscore
 	width:700px;
 	height:60px;
 }
-#pokki-footer
+#pokki-footer-left
 {
     position: absolute;
-    width: 670px;
-    height: 40px;
-    bottom: 15px;
+    bottom: 8px;
+    left: 15px;
+	text-align:left;
+	font:10px arial,sans-serif;;
+	color:#a5653a;
+}
+#pokki-footer-right
+{
+    position: absolute;
+    bottom: 8px;
     right: 15px;
 	text-align:right;
 	font:10px arial,sans-serif;;
 	color:#a5653a;
-	height:20px;
 }
 #pokki-slogan
 {
@@ -335,3 +341,33 @@ a.pokki-link:hover
 	color:black;
 	text-decoration:none;
 }
+a#pokki-badgeon
+{
+    display: block;
+    position: absolute;
+    bottom: 8px;
+    left: 135px;
+    width: 26px;
+    height: 16px;
+    /*background-image: url(on_set.png);*/
+    /*cursor: pointer;*/
+}
+/*a#pokki-badgeon:hover
+{
+    background-image: url(on_hover.png);
+}*/
+a#pokki-badgeoff
+{
+    display: block;
+    position: absolute;
+    bottom: 8px;
+    left: 165px;
+    width: 26px;
+    height: 16px;
+    /*background-image: url(off_unset.png);*/
+    /*cursor: pointer;*/
+}
+/*a#pokki-badgeoff:hover
+{
+    background-image: url(off_hover.png);
+}*/

@@ -11,7 +11,9 @@ var g_except =
     "pokkiShowing",
     "pokkiShown",
     "pokkiHidden",
-    "pokkiUnload"
+    "pokkiUnload",
+    "pokkiBadgesInit",
+    "pokkiBadges"
 ];
 
 var orig_code = fs.readFileSync("build/client.temp.js")+"";

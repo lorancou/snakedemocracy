@@ -1,6 +1,7 @@
 var SnakeDemocracyApp = function()
 {
     var unloaded = new LocalStore('unloaded');
+    var badges = new LocalStore('badges', {defaultVal: true});
 
     // attach click event to minimize button
     var minimize = document.getElementById('minimize');
@@ -8,6 +9,9 @@ var SnakeDemocracyApp = function()
     
     // initialize client
     init("http://snakedemocracy.herokuapp.com", false, true); // init SD
+        
+    // set badges on/off
+    pokkiBadgesInit(badges);
     
     // kick off what needs to be done whenever the popup is about to be shown
     this.onPopupShowing = function()
