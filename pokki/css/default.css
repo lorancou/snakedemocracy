@@ -15,7 +15,7 @@ body {
 /* Used to contain the contents of a Pokki when testing in a web browser using PokkiBrowser.js */
 #wrapper {
     margin: auto;
-    width: 800px;
+    width: 700px;
     height: 600px;
     position: relative;
     opacity: 0;

@@ -8,7 +8,7 @@ var App = function() {
     
     // Initialize whatever else needs to be initialized
     
-    init("http://snakedemocracy.dyndns.org:3000/"); // init SD
+    init("http://snakedemocracy.herokuapp.com"); // init SD
     
         
     // Kick off what needs to be done whenever the popup is about to be shown

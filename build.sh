@@ -9,7 +9,7 @@ mkdir -p build
 REVISION=$(head -1 common.js | grep -oE "[[:digit:]]{1,}")
 echo "Building revision $REVISION"
 
-# Copy minified socket.io client
+# Copy minified socket.io client (cached version)
 cp depcache/socket.io.min.js build/socket.io.min.js
 
 # Minify client
@@ -67,7 +67,12 @@ done
 
 # Pokki distrib
 echo "Building build/pokki..."
-mkdir -p build/pokki
-cp -r pokki/* build/pokki/
-mkdir -p build/pokki/files
-cp files/* build/pokki/files/
+SERVER="http://snakedemocracy.herokuapp.com"
+SUBDIR="pokki"
+mkdir -p build/$SUBDIR
+cp -r pokki/* build/$SUBDIR/
+sed -i "s#client.REVISION.min.js#client.$REVISION.min.js#g" build/$SUBDIR/popup.html
+mkdir -p build/$SUBDIR/files
+cp files/* build/$SUBDIR/files/
+cp build/socket.io.min.js build/$SUBDIR/js/
+cp build/client.$REVISION.min.js build/$SUBDIR/js/
