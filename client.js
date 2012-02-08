@@ -67,6 +67,7 @@ var g_socketErrorCount = 0;
 var g_lastMessageTime = null;
 var g_down = false;
 var g_stopped = false;
+var g_drawPaused = false;
 var g_highscores = { bestEver: 0, weeksBest: 0, todaysBest: 0 };
 var g_tailHintTriggered = false;
 var g_tailHintStartTime = null;
@@ -906,6 +907,153 @@ function update()
         g_socket.emit(MSG_TESTMSG, { name : TMSGN_MEM });
     }
 
+    // clear highscore message
+    if (g_state != GS_VICTORY)
+    {
+        g_highscoreMsg = null;
+    }
+
+    // draw
+    if (!g_drawPaused)
+    {
+        draw();
+    }
+
+    // reset input
+    g_clickX = -1;
+    g_clickY = -1;
+    g_keyLeft = false;
+    g_keyUp = false;
+    g_keyRight = false;
+    g_keyDown = false;
+    if (g_selectEast > 0) --g_selectEast;
+    if (g_selectWest > 0) --g_selectWest;
+    if (g_selectSouth > 0) --g_selectSouth;
+    if (g_selectNorth > 0) --g_selectNorth;
+    
+    // check if server is still online
+    serverDownCheck(time);
+
+    // stats
+    updateStats(dt);
+
+    // tail hint
+    updateTailHint(time);
+
+    g_lastTime = time;
+}
+
+function updateStats(_dt)
+{
+    // mandatory
+    if (g_playerCountElement)
+    {
+        if (g_totalPlayerCount == 0)
+        {
+            g_playerCountElement.innerHTML = "&#x2014;";
+        }
+        else
+        {
+            g_playerCountElement.innerHTML = g_activePlayerCount + " <small>/ " + g_totalPlayerCount + "</small>";
+            if (g_clientState == CS_ACTIVE)
+            {
+                document.title = g_initialTitle;
+            }
+            else
+            {
+                document.title = "[" + g_activePlayerCount + "/" + g_totalPlayerCount + "] " + g_initialTitle;
+            }
+        }
+    }
+    if (g_numLeftElement)
+    {
+        if (g_opinion)
+        {
+            g_numLeftElement.innerHTML = g_opinion.numLeft;
+        }
+    }
+    if (g_numForwardElement)
+    {
+        if (g_opinion)
+        {
+            g_numForwardElement.innerHTML = g_opinion.numForward;
+        }
+    }
+    if (g_numRightElement)
+    {
+        if (g_opinion)
+        {
+            g_numRightElement.innerHTML = g_opinion.numRight;
+        }
+    }
+    if (g_scoreElement)
+    {
+        if (g_state == GS_PLAYING || g_state == GS_VICTORY)
+        {
+            g_scoreElement.innerHTML = g_score;
+        }
+        else
+        {
+            g_scoreElement.innerHTML = "&#x2014;";
+        }
+    }
+    if (g_bestEverElement)
+    {
+        g_bestEverElement.innerHTML = g_highscores.bestEver>0 ? g_highscores.bestEver : "&#x2014;";
+    }
+    if (g_weeksBestElement)
+    {
+        g_weeksBestElement.innerHTML = g_highscores.weeksBest>0 ? g_highscores.weeksBest : "&#x2014;";
+    }
+    if (g_todaysBestElement)
+    {
+        g_todaysBestElement.innerHTML = g_highscores.todaysBest>0 ? g_highscores.todaysBest : "&#x2014;";
+    }
+
+    // optional (test)
+    if (g_clientStateElement)
+    {
+        g_clientStateElement.innerHTML = g_clientState;
+    }
+    if (g_moveElement)
+    {
+        g_moveElement.innerHTML = g_move;
+    }
+    if (g_fpsElement)
+    {
+        g_fpsElement.innerHTML = Math.floor(1000.0 / _dt);
+    }
+}
+
+function updateTailHint(_time)
+{
+    if (!g_tailHintTriggered)
+    {
+        if (g_snake.length >= TAIL_HINT_TRIGGER)
+        {
+            g_tailHintTriggered = true;
+            g_tailHintStartTime = _time;
+            g_tailHint = true;
+            g_tailHintSwitch = true;
+            g_tailHintSwitchTime = _time;
+        }
+    }
+    else if (g_tailHint)
+    {
+        var dt = _time - g_tailHintStartTime;
+        if (dt > TAIL_HINT_TIME)
+        {
+            g_tailHintStartTime = null;
+            g_tailHint = false;
+            g_tailHintSwitch = false;
+            g_tailHintSwitchTime = null;
+        }
+    }
+}
+
+// draw
+function draw()
+{
     // clear canvas
     //g_context.fillStyle = "#000000";
     //g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -947,6 +1095,7 @@ function update()
         }
 
         // mouse hover
+        // Pokki Requirement: Hover states
         var hover = -1;
         if (g_mouseX != -1 && g_mouseY != -1)
         {
@@ -1336,12 +1485,6 @@ function update()
         }
     }
     
-    // clear highscore message
-    if (g_state != GS_VICTORY)
-    {
-        g_highscoreMsg = null;
-    }
-
     // draw overlays
     if (g_state == GS_VICTORY)
     {
@@ -1473,140 +1616,7 @@ function update()
     else
     {
         hideVictoryTweet();
-    }
-
-    // reset input
-    g_clickX = -1;
-    g_clickY = -1;
-    g_keyLeft = false;
-    g_keyUp = false;
-    g_keyRight = false;
-    g_keyDown = false;
-    if (g_selectEast > 0) --g_selectEast;
-    if (g_selectWest > 0) --g_selectWest;
-    if (g_selectSouth > 0) --g_selectSouth;
-    if (g_selectNorth > 0) --g_selectNorth;
-    
-    // check if server is still online
-    serverDownCheck(time);
-
-    // stats
-    updateStats(dt);
-
-    // tail hint
-    updateTailHint(time);
-
-    g_lastTime = time;
-    
-    g_updating = false;
-}
-
-function updateStats(_dt)
-{
-    // mandatory
-    if (g_playerCountElement)
-    {
-        if (g_totalPlayerCount == 0)
-        {
-            g_playerCountElement.innerHTML = "&#x2014;";
-        }
-        else
-        {
-            g_playerCountElement.innerHTML = g_activePlayerCount + " <small>/ " + g_totalPlayerCount + "</small>";
-            if (g_clientState == CS_ACTIVE)
-            {
-                document.title = g_initialTitle;
-            }
-            else
-            {
-                document.title = "[" + g_activePlayerCount + "/" + g_totalPlayerCount + "] " + g_initialTitle;
-            }
-        }
-    }
-    if (g_numLeftElement)
-    {
-        if (g_opinion)
-        {
-            g_numLeftElement.innerHTML = g_opinion.numLeft;
-        }
-    }
-    if (g_numForwardElement)
-    {
-        if (g_opinion)
-        {
-            g_numForwardElement.innerHTML = g_opinion.numForward;
-        }
-    }
-    if (g_numRightElement)
-    {
-        if (g_opinion)
-        {
-            g_numRightElement.innerHTML = g_opinion.numRight;
-        }
-    }
-    if (g_scoreElement)
-    {
-        if (g_state == GS_PLAYING || g_state == GS_VICTORY)
-        {
-            g_scoreElement.innerHTML = g_score;
-        }
-        else
-        {
-            g_scoreElement.innerHTML = "&#x2014;";
-        }
-    }
-    if (g_bestEverElement)
-    {
-        g_bestEverElement.innerHTML = g_highscores.bestEver>0 ? g_highscores.bestEver : "&#x2014;";
-    }
-    if (g_weeksBestElement)
-    {
-        g_weeksBestElement.innerHTML = g_highscores.weeksBest>0 ? g_highscores.weeksBest : "&#x2014;";
-    }
-    if (g_todaysBestElement)
-    {
-        g_todaysBestElement.innerHTML = g_highscores.todaysBest>0 ? g_highscores.todaysBest : "&#x2014;";
-    }
-
-    // optional (test)
-    if (g_clientStateElement)
-    {
-        g_clientStateElement.innerHTML = g_clientState;
-    }
-    if (g_moveElement)
-    {
-        g_moveElement.innerHTML = g_move;
-    }
-    if (g_fpsElement)
-    {
-        g_fpsElement.innerHTML = Math.floor(1000.0 / _dt);
-    }
-}
-
-function updateTailHint(_time)
-{
-    if (!g_tailHintTriggered)
-    {
-        if (g_snake.length >= TAIL_HINT_TRIGGER)
-        {
-            g_tailHintTriggered = true;
-            g_tailHintStartTime = _time;
-            g_tailHint = true;
-            g_tailHintSwitch = true;
-            g_tailHintSwitchTime = _time;
-        }
-    }
-    else if (g_tailHint)
-    {
-        var dt = _time - g_tailHintStartTime;
-        if (dt > TAIL_HINT_TIME)
-        {
-            g_tailHintStartTime = null;
-            g_tailHint = false;
-            g_tailHintSwitch = false;
-            g_tailHintSwitchTime = null;
-        }
-    }
+    }    
 }
 
 // detect idle client
@@ -1973,6 +1983,8 @@ function pokkiLinkClick(_href)
         log("WARNING: called pokkiLinkClick but I'm no Pokki, thanks.");
         return;
     }
+    
+    // Pokki Requirement: External links
     pokki.openURLInDefaultBrowser(_href);    
 }
 function pokkiShowing()
@@ -1982,7 +1994,10 @@ function pokkiShowing()
         log("WARNING: called pokkiShowing but I'm no Pokki, thanks.");
         return;
     }
-    // nothing ATM
+    
+    // (re)start drawing
+    // Pokki Requirement: Pausing computationally intensive tasks
+    g_drawPaused = false;
 }
 function pokkiShown()
 {
@@ -1991,7 +2006,8 @@ function pokkiShown()
         log("WARNING: called pokkiShown but I'm no Pokki, thanks.");
         return;
     }
-    // awaken
+    
+    // awaken if was sleeping
     if (g_clientState == CS_SLEEP)
     {
         requestBackPing();
@@ -2004,7 +2020,10 @@ function pokkiHidden()
         log("WARNING: called pokkiHidden but I'm no Pokki, thanks.");
         return;
     }
-    // nothing ATM
+    
+    // stop drawing
+    // Pokki Requirement: Pausing computationally intensive tasks
+    g_drawPaused = true;
 }
 function pokkiUnload()
 {
@@ -2013,6 +2032,8 @@ function pokkiUnload()
         log("WARNING: called pokkiUnload but I'm no Pokki, thanks.");
         return;
     }
+    
+    // disconnect when Pokki is unloaded
     if (g_socket)
     {
         g_socket.disconnect();

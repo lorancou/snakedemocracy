@@ -18,12 +18,10 @@ var SnakeDemocracyApp = function()
     // kick off what needs to be done when the popup is shown
     this.onPopupShown = function()
     {
-        // animate wrapper
-        // NB: this seems unecessary, but keeping it here just in case
-        // -> to re-enable it, don't forget to set wrapper initial opacity to 0
-        /*var wrapper = document.getElementById('wrapper');
+        // fade in wrapper
+        var wrapper = document.getElementById('wrapper');
         wrapper.classList.add('show');
-        unloaded.remove();*/
+        unloaded.remove();
 
         pokkiShown();
     };
@@ -32,7 +30,7 @@ var SnakeDemocracyApp = function()
     this.onPopupHidden = function()
     {
         // reset wrapper animation
-        //wrapper.classList.remove('show');
+        wrapper.classList.remove('show');
         
         pokkiHidden();
     };
