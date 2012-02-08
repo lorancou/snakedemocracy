@@ -18,6 +18,7 @@ var CS_ACTIVE = 1;
 var CS_SPECTATOR = 2;
 var CS_SLEEP = 3;
 var CS_IDLE = 4;
+var CS_DOWN = 5;
 
 // opinion
 var OP_LEFT = 1;
@@ -32,7 +33,7 @@ var NORTH = 3;
 
 // message types
 var MSG_CONNECT = "connect"; // unfortunately, can't be shorter
-var MSG_DISCONNECT = "disconnect"; // ibis.
+var MSG_DISCONNECT = "disconnect"; // ibid.
 var MSG_ERROR = "error"; // ibid.
 var MSG_PING = "p";
 var MSG_MESSAGE = "m";

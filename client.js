@@ -70,7 +70,6 @@ var g_tailHintStartTime = null;
 var g_tailHint = false;
 var g_tailHintSwitch = false;
 var g_tailHintSwitchTime = null;
-var g_stopCallback = null;
 var g_backPingRequested = false;
 
 // assets
@@ -371,6 +370,8 @@ function cancelUpdates()
 
 function stop(_callback, _disconnect)
 {
+    g_stopped = true;
+
     // disconnect if requested
     if (_disconnect && (typeof io !== 'undefined') && g_socket)
     {
@@ -383,12 +384,12 @@ function stop(_callback, _disconnect)
     hideVictoryTweet();
     cancelUpdates();
     _callback();
-    g_stopCallback = null;
-    g_stopped = true;
 }
 
 function drawServerDown()
 {
+    g_clientState = CS_DOWN;
+    
     // clear canvas
     g_context.fillStyle = "#FFFFFF";
     g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -403,8 +404,8 @@ function drawServerDown()
     }
     
     // message
-    log("Server down :/");
-    drawMessage("The server seems to be down... Try to refresh your page in a moment.", false);
+    log("Disconnected :(");
+    drawMessage("Connection with the server lost... Try to refresh your page in a moment.", false);
 }
 
 function drawServerUpgrade()
@@ -487,6 +488,15 @@ function connect()
         {
             log("Connected!");
             processConnect();
+        }
+    });    
+
+    // connection
+    g_socket.on(MSG_DISCONNECT, function ()
+    {
+        if (!g_down)
+        {
+            stop(drawServerDown, false);
         }
     });    
 
@@ -837,16 +847,6 @@ function update()
     {
         // stop didn't work properly
         log("WARNING: stopped but still updating, stopping now!");
-        return;
-    }
-    if (g_stopCallback)
-    {
-        // delayed stop
-        log("Stopping now!");
-        hideVictoryTweet();
-        cancelUpdates();
-        g_stopCallback();
-        g_stopCallback = null;
         return;
     }
     if (g_clientState == CS_IDLE)

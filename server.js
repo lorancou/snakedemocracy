@@ -465,6 +465,7 @@ function planNextMove()
             {
                 console.vlog("Client timeout: ", s.handshake.address.address);
                 s.disconnect();
+                s.clientState = CS_DOWN;
             }
         }
         
