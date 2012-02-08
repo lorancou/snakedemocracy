@@ -3,7 +3,16 @@ var pro = require("uglify-js").uglify;
 var fs = require("fs");
 
 // do not mangle this
-var g_except = [ "init", "appleTweetClick", "pokkiLinkClick" ];
+var g_except =
+[
+    "init",
+    "appleTweetClick",
+    "pokkiLinkClick",
+    "pokkiShowing",
+    "pokkiShown",
+    "pokkiHidden",
+    "pokkiUnload"
+];
 
 var orig_code = fs.readFileSync("build/client.temp.js")+"";
 var ast = jsp.parse(orig_code); // parse code and get the initial AST

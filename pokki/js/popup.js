@@ -7,7 +7,7 @@ var SD = false;
 // wait for external resources (like images) to be loaded
 function load() {
 	console.log('Popup page is loaded.');
-	SD = new App();
+	SD = new SnakeDemocracyApp();
 }
 window.addEventListener('DOMContentLoaded', load, false);
 

@@ -16,7 +16,6 @@ Common
 Publishing
  - Pokki
   * cf. http://developers.pokki.com/docs/review.php
-  * Idle when minimized (cf. Idle detect)
   * Badges... new player? New game started? new apple?
   * Hower state on directional arrows + change mouse pointer
   * Limit user select (user-select:none) + don't change cursor on text!

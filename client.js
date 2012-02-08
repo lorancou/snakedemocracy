@@ -1528,6 +1528,13 @@ function idleCheck()
     var dt = time - g_lastTime;
     if (dt > IDLE_THRESHOLD)
     {
+        if (g_pokki)
+        {
+            // NB: at time of this writing, hidden Pokkis still call they're
+            // requestAnimationFrame'ed callbacks when hidden, so they never go
+            // idle. Putting a warning in case this ever changes.
+            log("WARNING: Pokki went idle. This could cause trouble.");
+        }
         g_socket.emit(MSG_IDLE);
     }
     else
@@ -1670,6 +1677,9 @@ function vote(_value)
         //log("vote: " + _value);
         g_socket.emit(MSG_MESSAGE, { name : MSGN_VOTE, move : g_move, value : _value });
         ++g_votesThisMove;
+
+        // assume a vote sets us active on server
+        g_clientState = CS_ACTIVE;
     }
 }
 
@@ -1856,6 +1866,7 @@ function appleTweetClick()
     return true;
 }
 
+// Pokki wrapper
 function pokkiLinkClick(_href)
 {
     if (!g_pokki)
@@ -1865,3 +1876,47 @@ function pokkiLinkClick(_href)
     }
     pokki.openURLInDefaultBrowser(_href);    
 }
+function pokkiShowing()
+{
+    if (!g_pokki)
+    {
+        log("WARNING: called pokkiShowing but I'm no Pokki, thanks.");
+        return;
+    }
+    // nothing ATM
+}
+function pokkiShown()
+{
+    if (!g_pokki)
+    {
+        log("WARNING: called pokkiShown but I'm no Pokki, thanks.");
+        return;
+    }
+    // awaken
+    if (g_clientState == CS_SLEEP)
+    {
+        requestBackPing();
+    }
+}
+function pokkiHidden()
+{
+    if (!g_pokki)
+    {
+        log("WARNING: called pokkiHidden but I'm no Pokki, thanks.");
+        return;
+    }
+    // nothing ATM
+}
+function pokkiUnload()
+{
+    if (!g_pokki)
+    {
+        log("WARNING: called pokkiUnload but I'm no Pokki, thanks.");
+        return;
+    }
+    if (g_socket)
+    {
+        g_socket.disconnect();
+    }
+}
+
