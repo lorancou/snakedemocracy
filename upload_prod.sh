@@ -19,12 +19,9 @@ git push github master
 ./build.sh
 
 # SFTP
-for i in $(seq 0 2) ; do
+for i in $(seq 1 2) ; do
 
-    if [ $i -eq 0 ]; then
-        SUBDIR="www"
-        VHOST="snakedemocracy.com"
-    elif [ $i -eq 1 ]; then
+    if [ $i -eq 1 ]; then
         SUBDIR="www"
         VHOST="www.snakedemocracy.com"
     elif [ $i -eq 2 ]; then
@@ -41,5 +38,5 @@ done
 # Git pull, repush
 cd ../snakedemocracy.heroku
 ./publish.sh
-cd ../snakedemocracy.no.de
+cd ../snakedemocracy2.no.de
 ./publish.sh
