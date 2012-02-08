@@ -54,3 +54,11 @@ Unported License (CC BY-NC 3.0).
 
 You should have received a copy of it with this program (LICENSE_CC file). If
 not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
+
+---------------------------------------------------------------------------------
+  Known issues
+---------------------------------------------------------------------------------
+
+There are some paranoid security software around that prevent socket.io from
+working correctly (like this one: http://housecall.trendmicro.com/). There's
+nothing that can be done about this.

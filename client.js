@@ -165,8 +165,10 @@ window.requestAnimFrame = (function() {
  * https://cvs.khronos.org/svn/repos/registry/trunk/public/webgl/sdk/demos/common/webgl-utils.js
  */
 // NB: There's a good chance this doesn't work with Firefox (as of this writing)
+// NB2: Yeah, just fixed so not yet in release version (10.0):
+// -> https://bugzilla.mozilla.org/show_bug.cgi?id=647518
 window.cancelRequestAnimFrame = (function() {
-  return window.cancelCancelRequestAnimationFrame ||
+  return window.cancelRequestAnimationFrame ||
          window.webkitCancelRequestAnimationFrame ||
          window.mozCancelRequestAnimationFrame ||
          window.oCancelRequestAnimationFrame ||

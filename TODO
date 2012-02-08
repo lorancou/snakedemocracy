@@ -3,9 +3,6 @@
   TODO list
 ---------------------------------------------------------------------------------
 
-Client:
- - Fix for paranoid security software: this: http://housecall.trendmicro.com/
- 
 Server
  - Kick cheaters?
  - Bots if too few players?
@@ -14,6 +11,7 @@ Server
 Common
  - Better vec2, ready for socket transport
  - Compress those messages (BiSON)
+ - Facebook like button bring privileges
  
 Publishing
  - Pokki
