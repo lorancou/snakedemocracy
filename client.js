@@ -3,16 +3,14 @@ var CANVAS_WIDTH = 480;
 var CANVAS_HEIGHT = 480;
 var SPRITE_SIZE = 24;
 var SELECT_FRAMES = 3;
+var CONNECT_TIMEOUT = 30000; // in ms TODO
 var SERVER_DOWN_THRESHOLD = 30000; // in ms
-var SPECTATOR_THRESHOLD = 5; // in snake moves
-var SLEEP_THRESHOLD = 30000; // in ms
-var IDLE_CHECK_INTERVAL = 1000; // in ms
 var IDLE_CHECK_INTERVAL = 1000; // in ms
 var IDLE_THRESHOLD = 10000; // in ms
 var TAIL_HINT_TRIGGER = 13; // in snake length
 var TAIL_HINT_TIME = 5000; // in ms
 var TAIL_HINT_SWITCH_TIME = 250; // in ms
-var MAX_SOCKET_ERROR = 5;
+var MAX_SOCKET_ERROR = 3;
 
 // global variables
 var g_serverAddress = null;
@@ -66,13 +64,15 @@ var g_socketErrorCount = 0;
 var g_lastMessageTime = null;
 var g_updating = false;
 var g_down = false;
+var g_stopped = false;
 var g_highscores = { bestEver: 0, weeksBest: 0, todaysBest: 0 };
 var g_tailHintTriggered = false;
 var g_tailHintStartTime = null;
 var g_tailHint = false;
 var g_tailHintSwitch = false;
 var g_tailHintSwitchTime = null;
-var g_lastActivityTime = null;
+var g_stopCallback = null;
+var g_backPingRequested = false;
 
 // assets
 var g_serverupgradePath = "files/serverupgrade.png";
@@ -166,6 +166,7 @@ window.requestAnimFrame = (function() {
  * Copyright 2010, Google Inc.
  * https://cvs.khronos.org/svn/repos/registry/trunk/public/webgl/sdk/demos/common/webgl-utils.js
  */
+// NB: There's a good chance this doesn't work with Firefox (as of this writing)
 window.cancelRequestAnimFrame = (function() {
   return window.cancelCancelRequestAnimationFrame ||
          window.webkitCancelRequestAnimationFrame ||
@@ -216,65 +217,6 @@ function queueAssets(_mgr)
     _mgr.queueDownload(g_failPath);
     _mgr.queueDownload(g_sleepPath);
     _mgr.queueDownload(g_tailHintPath);
-}
-
-function setClientState(_newState)
-{
-    if (_newState == g_clientState)
-    {
-        return;
-    }
-
-    /*switch (_newState)
-    {
-    case CS_ACTIVE: log("ACTIVE"); break;
-    case CS_SPECTATOR: log("SPECTATOR"); break;
-    case CS_SLEEP: log("SLEEP"); break;
-    case CS_IDLE: log("IDLE"); break;
-    }*/
-    
-    // notify server about idle clients (spectators are detected on the
-    // server to avoid extra traffic)
-    if (g_socket)
-    {
-        if (_newState == CS_IDLE)
-        {
-            log("Idle.");
-        }
-        else if (_newState == CS_SLEEP)
-        {
-            sleep();
-        }
-        else if (g_clientState == CS_SLEEP)
-        {
-            log("Back from sleep!");
-
-            g_lastMessageTime = new Date().getTime();
-            g_lastActivityTime = new Date().getTime();
-
-            g_context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); // show loading = clear canvas
-            drawMessage("Reconnecting to polling station... please stay patient, citizen.", true);
-        }
-        else if (g_clientState == CS_IDLE)
-        {
-            log("Back from idle!");
-            cancelUpdates(); // wait for ping back before updating again
-
-            g_lastMessageTime = new Date().getTime();
-            g_lastActivityTime = new Date().getTime();
-
-            g_context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); // show loading = clear canvas
-            drawMessage("Reconnecting to polling station... please stay patient, citizen.", true);
-        }
-
-        // server infers active players from vote messages
-        if (_newState != CS_ACTIVE)
-        {
-            g_socket.emit(MSG_MESSAGE, { name: MSGN_CLIENTSTATE, state: _newState});
-        }
-    }
-
-    g_clientState = _newState;
 }
 
 // VICTORY TWEET!
@@ -354,8 +296,6 @@ function init(_serverAddress, _test)
         g_serverAddress = _serverAddress;
     }
     
-    setClientState(CS_ACTIVE);
-    
     // get canvas element
     g_canvas =  document.getElementById("canvas");
     if (!g_canvas)
@@ -428,26 +368,32 @@ function cancelUpdates()
         clearTimeout(g_idleCheckTimeoutHandle);
         g_idleCheckTimeoutHandle = null;
     }
-    
-    g_updating = false;
 }
 
-function serverDown()
+function stop(_callback, _disconnect)
 {
-    var wasUpdating = g_updating;
-    
-    // exit
-    hideVictoryTweet();
-    cancelUpdates();
-    if (!(typeof io === 'undefined') && g_socket)
+    // disconnect if requested
+    if (_disconnect && (typeof io !== 'undefined') && g_socket)
     {
+        log("Disconnect");
         g_socket.disconnect();
     }
-    g_down = true;
     
-    if (!wasUpdating)
+    if (g_updating)
     {
-        drawServerDown();
+        // will stop on next update
+        log("Stopping delayed...");
+        g_stopCallback = _callback;
+    }
+    else
+    {
+        // stop
+        log("Stop!");
+        hideVictoryTweet();
+        cancelUpdates();
+        _callback();
+        g_stopCallback = null;
+        g_stopped = true;
     }
 }
 
@@ -471,17 +417,8 @@ function drawServerDown()
     drawMessage("The server seems to be down... Try to refresh your page in a moment.", false);
 }
 
-function serverUpgrade()
+function drawServerUpgrade()
 {
-    // exit
-    hideVictoryTweet();
-    cancelUpdates();
-    if (!(typeof io === 'undefined') && g_socket)
-    {
-        g_socket.disconnect();
-    }
-    g_down = true;
-
     // clear canvas
     g_context.fillStyle = "#FFFFFF";
     g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -500,13 +437,32 @@ function serverUpgrade()
     drawMessage("The server was just upgraded. Refresh your page. If this doesn't work, try clearing your cache.", true);
 }
 
+function drawSleep()
+{
+    // clear canvas
+    g_context.fillStyle = "#FFFFFF";
+    g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // draw sleep image, if available
+    if (g_assets.cache[g_sleepPath])
+    {
+        g_context.drawImage(
+            g_assets.cache[g_sleepPath],
+            0, 0,
+            CANVAS_WIDTH, CANVAS_HEIGHT);
+    }
+    
+    // message
+    drawMessage("Sleeping. Move your mouse over the game, or press any key to reconnect with the server.", true);   
+}
+
 function connect()
 {
     // if io isn't defined, this means we didn't receive socker.io.js, so the server is down
     if (typeof io === 'undefined') // http://stackoverflow.com/questions/519145/how-can-i-check-whether-a-variable-is-defined-in-javascript
     {
         // quit
-        serverDown();
+        stop(drawServerDown, true);
         return;
     }
 
@@ -515,6 +471,7 @@ function connect()
 
     // connect to node.js server
     g_socket = io.connect(g_serverAddress);
+    g_connectTimeoutHandle = setTimeout(connectTimeout, CONNECT_TIMEOUT);
 
     // error
     g_socket.on(MSG_ERROR, function (reason)
@@ -528,7 +485,7 @@ function connect()
                 // quit
                 // NB: sometimes Firefox throws this then works anyways, so
                 // we're giving it some tolerance :/
-                serverDown();
+                stop(drawServerDown, true);
             }
         }
     });
@@ -554,9 +511,80 @@ function connect()
     });
 }
 
+// I'm back! send me the game state!
+function requestBackPing()
+{
+    if (g_backPingRequested)
+    {
+        return;
+    }
+    g_backPingRequested = true;
+    
+    // show loading = clear canvas
+    log("Reconnecting...");
+    g_context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    drawMessage("Reconnecting to polling station... please stay patient, citizen.", true);
+
+    g_socket.emit(MSG_BACK);
+}
+
+// take action depending on what state the server tells us we are
+function applyClientState(_newState)
+{
+    if (_newState == g_clientState)
+    {
+        return;
+    }
+
+    /*switch (_newState)
+    {
+    case CS_ACTIVE: log("ACTIVE"); break;
+    case CS_SPECTATOR: log("SPECTATOR"); break;
+    case CS_SLEEP: log("SLEEP"); break;
+    case CS_IDLE: log("IDLE"); break;
+    }*/
+
+    if (_newState == CS_SLEEP)
+    {
+        log("Sleeping...");
+        stop(drawSleep, false);
+    }
+    else if (_newState == CS_IDLE)
+    {
+        log("Idle...");
+        // don't stop, as the next call to update will request a back ping
+    }
+    else
+    {
+        if (g_clientState == CS_SLEEP || g_clientState == CS_IDLE)
+        {
+            log("Back!");
+        }
+
+        if (_newState == CS_ACTIVE) log("Active!");
+        else if (_newState == CS_SPECTATOR) log("Spectator.");
+    }
+
+    g_clientState = _newState;
+    g_lastMessageTime = new Date().getTime();
+}
+
+// connect timeout
+function connectTimeout()
+{
+    g_connectTimeoutHandle = null;
+    stop(drawServerDown, true);   
+}
+
 // connect
 function processConnect()
 {
+    if (g_connectTimeoutHandle)
+    {
+        clearTimeout(g_connectTimeoutHandle);
+        g_connectTimeoutHandle = null;
+    }
+
     // if not connected, plug the messages callbacks
     // NB: this has to be done only *one time* otherwise the callbacks get
     // called once per reconnection, which just brings weird, weird issues
@@ -568,6 +596,15 @@ function processConnect()
             if (!g_down)
             {
                 processMessage(_message)
+            }
+        });
+
+        // client state
+        g_socket.on(MSG_CLIENTSTATE, function (_newState)
+        {
+            if (!g_down)
+            {
+                applyClientState(_newState);
             }
         });
 
@@ -602,10 +639,14 @@ function logVec2Array(_name, _array)
 // ping, first message, inits the snake
 function processPing(_ping)
 {
+    // assume we (re)start active on server
+    g_clientState = CS_ACTIVE;
+    g_backPingRequested = false;
+
     // check revision
     if (!_ping.revision || _ping.revision != REVISION)
     {
-        serverUpgrade();
+        stop(drawServerUpgrade, true);
         return;
     }
     
@@ -641,9 +682,8 @@ function processPing(_ping)
     g_votesThisMove = 0;
     g_lastVoteMove = g_move;
     g_lastMessageTime = new Date().getTime();
-    g_lastActivityTime = new Date().getTime();
-    
-    g_updating = true;
+
+    g_stopped = false;
     
     update();
     idleCheck();
@@ -678,11 +718,11 @@ function mouseUp(e)
 {
     //log("mouseUp")
 
-    // record activity
-    g_lastActivityTime = new Date().getTime();
+    // awaken
     if (g_clientState == CS_SLEEP)
     {
-        setClientState(CS_SPECTATOR);
+        requestBackPing();
+        return;
     }
 
 	var button = null;
@@ -728,11 +768,11 @@ function mouseMove(e)
 {
     //log("mouseMove")
 
-    // record activity
-    g_lastActivityTime = new Date().getTime();
+    // awaken
     if (g_clientState == CS_SLEEP)
     {
-        setClientState(CS_SPECTATOR);
+        requestBackPing();
+        return;
     }
 }
 
@@ -744,11 +784,11 @@ function keyUp(e)
 {
     //log("keyUp")
 
-    // record activity
-    g_lastActivityTime = new Date().getTime();
+    // awaken
     if (g_clientState == CS_SLEEP)
     {
-        setClientState(CS_SPECTATOR);
+        requestBackPing();
+        return;
     }
 
     switch (e.keyCode)
@@ -803,24 +843,36 @@ function getScreenCoords(_coords, _middle)
 // client update
 function update()
 {
-    // plan next update
-    if (!g_down)
+    g_updating = true;
+    if (g_stopped)
     {
-        g_updateHandle = window.requestAnimFrame(update);
+        // stopped didn't work properly
+        log("WARNING: stopped but still updating, stopping now!");
+        g_updating = false;
+        return;
     }
-    else
+    if (g_stopCallback)
     {
-        drawServerDown();
+        // delayed stop
+        log("Stopping now!");
+        hideVictoryTweet();
+        cancelUpdates();
+        g_stopCallback();
+        g_stopCallback = null;
+        g_updating = false;
+        return;
+    }
+    if (g_clientState == CS_IDLE)
+    {
+        // yey! back with us
+        stop(requestBackPing, false);
+        g_updating = false;
         return;
     }
 
-    // yey! back with us, default to spectator
-    if (g_clientState == CS_IDLE)
-    {
-        setClientState(CS_SPECTATOR);
-        return;
-    }
-    
+    // plan next update
+    g_updateHandle = window.requestAnimFrame(update);
+
     var time = new Date().getTime();
     var dt = time - g_lastTime;
     
@@ -1328,12 +1380,6 @@ function update()
     if (g_selectSouth > 0) --g_selectSouth;
     if (g_selectNorth > 0) --g_selectNorth;
     
-    // check if not voting
-    spectatorCheck(time);
-    
-    // check if doing nothing for too long
-    sleepCheck(time);
-
     // check if server is still online
     serverDownCheck(time);
 
@@ -1344,6 +1390,8 @@ function update()
     updateTailHint(time);
 
     g_lastTime = time;
+    
+    g_updating = false;
 }
 
 function updateStats(_dt)
@@ -1353,7 +1401,7 @@ function updateStats(_dt)
     {
         if (g_totalPlayerCount == 0)
         {
-            g_playerCountElement.innerHTML = " :(";
+            g_playerCountElement.innerHTML = "&#x2014;";
         }
         else
         {
@@ -1362,7 +1410,7 @@ function updateStats(_dt)
             {
                 document.title = g_initialTitle;
             }
-            else if (g_clientState == CS_SPECTATOR)
+            else
             {
                 document.title = "[" + g_activePlayerCount + "/" + g_totalPlayerCount + "] " + g_initialTitle;
             }
@@ -1454,53 +1502,27 @@ function updateTailHint(_time)
     }
 }
 
-// detect spectator client
-// = no vote for too long
-function spectatorCheck(_time)
-{
-    if (g_clientState != CS_ACTIVE)
-    {
-        return;
-    }
-
-    var dmove = g_move - g_lastVoteMove;
-    if (dmove > SPECTATOR_THRESHOLD)
-    {
-        setClientState(CS_SPECTATOR);
-    }
-}
-
-// detect sleeping client
-// = no activity for too long
-function sleepCheck(_time)
-{
-    if (g_clientState != CS_SPECTATOR)
-    {
-        return;
-    }
-
-    var dt = _time - g_lastActivityTime;
-    if (dt > SLEEP_THRESHOLD)
-    {
-        setClientState(CS_SLEEP);
-    }
-}
-
 // detect idle client
 // = not updating for too long, works only with browsers with a version
 // requestAnimationFrame properly implemented
+// NB: if IDLE_THRESHOLD > SLEEP_THRESHOLD*MOVE_DELAY, idle will be inoperant as
+// the server will put us to sleep before we can go idle
 function idleCheck()
 {
-    if (!g_down)
+    if (g_down)
     {
-        g_idleCheckTimeoutHandle = setTimeout(idleCheck, IDLE_CHECK_INTERVAL);
+        return;
     }
-
+    
     var time = new Date().getTime();
     var dt = time - g_lastTime;
     if (dt > IDLE_THRESHOLD)
     {
-        setClientState(CS_IDLE);
+        g_socket.emit(MSG_IDLE);
+    }
+    else
+    {
+        g_idleCheckTimeoutHandle = setTimeout(idleCheck, IDLE_CHECK_INTERVAL);
     }
 }
 
@@ -1521,7 +1543,7 @@ function serverDownCheck(_time)
     if (dmsg > threshold)
     {
         // quit
-        serverDown();
+        stop(drawServerDown, true);
     }
 }
 
@@ -1633,7 +1655,6 @@ function submitVictoryDelay()
 function vote(_value)
 {
     g_lastVoteMove = g_move;
-    setClientState(CS_ACTIVE);
     if (g_state == GS_PLAYING && g_votesThisMove < MAX_VOTES_PER_MOVE)
     {
         //log("vote: " + _value);
@@ -1653,7 +1674,7 @@ function processMessage(_message)
     g_totalPlayerCount = _message.totalPlayerCount;
     g_activePlayerCount = _message.activePlayerCount;
     g_score = _message.score;
-
+    
     if (_message.name == MSGN_OPINION)
     {
         g_opinion = {};
@@ -1766,7 +1787,9 @@ function processMessage(_message)
         }
         else
         {
-            document.title = "[" + _message.activePlayerCount + "/" + _message.totalPlayerCount + "] " + g_initialTitle;
+            g_activePlayerCount = _message.activePlayerCount;
+            g_totalPlayerCount = _message.totalPlayerCount;
+            document.title = "[" + g_activePlayerCount + "/" + g_totalPlayerCount + "] " + g_initialTitle;
         }
     }
     else
@@ -1821,28 +1844,4 @@ function appleTweetClick()
     src += "&text=Give me an apple!"
     window.open(src,"","width=550,height=450");
     return true;
-}
-
-function sleep()
-{
-    // exit
-    hideVictoryTweet();
-    cancelUpdates();
-
-    // clear canvas
-    g_context.fillStyle = "#FFFFFF";
-    g_context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-    // draw sleep image, if available
-    if (g_assets.cache[g_sleepPath])
-    {
-        g_context.drawImage(
-            g_assets.cache[g_sleepPath],
-            0, 0,
-            CANVAS_WIDTH, CANVAS_HEIGHT);
-    }
-    
-    // message
-    log("Sleep.");
-    drawMessage("Sleeping. Move your mouse over the game, or press any key to reconnect with the server.", true);   
 }

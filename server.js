@@ -70,6 +70,9 @@ var g_highscores = { bestEver: 0, weeksBest: 0, todaysBest: 0 };
 // global constants
 var STARTUP_APPLE_COUNT = 3;
 var MEM_SEPPUKU = 300; // MB, set to 0 to disable
+var SPECTATOR_THRESHOLD = 10; // in snake moves
+var SLEEP_THRESHOLD = 100; // in snake moves
+var CLIENT_TIMEOUT = 1000; // in snake moves
 
 //app.listen(80);
 var port = process.env.PORT || 3000;
@@ -245,12 +248,26 @@ function setClientState(_socket, _newState)
     {
         return;
     }
-
+    
+    if (_newState == CS_SPECTATOR)
+    {
+        _socket.emit(MSG_CLIENTSTATE, CS_SPECTATOR);
+    }
+    else if (_newState == CS_SLEEP)
+    {
+        _socket.emit(MSG_CLIENTSTATE, CS_SLEEP);
+    }
+    else if (_newState == CS_IDLE)
+    {
+        _socket.emit(MSG_CLIENTSTATE, CS_IDLE);
+    }
+    
     if ((_socket.clientState == CS_IDLE && _newState != CS_SLEEP) ||
         (_socket.clientState == CS_SLEEP && _newState != CS_IDLE))
     {
-        // back ping
+        // back ping, the client will set itself as active when received
         _socket.emit(MSG_PING, { revision: REVISION, state: g_state, score: g_score, snake: g_snake, apples: g_apples, move: g_move, highscores: g_highscores });
+        _socket.lastVoteMove = g_move;
     }
     
     _socket.clientState = _newState;
@@ -271,9 +288,7 @@ io.sockets.on("connection", function (socket)
         socket.emit(MSG_PING, { revision: REVISION, state: g_state, score: g_score, snake: g_snake, apples: g_apples, move: g_move, highscores: g_highscores });
         socket.clientState = CS_ACTIVE;
         socket.votesThisMove = 0;
-        socket.lastVoteMove = 0;
-        socket.lastIdleTime = 0;
-        socket.lastSleepTime = 0;
+        socket.lastVoteMove = g_move;
     }
 
     // receive client message
@@ -291,27 +306,22 @@ io.sockets.on("connection", function (socket)
                 processVote(socket, _message.value);
             }
         }
-        else if (_message.name == MSGN_CLIENTSTATE)
-        {
-            if (socket.clientState == _message.state)
-            {
-                reportAbuse(address, _message);
-            }
-
-            switch (_message.state)
-            {
-            case CS_ACTIVE: reportAbuse(address, _message); break; // this should not happen
-            case CS_SPECTATOR: console.vlog("SPECTATOR: ", address); break;
-            case CS_SLEEP: console.vlog("SLEEP: ", address); break;
-            case CS_IDLE: console.vlog("IDLE: ", address); break;
-            default: console.vlog("ERROR: unknown client state: ", _message.state, " ", address);
-            }
-            setClientState(socket, _message.state);
-        }
         else
         {
             reportAbuse(address, _message);
         }
+    });
+
+    // idle/back
+    socket.on(MSG_IDLE, function (_message)
+    {
+        console.vlog("Client idle: ", address);
+        setClientState(socket, CS_IDLE);
+    });
+    socket.on(MSG_BACK, function (_message)
+    {
+        console.vlog("Client back: ", address);
+        setClientState(socket, CS_ACTIVE);
     });
 
     // those messages are processed with a TEST server only -- you could
@@ -431,6 +441,33 @@ function planNextMove()
         var s = g_sockets[i];
         s.votesThisMove = 0;
         
+        // spectator check
+        var dmove = g_move - s.lastVoteMove;
+        if (s.clientState == CS_ACTIVE)
+        {
+            if (dmove > SPECTATOR_THRESHOLD)
+            {
+                console.vlog("Client spectates: ", s.handshake.address.address);
+                setClientState(s, CS_SPECTATOR);
+            }
+        }
+        else if (s.clientState == CS_SPECTATOR)
+        {
+            if (dmove > SLEEP_THRESHOLD)
+            {
+                console.vlog("Client sleeps: ", s.handshake.address.address);
+                setClientState(s, CS_SLEEP);
+            }
+        }
+        else if (s.clientState == CS_SLEEP || s.clientState == CS_IDLE)
+        {
+            if (dmove > CLIENT_TIMEOUT)
+            {
+                console.vlog("Client timeout: ", s.handshake.address.address);
+                s.disconnect();
+            }
+        }
+        
         // count active players & spectators
         if (s.clientState == CS_ACTIVE) ++g_activePlayerCount;
         else if (s.clientState == CS_SPECTATOR) ++g_spectatorCount;
@@ -462,13 +499,6 @@ function planNextTurn(_victory)
     {
         clearPauseTimeout();
         g_pauseTimeoutHandle = setTimeout(startTurn, delay);
-    }
-
-    // clear vote markers
-    for (var i=0; i<g_sockets.length; i++)
-    {
-        var s = g_sockets[i];
-        s.lastVoteMove = 0;
     }
 }
 
@@ -727,14 +757,14 @@ function move()
         // broadcast grow/move
         if (previousPendingGrow > 0)
         {
-            console.vlog("Grow! Current score: " + g_score);
+            console.vlog("Grow " + g_move + ". Current score: " + g_score);
             --g_pendingGrow;
             var message = { name : MSGN_GROW, move : g_move, value : newHead, pickup: pickup, newApples: newApples };
             broadcast(message);
         }
         else
         {
-            console.vlog("Move! Current score: " + g_score);
+            console.vlog("Move "+ g_move + ". Current score: " + g_score);
             var message = { name : MSGN_MOVE, move : g_move, value : newHead, pickup: pickup, newApples: newApples };
             broadcast(message);
         }
@@ -1051,7 +1081,16 @@ function initHighscores()
         {
             //console.vlog("Highscores: ", pageData);
             console.vlog("Page data: ", pageData);
-            g_highscores = JSON.parse(pageData);
+            
+            // JSON.parse throws a SyntaxError when passed invalid JSON
+            try
+            {
+                g_highscores = JSON.parse(pageData);
+            }
+            catch (e)
+            {
+                console.vlog("ERROR: invalid highscores data");
+            }
             console.vlog("Best score ever: ", g_highscores.bestEver);
             console.vlog("Week's best: ", g_highscores.weeksBest);
             console.vlog("Today's best: ", g_highscores.todaysBest);

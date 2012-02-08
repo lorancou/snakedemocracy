@@ -5,7 +5,6 @@
 
 Client:
  - Fix for paranoid security software: this: http://housecall.trendmicro.com/
- - Connection time out
  
 Server
  - Kick cheaters?

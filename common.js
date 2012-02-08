@@ -1,4 +1,4 @@
-var REVISION = 19;
+var REVISION = 20;
 var AREA_SIZE = 20;
 var MAX_VOTES_PER_MOVE = 10;
 var MOVE_DELAY = 2000;
@@ -37,6 +37,9 @@ var MSG_ERROR = "error"; // ibid.
 var MSG_PING = "p";
 var MSG_MESSAGE = "m";
 var MSG_TESTMSG = "t";
+var MSG_IDLE = "i";
+var MSG_BACK = "b";
+var MSG_CLIENTSTATE = "c";
 
 // message names
 var MSGN_VOTE = 1;
@@ -45,7 +48,6 @@ var MSGN_GROW = 3;
 var MSGN_MOVE = 4;
 var MSGN_NEWSTATE = 5;
 var MSGN_LIGHTBROADCAST = 6;
-var MSGN_CLIENTSTATE = 7;
 
 // test/dev message names
 var TMSGN_MEM = 1;
