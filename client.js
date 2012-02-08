@@ -1855,3 +1855,13 @@ function appleTweetClick()
     window.open(src,"","width=550,height=450");
     return true;
 }
+
+function pokkiLinkClick(_href)
+{
+    if (!g_pokki)
+    {
+        log("WARNING: called pokkiLinkClick but I'm no Pokki, thanks.");
+        return;
+    }
+    pokki.openURLInDefaultBrowser(_href);    
+}
