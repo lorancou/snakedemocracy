@@ -1029,23 +1029,33 @@ function initTwitter()
 
     // start receiving tweets
     var buf = "";
-    var req = https.request(options, function(res) {
-        //  console.log("STATUS: " + res.statusCode);
-        //  console.log("HEADERS: " + JSON.stringify(res.headers));
+    var req = https.request(options, function(res)
+    {
+        console.vlog("Twitter request status: " + res.statusCode);
+        console.vlog("Twitter request headers: " + JSON.stringify(res.headers));
+        
         res.setEncoding("utf8");
-        res.on("data", function (chunk) {
-        buf += chunk;
-        var a = buf.split("\r\n");
-        buf = a[a.length-1];
+        res.on("data", function (chunk)
+        {
+            buf += chunk;
+            var a = buf.split("\r\n");
+            buf = a[a.length-1];
 
-        for(var i=0; i < a.length-1; i++) {
-            if (a[i] != "") {
-                var json = JSON.parse(a[i]);
-                if (json.user && json.text) {
-                    processTweet(json.user.screen_name, json.text);
+            for(var i=0; i < a.length-1; i++)
+            {
+                if (a[i] != "")
+                {
+                    try
+                    {
+                        var json = JSON.parse(a[i]);
+                        processTweet(json.user.screen_name, json.text);
+                    }
+                    catch (e)
+                    {
+                        console.vlog("ERROR: invalid twitter data");
+                    }
                 }
             }
-        }
         });
     });
     req.write("track=#snakedemocracy\n\n");
@@ -1087,14 +1097,14 @@ function initHighscores()
             try
             {
                 g_highscores = JSON.parse(pageData);
+                console.vlog("Best score ever: ", g_highscores.bestEver);
+                console.vlog("Week's best: ", g_highscores.weeksBest);
+                console.vlog("Today's best: ", g_highscores.todaysBest);
             }
             catch (e)
             {
                 console.vlog("ERROR: invalid highscores data");
             }
-            console.vlog("Best score ever: ", g_highscores.bestEver);
-            console.vlog("Week's best: ", g_highscores.weeksBest);
-            console.vlog("Today's best: ", g_highscores.todaysBest);
         });
     });
 }
