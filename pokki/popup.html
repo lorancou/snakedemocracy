@@ -7,6 +7,7 @@
     <!-- Loading pop-up styling -->
     <link rel="stylesheet" href="css/default.css" type="text/css" />
     <link rel="stylesheet" href="css/animation.css" type="text/css" />
+    <link rel="stylesheet" href="files/beauty_style.css" type="text/css" />
     <!-- Loading PokkiBrowser to do testing in a normal chrome web browser -->
     <script type="text/javascript" src="js/lib/PokkiBrowser.js"></script>
     <!-- Loading SmoothScroll to make the scrollbars scroll more smoothly (it's really smooth!) -->
@@ -25,8 +26,42 @@
   <body>
     <div id="wrapper">
         <a id="minimize" href="#"></a>
-        <div id="content">
-          <canvas id="canvas" width="480" height="480"></canvas>
+        <div id="pokki-header">
+          <span id="pokki-slogan">RIGHT. LEFT. VOTE.</span>
+        </div>
+        <div id="pokki-content">
+          <div id="stats">
+            <div class="filler" id="stats-0">&nbsp;</div>
+            <div class="digits" id="playerCount">&#x2014;</div>
+            <div class="filler" id="stats-2">&nbsp;</div>
+            <div class="digits" id="numLeft">&#x2014;</div>
+            <div class="filler" id="stats-4">&nbsp;</div>
+            <div class="digits" id="numForward">&#x2014;</div>
+            <div class="filler" id="stats-6">&nbsp;</div>
+            <div class="digits" id="numRight">&#x2014;</div>
+            <div class="filler" id="stats-8">&nbsp;</div>
+            <div class="digits" id="score">&#x2014;</div>
+            <div class="filler" id="stats-10">&nbsp;</div>
+            <div class="bigHighscore">Best: <span id="bestEver">&#x2014;</span></div>
+            <div class="mediumHighscore">This week: <span id="weeksBest">&#x2014;</span></div>
+            <div class="smallHighscore">Today: <span id="todaysBest">&#x2014;</span></div>
+          </div>
+          <div id="canvas-box">
+            <div id="canvas-box2">
+              <canvas id="canvas" width="480" height="480">
+                <div id="nocanvas">
+                  <p>ERROR: Pokki wihtout canvas support. What?</p>
+                </div>
+              </canvas>
+            </div>
+          </div>
+        </div>
+        <div id="pokki-footer">
+          Find more on <a href="http://snakedemocracy.com/">snakedemocracy.com</a>:
+          <a href="http://snakedemocracy.com/faq.html">How to play?</a>,
+          <a href="http://snakedemocracy.com/about.html">About</a>.<br/>
+          Copyright (c) 2012 Christophe Zerr, Alexis Moroz, Laurent Couvidou.
+          Source code and assets on <a href="https://github.com/lorancou/snakedemocracy">GitHub</a>.
         </div>
     </div>
     <div id="splash"></div>

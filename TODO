@@ -16,7 +16,6 @@ Common
 Publishing
  - Pokki
   * cf. http://developers.pokki.com/docs/review.php
-  * HTML layout (< 710x910 px)
   * Remove victory tweet?
   * Idle when minimized (cf. Idle detect)
   * Badges... new player? New game started? new apple?
