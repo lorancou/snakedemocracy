@@ -62,7 +62,6 @@ var g_idleCheckTimeoutHandle = null;
 var g_connected = false;
 var g_socketErrorCount = 0;
 var g_lastMessageTime = null;
-var g_updating = false;
 var g_down = false;
 var g_stopped = false;
 var g_highscores = { bestEver: 0, weeksBest: 0, todaysBest: 0 };
@@ -379,22 +378,13 @@ function stop(_callback, _disconnect)
         g_socket.disconnect();
     }
     
-    if (g_updating)
-    {
-        // will stop on next update
-        log("Stopping delayed...");
-        g_stopCallback = _callback;
-    }
-    else
-    {
-        // stop
-        log("Stop!");
-        hideVictoryTweet();
-        cancelUpdates();
-        _callback();
-        g_stopCallback = null;
-        g_stopped = true;
-    }
+    // stop
+    log("Stop!");
+    hideVictoryTweet();
+    cancelUpdates();
+    _callback();
+    g_stopCallback = null;
+    g_stopped = true;
 }
 
 function drawServerDown()
@@ -843,12 +833,10 @@ function getScreenCoords(_coords, _middle)
 // client update
 function update()
 {
-    g_updating = true;
     if (g_stopped)
     {
-        // stopped didn't work properly
+        // stop didn't work properly
         log("WARNING: stopped but still updating, stopping now!");
-        g_updating = false;
         return;
     }
     if (g_stopCallback)
@@ -859,14 +847,12 @@ function update()
         cancelUpdates();
         g_stopCallback();
         g_stopCallback = null;
-        g_updating = false;
         return;
     }
     if (g_clientState == CS_IDLE)
     {
         // yey! back with us
         stop(requestBackPing, false);
-        g_updating = false;
         return;
     }
 
@@ -1509,8 +1495,10 @@ function updateTailHint(_time)
 // the server will put us to sleep before we can go idle
 function idleCheck()
 {
-    if (g_down)
+    if (g_stopped)
     {
+        // stop didn't work properly
+        log("WARNING: stopped but still doing idle check, stopping now!");
         return;
     }
     
@@ -1586,7 +1574,7 @@ function rmSpamBot(_count)
 }
 function updateSpamBots()
 {
-    if (!g_down)
+    if (!g_stopped)
     {
         setTimeout(updateSpamBots, 200); // vote 10 times in 2s
     }
