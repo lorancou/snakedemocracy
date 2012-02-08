@@ -52,6 +52,7 @@ var g_fpsElement = null;
 var g_victoryTweet = null;
 var g_highscoreMsg = null;
 var g_test = null;
+var g_pokki = null;
 var g_clientState = null;
 var g_lastTime = null;
 var g_lastVoteMove = 0;
@@ -249,8 +250,15 @@ function showVictoryTweet()
         src += "?url=http://snakedemocracy.com";
         src += "&hashtags=snakedemocracy";
         src += "&count=none";
-        src += "&text=I was there when we reached the score of " + g_score + " on "
-        window.open(src,"","width=550,height=450");
+        src += "&text=I was there when we reached the score of " + g_score + " on ";
+        if (!g_pokki)
+        {
+            window.open(src,"","width=550,height=450");
+        }
+        else
+        {
+            pokki.openURLInDefaultBrowser(src);
+        }
     };
 
     // add to DOM, last in the div, so on top of everything
@@ -282,9 +290,21 @@ function drawMessage(_msg, _clear)
 }
 
 // client init, called with body's onload
-function init(_serverAddress, _test)
+function init(_serverAddress, _test, _pokki)
 {
     g_test = _test;
+    
+    // Pokki-specific init
+    g_pokki = _pokki;
+    if (g_pokki)
+    {
+        log("I'm a Pokki");
+        // always open URLs in default browser
+        /*pokki.addEventListener('pokki_link', function(url)
+        {
+            pokki.openURLInDefaultBrowser(url);
+        });*/
+    }
     
     // if no nodejs server is specified, use the current one
     if (!_serverAddress)

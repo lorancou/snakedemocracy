@@ -8,7 +8,7 @@ var App = function() {
     
     // Initialize whatever else needs to be initialized
     
-    init("http://snakedemocracy.herokuapp.com"); // init SD
+    init("http://snakedemocracy.herokuapp.com", false, true); // init SD
     
         
     // Kick off what needs to be done whenever the popup is about to be shown
