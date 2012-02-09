@@ -1015,15 +1015,22 @@ function broadcast(_message)
 // Twitter init
 function initTwitter()
 {
+    var username = process.argv[2];
+    var password = process.argv[3];
+
     var auth = "Basic " + new Buffer(username + ":" + password).toString("base64");
 
-    var options = {
+    var options =
+    {
         host: "stream.twitter.com",
         port: 443,
         path: "/1/statuses/filter.json",
-        headers : {"Host": "stream.twitter.com", 
-               "Authorization": auth,
-               "Content-type": "application/x-www-form-urlencoded"},
+        headers :
+        {
+            "Host": "stream.twitter.com", 
+            "Authorization": auth,
+            "Content-type": "application/x-www-form-urlencoded"
+        },
         method: "POST"
     };
 
@@ -1037,6 +1044,9 @@ function initTwitter()
         res.setEncoding("utf8");
         res.on("data", function (chunk)
         {
+            console.vlog("Twitter data: " + chunk);
+            console.vlog("Twitter request status: " + res.statusCode);
+
             buf += chunk;
             var a = buf.split("\r\n");
             buf = a[a.length-1];
@@ -1048,17 +1058,22 @@ function initTwitter()
                     try
                     {
                         var json = JSON.parse(a[i]);
+                        console.vlog("Tweet: " + json.text);
                         processTweet(json.user.screen_name, json.text);
                     }
                     catch (e)
                     {
-                        console.vlog("ERROR: invalid twitter data");
+                        console.vlog("ERROR: invalid Twitter data");
                     }
                 }
             }
         });
     });
+
+    console.vlog("Writing request");
     req.write("track=#snakedemocracy\n\n");
+
+    console.vlog("Sending request?");
     req.end();
 }
 
