@@ -433,9 +433,9 @@ function drawServerDown()
     }
     
     // message
+    log("Disconnected :(");
     if (!g_pokki)
     {
-        log("Disconnected :(");
         drawMessage("Connection with the server lost... Try to refresh your page in a moment.", false);
     }
     else
@@ -461,7 +461,14 @@ function drawServerUpgrade()
     
     // message
     log("Server upgrade!");
-    drawMessage("The server was just upgraded. Refresh your page. If this doesn't work, try clearing your cache.", true);
+    if (!g_pokki)
+    {
+        drawMessage("The server was just upgraded. Refresh your page. If this doesn't work, try clearing your cache.", true);
+    }
+    else
+    {
+        drawMessage("The server was just upgraded. Your Pokki should update as well very soon, keep an eye on it!", true);
+    }
 }
 
 function drawSleep()
