@@ -15,7 +15,6 @@ Common
  
 Publishing
  - Pokki
-  * cf. http://developers.pokki.com/docs/review.php
-  * Notifications on/off in context menu
-  * Most pokki functions should prob. move to app.js
+  * Better looking highscores
+  * Submission!
  - Kongregate

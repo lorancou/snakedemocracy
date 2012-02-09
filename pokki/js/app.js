@@ -1,8 +1,8 @@
 var SnakeDemocracyApp = function()
 {
     // get local storage
-    var badges = new LocalStore('badges', {defaultVal: true});
-    var shownPlayerCount = new LocalStore('shownPlayerCount', {defaultVal: 0});
+    var badgesSwitch = new LocalStore("badgesSwitch", {defaultVal: true});
+    var shownPlayerCount = new LocalStore("shownPlayerCount", {defaultVal: 0});
     
     // get used DOM elements
     var wrapper = document.getElementById('wrapper');
@@ -24,9 +24,9 @@ var SnakeDemocracyApp = function()
     minimize.addEventListener('click', pokki.closePopup);
     
     // initialize client
-    //init("http://snakedemocracy.herokuapp.com", false, true);
-    init("http://snakedemocracy:3000/", false, true);
-    
+    init("http://snakedemocracy.herokuapp.com", false, true);
+    //init("http://snakedemocracy:3000/", false, true);
+   
     // the background page will attempt to restart us once in a while
     this.restartIfStopped = function()
     {
@@ -48,7 +48,8 @@ var SnakeDemocracyApp = function()
         wrapper.classList.add('show');
 
         // we're now shown, hiding badges
-        this.applyBadges();
+        this.refreshBadges();
+        this.refreshBadgesOnOffSwitch();
 
         // tell the SD client
         pokkiShown();
@@ -75,11 +76,11 @@ var SnakeDemocracyApp = function()
         pokkiUnload();
     };
     
-    // called when showing/hidden and from background.js to update the badge
-    this.applyBadges = function()
+    // called when shown/hidden and from background.js to update the badge
+    this.refreshBadges = function()
     {
         // if badges enabled and popup hidden, show newly active players
-        if (badges.get() && !pokki.isPopupShown())
+        if (badgesSwitch.get() && !pokki.isPopupShown())
         {
             var diff = pokkiGetActivePlayerCount() - shownPlayerCount.get();
             if (diff > 0)
@@ -100,19 +101,12 @@ var SnakeDemocracyApp = function()
             pokki.removeIconBadge();
         }
     };
+    this.refreshBadges(); // set initial state
     
-    // called from popup.html and context menu to turn badges on/off
-    this.switchBadges = function(_onOff, _force)
+    // called from background.js to update the popup switch buttons
+    this.refreshBadgesOnOffSwitch = function()
     {
-        if (badges.get()==_onOff && !_force)
-        {
-            return;
-        }
-
-        badges.set(_onOff);
-
-        // update images
-        if (_onOff)
+        if (badgesSwitch.get())
         {
             console.log("Badges on.");
             
@@ -137,6 +131,18 @@ var SnakeDemocracyApp = function()
             badgeOffImgs.unset.style.visibility = "hidden";
         }
     };
-    this.switchBadges(badges.get(), true); // set initial state
+    this.refreshBadgesOnOffSwitch(); // set initial state
+
+    // called from popup.html
+    this.switchBadges = function(_onOff)
+    {
+        badgesSwitch.set(_onOff);
+        
+        // update context menu
+        pokki.rpc("refreshContextMenu()");
+
+        // update images
+        this.refreshBadgesOnOffSwitch();
+    };
   
 };
