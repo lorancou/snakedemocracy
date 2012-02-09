@@ -1064,7 +1064,7 @@ function updateTailHint(_time)
 }
 
 // draw
-function draw()
+function draw(_time)
 {
     // clear canvas
     //g_context.fillStyle = "#000000";
@@ -1239,7 +1239,7 @@ function draw()
         var tailPath = g_tailPaths;
         if (g_tailHint)
         {
-            var hintDT = time - g_tailHintSwitchTime;
+            var hintDT = _time - g_tailHintSwitchTime;
             if (hintDT > TAIL_HINT_SWITCH_TIME)
             {
                 g_tailHintSwitchTime += TAIL_HINT_SWITCH_TIME;
