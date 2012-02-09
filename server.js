@@ -1017,6 +1017,12 @@ function initTwitter()
 {
     var username = process.argv[2];
     var password = process.argv[3];
+    
+    if (g_test)
+    {
+        username += "t"; // use test account otherwise this "disconnects" the
+                         // main server and tweet for apples no longer works!
+    }
 
     var auth = "Basic " + new Buffer(username + ":" + password).toString("base64");
 
