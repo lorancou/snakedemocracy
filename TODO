@@ -21,3 +21,4 @@ Publishing
   * Most pokki functions should prob. move to app.js
   * Fade-in sometimes *very long* to come
  - Kongregate
+ - Heroku: tweet for apple no longer working
