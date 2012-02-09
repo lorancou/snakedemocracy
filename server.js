@@ -1051,7 +1051,6 @@ function initTwitter()
         res.setEncoding("utf8");
         res.on("data", function (chunk)
         {
-            console.vlog("Twitter data: " + chunk);
             console.vlog("Twitter request status: " + res.statusCode);
 
             buf += chunk;
@@ -1078,7 +1077,7 @@ function initTwitter()
     });
 
     console.vlog("Writing request");
-    req.write("track=#snakedemocracy\n\n");
+    req.write("track=#snake\n\n");
 
     console.vlog("Sending request?");
     req.end();
