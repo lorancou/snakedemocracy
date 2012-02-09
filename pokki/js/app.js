@@ -6,16 +6,16 @@ var SnakeDemocracyApp = function()
     
     // get used DOM elements
     var wrapper = document.getElementById('wrapper');
+    var badgeOnLink = document.getElementById('pokki-badgeon');
     var badgeOnImgs =
     {
         set : document.getElementById('pokki-badgeon-set'),
-        hover : document.getElementById('pokki-badgeon-hover'),
         unset : document.getElementById('pokki-badgeon-unset'),
     };
+    var badgeOffLink = document.getElementById('pokki-badgeoff');
     var badgeOffImgs =
     {
         set : document.getElementById('pokki-badgeoff-set'),
-        hover : document.getElementById('pokki-badgeoff-hover'),
         unset : document.getElementById('pokki-badgeoff-unset'),
     };
 
@@ -36,9 +36,6 @@ var SnakeDemocracyApp = function()
     // kick off what needs to be done whenever the popup is about to be shown
     this.onPopupShowing = function()
     {    
-        // fade in wrapper
-        wrapper.classList.add('show');
-
         // tell the SD client
         pokkiShowing();
     };
@@ -46,6 +43,10 @@ var SnakeDemocracyApp = function()
     // kick off what needs to be done when the popup is shown
     this.onPopupShown = function()
     {
+        // fade in wrapper
+        wrapper.classList.remove('show');
+        wrapper.classList.add('show');
+
         // we're now shown, hiding badges
         this.applyBadges();
 
@@ -115,9 +116,11 @@ var SnakeDemocracyApp = function()
         {
             console.log("Badges on.");
             
+            badgeOnLink.style.visibility = "hidden";
             badgeOnImgs.set.style.visibility = "visible";
             badgeOnImgs.unset.style.visibility = "hidden";
 
+            badgeOffLink.style.visibility = "visible";
             badgeOffImgs.set.style.visibility = "hidden";
             badgeOffImgs.unset.style.visibility = "visible";
         }
@@ -125,9 +128,11 @@ var SnakeDemocracyApp = function()
         {
             console.log("Badges off.");
 
+            badgeOnLink.style.visibility = "visible";
             badgeOnImgs.set.style.visibility = "hidden";
             badgeOnImgs.unset.style.visibility = "visible";
 
+            badgeOffLink.style.visibility = "hidden";
             badgeOffImgs.set.style.visibility = "visible";
             badgeOffImgs.unset.style.visibility = "hidden";
         }

@@ -171,14 +171,14 @@ a#pokki-badgeon
     left: 135px;
     width: 26px;
     height: 16px;
-    /*background-image: url(on_set.png);*/
-    /*cursor: pointer;*/
+    background: transparent url(../files/on_hover.png) no-repeat; 
+    background-position: 0px -16px;
 }
 
-/*a#pokki-badgeon:hover
+a#pokki-badgeon:hover
 {
-    background-image: url(on_hover.png);
-}*/
+    background-position: 0px 0px;     
+}
 
 img.pokki-badgeon
 {
@@ -199,14 +199,14 @@ a#pokki-badgeoff
     left: 165px;
     width: 26px;
     height: 16px;
-    /*background-image: url(off_unset.png);*/
-    /*cursor: pointer;*/
+    background: transparent url(../files/off_hover.png) no-repeat; 
+    background-position: 0px -16px;
 }
 
-/*a#pokki-badgeoff:hover
+a#pokki-badgeoff:hover
 {
-    background-image: url(off_hover.png);
-}*/
+    background-position: 0px 0px;     
+}
 
 img.pokki-badgeoff
 {
@@ -217,6 +217,4 @@ img.pokki-badgeoff
     left: 165px;
     width: 26px;
     height: 16px;
-    /*background-image: url(off_unset.png);*/
-    /*cursor: pointer;*/
 }
