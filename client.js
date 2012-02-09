@@ -55,8 +55,6 @@ var g_victoryTweet = null;
 var g_highscoreMsg = null;
 var g_test = null;
 var g_pokki = null;
-var g_pokkiHidePlayerCount = -1;
-var g_pokkiBadges = null;
 var g_clientState = null;
 var g_lastTime = null;
 var g_lastVoteMove = 0;
@@ -64,11 +62,11 @@ var g_pauseStartTime = null;
 var g_seppukuStartTime = null;
 var g_updateHandle = null;
 var g_idleCheckTimeoutHandle = null;
-var g_connected = false;
 var g_socketErrorCount = 0;
 var g_lastMessageTime = null;
-var g_down = false;
 var g_stopped = false;
+var g_connecting = false;
+var g_connectionCount = 0;
 var g_drawPaused = false;
 var g_highscores = { bestEver: 0, weeksBest: 0, todaysBest: 0 };
 var g_tailHintTriggered = false;
@@ -315,11 +313,6 @@ function init(_serverAddress, _test, _pokki)
     if (g_pokki)
     {
         log("I'm a Pokki");
-        // always open URLs in default browser
-        /*pokki.addEventListener('pokki_link', function(url)
-        {
-            pokki.openURLInDefaultBrowser(url);
-        });*/
     }
     
     // if no nodejs server is specified, use the current one
@@ -382,8 +375,10 @@ function init(_serverAddress, _test, _pokki)
     document.onkeydown = keyDown;
     document.onkeyup = keyUp;
 
+    // show loading = clear canvas
     log("Loading...");
-    drawMessage("Loading ballot paper... please be patient, citizen.", true);
+    g_context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    drawMessage("Loading ballot paper... please be patient, citizen.", false);
     
     // queue assets, download them, then connect socket
     g_assets = new AssetManager();
@@ -406,22 +401,15 @@ function cancelUpdates()
     }
 }
 
-function stop(_callback, _disconnect)
+function stop(_callback, _msg)
 {
     g_stopped = true;
-
-    // disconnect if requested
-    if (_disconnect && (typeof io !== 'undefined') && g_socket)
-    {
-        log("Disconnect");
-        g_socket.disconnect();
-    }
-    
+   
     // reset cursor
     g_canvas.style.cursor = "default";
     
     // stop
-    log("Stop!");
+    log("Stop! " + _msg);
     hideVictoryTweet();
     cancelUpdates();
     _callback();
@@ -445,8 +433,15 @@ function drawServerDown()
     }
     
     // message
-    log("Disconnected :(");
-    drawMessage("Connection with the server lost... Try to refresh your page in a moment.", false);
+    if (!g_pokki)
+    {
+        log("Disconnected :(");
+        drawMessage("Connection with the server lost... Try to refresh your page in a moment.", false);
+    }
+    else
+    {
+        drawMessage("Connection issue... Wait a moment or come back later.", false);
+    }
 }
 
 function drawServerUpgrade()
@@ -490,66 +485,123 @@ function drawSleep()
 
 function connect()
 {
-    // if io isn't defined, this means we didn't receive socker.io.js, so the server is down
+    // if io isn't defined, this means we didn't receive socket.io.(min.)js, so the server is down
     if (typeof io === 'undefined') // http://stackoverflow.com/questions/519145/how-can-i-check-whether-a-variable-is-defined-in-javascript
     {
+        // this should not happen in production, where all static content is served
+        //  - for WWW: on a separate server
+        //  - for Pokki: on the client HDD
+        if (!g_test)
+        {
+            log("ERROR: io is undefined, is socket.io.min.js missing?");
+        }
+        
         // quit
-        stop(drawServerDown, true);
+        stop(drawServerDown, "Undefined io");
         return;
     }
 
+    // show loading = clear canvas
+    g_connecting = true;
     log("Connecting...");
-    drawMessage("Connecting to polling station... please stay patient, citizen.", true);
+    g_context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    drawMessage("Connecting to polling station... please stay patient, citizen.", false);
 
     // connect to node.js server
-    g_socket = io.connect(g_serverAddress);
+    // NB: after first attempt, forcing connection otherwise socket.io will
+    // give us the same handle, that already failed
+    if (g_connectionCount++ >= 1)
+    {
+        if (g_socket != null)
+        {
+            log("WARNING: we were still connected");
+            disconnect();
+        }
+        g_socket = io.connect(g_serverAddress, {"force new connection": true});
+    }
+    else
+    {
+        g_socket = io.connect(g_serverAddress);
+    }
     g_connectTimeoutHandle = setTimeout(connectTimeout, CONNECT_TIMEOUT);
 
     // error
-    g_socket.on(MSG_ERROR, function (reason)
-    {
-        if (!g_down)
-        {
-            g_socketErrorCount++;
-            log("WARNING: socket.io reports an error (count: " + g_socketErrorCount + ") ", reason);
-            if (g_socketErrorCount > MAX_SOCKET_ERROR)
-            {
-                // quit
-                // NB: sometimes Firefox throws this then works anyways, so
-                // we're giving it some tolerance :/
-                stop(drawServerDown, true);
-            }
-        }
-    });
+    g_socket.on(MSG_ERROR, processError);
 
     // connection
-    g_socket.on(MSG_CONNECT, function ()
-    {
-        if (!g_down)
-        {
-            log("Connected!");
-            processConnect();
-        }
-    });    
+    g_socket.on(MSG_CONNECT, processConnect);
 
-    // connection
-    g_socket.on(MSG_DISCONNECT, function ()
-    {
-        if (!g_down)
-        {
-            stop(drawServerDown, false);
-        }
-    });    
+    // disconnection
+    g_socket.on(MSG_DISCONNECT, processDisconnect);
 
     // ping
-    g_socket.on(MSG_PING, function (message)
+    g_socket.on(MSG_PING, processPing);
+}
+
+function processError(_reason)
+{
+    // NB: some combinations of nodejs servers and browsers throw this
+    // then works anyways, so we're giving it some tolerance
+    if (!g_pokki)
     {
-        if (!g_down)
+        g_socketErrorCount++;
+        log("WARNING: socket.io reports an error (count: " + g_socketErrorCount + ") ", _reason);
+        if (g_socketErrorCount > MAX_SOCKET_ERROR)
         {
-            log("Running :)");
-            processPing(message);
+            // quit
+            disconnect();
+            stop(drawServerDown, "Socket.io error");
         }
-    });
+    }
+    // for Pokki, the situation is much more stable, so report errors
+    // immediately
+    else
+    {
+        // quit
+        log("ERROR: socket.io reports an error " + _reason);
+        disconnect();
+        stop(drawServerDown, "Socket.io error");
+    }
+}
+
+function processDisconnect()
+{
+    disconnect(true);
+    stop(drawServerDown, "Disconnect message");
+}
+
+function disconnect(_fromDisconnectMessage)
+{
+    if (g_socket == null)
+    {
+        log("Already disconnected");
+        return;
+    }
+
+    log("Disconnect");
+    g_connecting = false;
+
+    // we don't want a time out to occur as we're *already* reconnected, this
+    // would disconnect us for no reason
+    clearConnectTimeout();    
+
+    // remove listeners, so nothing happen if the server sends anything to an
+    // outdated socket
+    g_socket.removeListener(MSG_ERROR, processError); 
+    g_socket.removeListener(MSG_CONNECT, processConnect); 
+    g_socket.removeListener(MSG_DISCONNECT, processDisconnect); 
+    g_socket.removeListener(MSG_PING, processPing); 
+    g_socket.removeListener(MSG_MESSAGE, processMessage); 
+    g_socket.removeListener(MSG_CLIENTSTATE, processClientState);
+
+    // disconnect socket, if that's not already done
+    if (_fromDisconnectMessage)
+    {
+        g_socket.disconnect();
+    }
+    
+    // clean reference
+    g_socket = null;
 }
 
 // I'm back! send me the game state!
@@ -564,13 +616,13 @@ function requestBackPing()
     // show loading = clear canvas
     log("Reconnecting...");
     g_context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    drawMessage("Reconnecting to polling station... please stay patient, citizen.", true);
+    drawMessage("Reconnecting to polling station... please stay patient, citizen.", false);
 
     g_socket.emit(MSG_BACK);
 }
 
 // take action depending on what state the server tells us we are
-function applyClientState(_newState)
+function processClientState(_newState)
 {
     if (_newState == g_clientState)
     {
@@ -588,7 +640,7 @@ function applyClientState(_newState)
     if (_newState == CS_SLEEP)
     {
         log("Sleeping...");
-        stop(drawSleep, false);
+        stop(drawSleep, "Sleep");
     }
     else if (_newState == CS_IDLE)
     {
@@ -613,58 +665,45 @@ function applyClientState(_newState)
 // connect timeout
 function connectTimeout()
 {
-    g_connectTimeoutHandle = null;
-    stop(drawServerDown, true);   
+    disconnect();
+    stop(drawServerDown, "Timeout");   
 }
 
-// connect
-function processConnect()
+function clearConnectTimeout()
 {
     if (g_connectTimeoutHandle)
     {
         clearTimeout(g_connectTimeoutHandle);
         g_connectTimeoutHandle = null;
     }
+}
 
-    // if not connected, plug the messages callbacks
-    // NB: this has to be done only *one time* otherwise the callbacks get
-    // called once per reconnection, which just brings weird, weird issues
-    if (!g_connected)
+// connect
+function processConnect()
+{
+    log("Connected!");
+
+    clearConnectTimeout();
+
+    // messages
+    g_socket.on(MSG_MESSAGE, processMessage);
+
+    // client state
+    g_socket.on(MSG_CLIENTSTATE, processClientState);
+
+    // test messages
+    if (g_test)
     {
-        // messages
-        g_socket.on(MSG_MESSAGE, function (_message)
-        {
-            if (!g_down)
-            {
-                processMessage(_message)
-            }
-        });
-
-        // client state
-        g_socket.on(MSG_CLIENTSTATE, function (_newState)
-        {
-            if (!g_down)
-            {
-                applyClientState(_newState);
-            }
-        });
-
-        // test messages
-        if (g_test && !g_down)
-        {
-            g_socket.on(MSG_TESTMSG, function (_testmsg)
-            {
-                processTestmsg(_testmsg)
-            });
-        }        
+        g_socket.on(MSG_TESTMSG, processTestmsg);
     }
-    // if already connected, cancel updates
-    else
+    
+    // if already connected, cancel updates, they'll restart when the ping
+    // message is received
+    if (g_connectionCount >= 1)
     {
         cancelUpdates();
     }
     
-    g_connected = true;
     g_socketErrorCount = 0;
 }
 
@@ -680,6 +719,8 @@ function logVec2Array(_name, _array)
 // ping, first message, inits the snake
 function processPing(_ping)
 {
+    log("Ping received");
+
     // assume we (re)start active on server
     g_clientState = CS_ACTIVE;
     g_backPingRequested = false;
@@ -687,7 +728,8 @@ function processPing(_ping)
     // check revision
     if (!_ping.revision || _ping.revision != REVISION)
     {
-        stop(drawServerUpgrade, true);
+        disconnect();
+        stop(drawServerUpgrade, "Upgrade");
         return;
     }
     
@@ -724,6 +766,7 @@ function processPing(_ping)
     g_lastVoteMove = g_move;
     g_lastMessageTime = new Date().getTime();
 
+    g_connecting = false;
     g_stopped = false;
     
     update();
@@ -885,16 +928,18 @@ function getScreenCoords(_coords, _middle)
 // client update
 function update()
 {
+    // stop didn't work properly
     if (g_stopped)
     {
-        // stop didn't work properly
         log("WARNING: stopped but still updating, stopping now!");
         return;
     }
+    
+    // client stopped updating, went idle, but it's now updating again, tell the
+    // server he's back with us, and request the new game state
     if (g_clientState == CS_IDLE)
     {
-        // yey! back with us
-        stop(requestBackPing, false);
+        stop(requestBackPing, "Back ping request");
         return;
     }
 
@@ -904,6 +949,17 @@ function update()
     var time = new Date().getTime();
     var dt = time - g_lastTime;
     
+    // check if server is still online
+    // NB: no need to update when draw is paused
+    if (!g_drawPaused)
+    {
+        if (serverDownCheck(time))
+        {
+            return;
+        }
+    }
+
+    // in test mode, request server memory footprint
     if (g_test)
     {
         g_socket.emit(MSG_TESTMSG, { name : TMSGN_MEM });
@@ -933,14 +989,21 @@ function update()
     if (g_selectSouth > 0) --g_selectSouth;
     if (g_selectNorth > 0) --g_selectNorth;
     
-    // check if server is still online
-    serverDownCheck(time);
-
     // stats
-    updateStats(dt);
+    // NB: no need to update when draw is paused
+    if (!g_drawPaused)
+    {
+        updateStats(dt);
+    }
 
     // tail hint
-    updateTailHint(time);
+    // NB: no need to update when draw is paused, this has the additional
+    // benefit of showing the hint to Pokki users that just came back and would
+    // otherwise have missed it
+    if (!g_drawPaused)
+    {
+        updateTailHint(time);
+    }
 
     g_lastTime = time;
 }
@@ -959,6 +1022,7 @@ function updateStats(_dt)
             g_playerCountElement.innerHTML = g_activePlayerCount + " <small>/ " + g_totalPlayerCount + "</small>";
             
             // for WWW, notify of player count via title
+            // NB: for Pokki, notify of player count via badge, cf. background.js
             if (!g_pokki)
             {
                 if (g_clientState == CS_ACTIVE)
@@ -969,11 +1033,6 @@ function updateStats(_dt)
                 {
                     document.title = "[" + g_activePlayerCount + "/" + g_totalPlayerCount + "] " + g_initialTitle;
                 }
-            }
-            // for Pokki, notify of player count via badge
-            else
-            {
-                applyPokkiBadge();
             }
         }
     }
@@ -1680,9 +1739,11 @@ function serverDownCheck(_time)
     var dmsg = _time - g_lastMessageTime;
     if (dmsg > threshold)
     {
-        // quit
-        stop(drawServerDown, true);
+        disconnect();
+        stop(drawServerDown, "Server down");
+        return true;
     }
+    return false;
 }
 
 // test/cheat/tweaks
@@ -1718,7 +1779,9 @@ function rmSpamBot(_count)
         var spamSocket = g_spamBots.pop();
         if (spamSocket)
         {
+            spamSocket.removeListener(MSG_PING);
             spamSocket.disconnect();
+            spamSocket = null;
         }
     }
 }
@@ -1932,14 +1995,10 @@ function processMessage(_message)
             g_totalPlayerCount = _message.totalPlayerCount;
 
             // for WWW, notify of player count via title
+            // NB: for Pokki, notify of player count via badge, cf. background.js
             if (!g_pokki)
             {
                 document.title = "[" + g_activePlayerCount + "/" + g_totalPlayerCount + "] " + g_initialTitle;
-            }
-            // for Pokki, notify of player count via badge
-            else
-            {
-                applyPokkiBadge();
             }
         }
     }
@@ -1998,16 +2057,13 @@ function appleTweetClick()
 }
 
 // Pokki wrapper
-function pokkiLinkClick(_href)
+function pokkiRestartIfStopped()
 {
-    if (!g_pokki)
+    if (g_stopped && !g_connecting)
     {
-        log("WARNING: called pokkiLinkClick but I'm no Pokki, thanks.");
-        return;
+        log("Periodic reconnection attempt...");
+        connect();
     }
-    
-    // Pokki Requirement: External links
-    pokki.openURLInDefaultBrowser(_href);    
 }
 function pokkiShowing()
 {
@@ -2017,14 +2073,21 @@ function pokkiShowing()
         return;
     }
     
-    // clear remembrance of player count
-    g_pokkiHidePlayerCount = -1;
-
-    // (re)start drawing
-    // Pokki Requirement: Pausing computationally intensive tasks
-    g_drawPaused = false;
-    
-    pokki.removeIconBadge();
+    if (!g_connecting)
+    {
+        // attempt a restart if was stopped
+        // Pokki Guidelines: Network connection issues
+        if (g_stopped)
+        {
+            log("Reconnection attempt...");
+            connect();
+        }
+        // awaken if was sleeping
+        else if (g_clientState == CS_SLEEP)
+        {
+            requestBackPing();
+        }
+    }
 }
 function pokkiShown()
 {
@@ -2033,12 +2096,10 @@ function pokkiShown()
         log("WARNING: called pokkiShown but I'm no Pokki, thanks.");
         return;
     }
-    
-    // awaken if was sleeping
-    if (g_clientState == CS_SLEEP)
-    {
-        requestBackPing();
-    }
+
+    // (re)start drawing
+    // Pokki Requirement: Pausing computationally intensive tasks
+    g_drawPaused = false;
 }
 function pokkiHidden()
 {
@@ -2051,9 +2112,6 @@ function pokkiHidden()
     // stop drawing
     // Pokki Requirement: Pausing computationally intensive tasks
     g_drawPaused = true;
-    
-    // remember how many people are playing
-    g_pokkiHidePlayerCount = g_activePlayerCount;
 }
 function pokkiUnload()
 {
@@ -2066,84 +2124,17 @@ function pokkiUnload()
     // disconnect when Pokki is unloaded
     if (g_socket)
     {
-        g_socket.disconnect();
+        disconnect();
     }
 }
-function applyPokkiBadge()
-{
-    if (g_pokkiHidePlayerCount >= 0 && g_pokkiBadges.get())
-    {
-        var diff = g_activePlayerCount - g_pokkiHidePlayerCount;
-        if (diff > 0)
-        {
-            pokki.setIconBadge(diff);
-        }
-        else
-        {
-            pokki.removeIconBadge();
-        }
-    }
-    else
-    {
-        pokki.removeIconBadge();
-    }
-}
-function pokkiBadgesInit(_badges)
-{
-    g_pokkiBadges = _badges;
-    pokkiBadges(_badges.get(), true);
-}
-function pokkiBadges(_onOff, _force)
+function pokkiGetActivePlayerCount()
 {
     if (!g_pokki)
     {
-        log("WARNING: called pokkiBadges but I'm no Pokki, thanks.");
-        return;
+        log("WARNING: called pokkiGetActivePlayerCount but I'm no Pokki, thanks.");
+        return 0;
     }
     
-    if (g_pokkiBadges.get()==_onOff && !_force)
-    {
-        return;
-    }
-
-    var badgeOnElement = document.getElementById("pokki-badgeon");
-    var badgeOffElement = document.getElementById("pokki-badgeoff");
-    if (!badgeOnElement || !badgeOffElement)
-    {
-        log("ERROR: missing badge element(s).");
-        return;
-    }
-    
-    g_pokkiBadges.set(_onOff);
-    applyPokkiBadge();
-
-    // update buttons
-    if (_onOff)
-    {
-        log("Badges on.");
-        
-        badgeOnElement.style.backgroundImage = "url(files/on_set.png)";
-        badgeOnElement.onmouseover = function() {};
-        badgeOnElement.onmouseout = function() {};
-        badgeOnElement.style.cursor = "default";
-        
-        badgeOffElement.style.backgroundImage = "url(files/off_unset.png)";
-        badgeOffElement.onmouseover = function() { this.style.backgroundImage = "url(files/off_hover.png)"; };
-        badgeOffElement.onmouseout = function() { this.style.backgroundImage = "url(files/off_unset.png)"; };
-        badgeOffElement.style.cursor = "pointer";
-    }
-    else
-    {
-        log("Badges off.");
-
-        badgeOnElement.style.backgroundImage = "url(files/on_unset.png)";
-        badgeOnElement.onmouseover = function() { this.style.backgroundImage = "url(files/on_hover.png)"; };
-        badgeOnElement.onmouseout = function() { this.style.backgroundImage = "url(files/on_unset.png)"; };
-        badgeOnElement.style.cursor = "pointer";
-
-        badgeOffElement.style.backgroundImage = "url(files/off_set.png)";
-        badgeOffElement.onmouseover = function() {};
-        badgeOffElement.onmouseout = function() {};
-        badgeOffElement.style.cursor = "default";
-    }
+    // so the pokki can display newly active players
+    return g_activePlayerCount;
 }

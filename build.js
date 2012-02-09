@@ -7,13 +7,12 @@ var g_except =
 [
     "init",
     "appleTweetClick",
-    "pokkiLinkClick",
+    "pokkiRestartIfStopped",
     "pokkiShowing",
     "pokkiShown",
     "pokkiHidden",
     "pokkiUnload",
-    "pokkiBadgesInit",
-    "pokkiBadges"
+    "pokkiGetActivePlayerCount"
 ];
 
 var orig_code = fs.readFileSync("build/client.temp.js")+"";

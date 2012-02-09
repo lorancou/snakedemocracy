@@ -99,3 +99,124 @@ h2 {
     display: none; 
 }
 
+#pokki-content
+{
+    padding: 73px 5px 15px 15px;
+}
+
+#pokki-content p
+{ 
+    margin-bottom: 15px; 
+    line-height: 18px;
+}
+
+#pokki-header
+{
+	background-image:url(../files/headtitle.jpg);
+	background-repeat:no-repeat;
+	background-position:left;
+	background-color:#a5653a;
+    display: block;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+	width:700px;
+	height:60px;
+}
+
+#pokki-footer-left
+{
+    position: absolute;
+    bottom: 8px;
+    left: 15px;
+	text-align:left;
+	font:10px arial,sans-serif;;
+	color:#a5653a;
+}
+
+#pokki-footer-right
+{
+    position: absolute;
+    bottom: 8px;
+    right: 15px;
+	text-align:right;
+	font:10px arial,sans-serif;;
+	color:#a5653a;
+}
+
+#pokki-slogan
+{
+	float:right;
+	margin-top: 35px;
+	margin-right:15px;
+	font:16px calibri,arial,sans-serif;
+	font-style:italic;
+	font-weight:bold;
+	color:#fff7ee;
+	text-align:right;
+	text-shadow: 0px 0px 30px #ff9900;
+}
+
+a.pokki-link:hover
+{
+	color:black;
+	text-decoration:none;
+}
+
+a#pokki-badgeon
+{
+    display: block;
+    position: absolute;
+    bottom: 8px;
+    left: 135px;
+    width: 26px;
+    height: 16px;
+    /*background-image: url(on_set.png);*/
+    /*cursor: pointer;*/
+}
+
+/*a#pokki-badgeon:hover
+{
+    background-image: url(on_hover.png);
+}*/
+
+img.pokki-badgeon
+{
+    display: block;
+    visibility: hidden;
+    position: absolute;
+    bottom: 8px;
+    left: 135px;
+    width: 26px;
+    height: 16px;
+}
+
+a#pokki-badgeoff
+{
+    display: block;
+    position: absolute;
+    bottom: 8px;
+    left: 165px;
+    width: 26px;
+    height: 16px;
+    /*background-image: url(off_unset.png);*/
+    /*cursor: pointer;*/
+}
+
+/*a#pokki-badgeoff:hover
+{
+    background-image: url(off_hover.png);
+}*/
+
+img.pokki-badgeoff
+{
+    display: block;
+    visibility: hidden;
+    position: absolute;
+    bottom: 8px;
+    left: 165px;
+    width: 26px;
+    height: 16px;
+    /*background-image: url(off_unset.png);*/
+    /*cursor: pointer;*/
+}

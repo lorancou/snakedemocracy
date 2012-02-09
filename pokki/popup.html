@@ -5,7 +5,7 @@
     <!-- CSS reset -->
     <link rel="stylesheet" href="css/html5reset-1.6.1.css" type="text/css" />
     <!-- Loading pop-up styling -->
-    <link rel="stylesheet" href="css/default.css" type="text/css" />
+    <link rel="stylesheet" href="css/popup.css" type="text/css" />
     <link rel="stylesheet" href="css/animation.css" type="text/css" />
     <link rel="stylesheet" href="files/beauty_style.css" type="text/css" />
     <!-- Loading PokkiBrowser to do testing in a normal chrome web browser -->
@@ -60,12 +60,18 @@
           <br/>
           New player notifications&nbsp;
         </div>
-        <a id="pokki-badgeon" href="#" onclick="pokkiBadges(true)"></a>
-        <a id="pokki-badgeoff" href="#" onclick="pokkiBadges(false)"></a>
+        <img class="pokki-badgeon" id="pokki-badgeon-set" src="files/on_set.png" />
+        <img class="pokki-badgeon" id="pokki-badgeon-hover" src="files/on_hover.png" />
+        <img class="pokki-badgeon" id="pokki-badgeon-unset" src="files/on_unset.png" />
+        <a id="pokki-badgeon" href="#" onclick="SD.switchBadges(true)"></a>
+        <img class="pokki-badgeoff" id="pokki-badgeoff-set" src="files/off_set.png" />
+        <img class="pokki-badgeoff" id="pokki-badgeoff-hover" src="files/off_hover.png" />
+        <img class="pokki-badgeoff" id="pokki-badgeoff-unset"src="files/off_unset.png" />
+        <a id="pokki-badgeoff" href="#" onclick="SD.switchBadges(false)"></a>
         <div id="pokki-footer-right">
-          Find more on <a href="http://snakedemocracy.com/" class="pokki-link" onclick="pokkiLinkClick(href)">snakedemocracy.com</a>:
-          <a href="http://snakedemocracy.com/faq.html" class="pokki-link" onclick="pokkiLinkClick(href)">How to play?</a>,
-          <a href="http://snakedemocracy.com/about.html" class="pokki-link" onclick="pokkiLinkClick(href)">About</a>.<br/>
+          Find more on <a href="http://snakedemocracy.com/" class="pokki-link" onclick="pokki.openURLInDefaultBrowser(href)">snakedemocracy.com</a>:
+          <a href="http://snakedemocracy.com/faq.html" class="pokki-link" onclick="pokki.openURLInDefaultBrowser(href)">How to play?</a>,
+          <a href="http://snakedemocracy.com/about.html" class="pokki-link" onclick="pokki.openURLInDefaultBrowser(href)">About</a>.<br/>
           Copyright &copy; 2012 Christophe Zerr, Alexis Moroz, Laurent Couvidou..
         </div>
     </div>
