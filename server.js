@@ -1024,6 +1024,7 @@ function initTwitter()
                          // main server and tweet for apples no longer works!
     }
 
+    console.vlog("Twitter username: " + username);
     var auth = "Basic " + new Buffer(username + ":" + password).toString("base64");
 
     var options =
