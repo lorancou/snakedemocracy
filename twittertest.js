@@ -48,7 +48,7 @@ var req = https.request(options, function(res)
                 {
                     var json = JSON.parse(a[i]);
                     console.log("Tweet: " + json.text);
-                    processTweet(json.user.screen_name, json.text);
+                    //processTweet(json.user.screen_name, json.text);
                 }
                 catch (e)
                 {
