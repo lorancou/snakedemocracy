@@ -303,7 +303,7 @@ io.sockets.on("connection", function (socket)
             
             if (_message.move == g_move) // ignore votes for previous move (net lag)
             {
-                processVote(socket, _message.value);
+                processVote(socket, _message.value, _message.elector);
             }
         }
         else
@@ -842,7 +842,7 @@ function processVictoryDelayChange(_socket, _value)
     g_victoryDelay = _value;
 }
 
-function processVote(_socket, _value)
+function processVote(_socket, _value, _elector)
 {
     ++_socket.votesThisMove;
     if (_socket.votesThisMove > MAX_VOTES_PER_MOVE)
@@ -860,6 +860,12 @@ function processVote(_socket, _value)
 	});
     var vote = { socket : _socket, value : _value };
     g_votes.push(vote);
+    
+    // elector vote count double
+    if (_elector)
+    {
+        g_votes.push(vote);
+    }
 
     // compute opinion
     //console.log(g_votes.length)

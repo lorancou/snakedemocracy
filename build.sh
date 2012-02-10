@@ -51,6 +51,7 @@ for i in $(seq 0 2) ; do
     sed -i "s#init()#init('$SERVER')#g" build/$SUBDIR/index.html
     cp faq.html build/$SUBDIR/faq.html
     cp about.html build/$SUBDIR/about.html
+    cp channel.html build/$SUBDIR/channel.html
 
     # PHP
     cp highscores.php build/$SUBDIR/highscores.php

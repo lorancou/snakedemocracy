@@ -1,4 +1,4 @@
-var REVISION = 29;
+var REVISION = 30;
 var VERSION = "RC3"
 var AREA_SIZE = 20;
 var MAX_VOTES_PER_MOVE = 10;

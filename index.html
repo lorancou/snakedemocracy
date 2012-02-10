@@ -15,6 +15,19 @@
 </head>
 
 <body onload="init()" id="body">
+  <!-- Facebook JavaScript SDK -->
+  <div id="fb-root"></div>
+  <script src="http://connect.facebook.net/en_US/all.js"></script>
+  <script>
+    FB.init({
+      appId  : "369262946419943",
+      channelUrl : "http://www.snakedemocracy.com/channel.html", // Channel File
+      status : true, 
+      cookie : true, 
+      xfbml  : true,
+      oauth  : true
+    });
+  </script>
   <div id="bigone">
     <div id="wrap-header">
         <div id="header">
@@ -59,8 +72,8 @@
             </canvas>
           </div>
         </div>
-        <!-- feed widget -->
         <div id="feed">
+          <!-- twitter feed widget -->
           <script>
             new TWTR.Widget({
               version: 2,
@@ -70,7 +83,7 @@
               title: 'This is where it feeds',
               subject: 'SnakeDemocracy',
               width: 224,
-              height: 294, //394,
+              height: 234, //394,
               theme: {
                 shell: {
                   background: '#a5653a',
@@ -94,6 +107,9 @@
           <div id="twitterApples">
             <input type="button" id="appleTweet" name="appleTweet" value="Tweet #snake" onclick="appleTweetClick()" />
           </div>
+          <!-- facebook like box -->
+          <div id="facebookCollege"></div>
+          <div class="fb-like-box" data-href="http://www.facebook.com/pages/SnakeDemocracy/269406253129143" data-width="224" data-height="60" data-show-faces="false" data-border-color="#a5653" data-stream="false" data-header="true"></div>
         </div>
       </div>
     </div>

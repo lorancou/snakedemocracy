@@ -75,6 +75,7 @@ var g_tailHint = false;
 var g_tailHintSwitch = false;
 var g_tailHintSwitchTime = null;
 var g_backPingRequested = false;
+var g_elector = false;
 
 // assets
 var g_serverupgradePath = "files/serverupgrade.png";
@@ -389,10 +390,45 @@ function init(_serverAddress, _test, _pokki)
     g_context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     drawMessage("Loading ballot paper... please be patient, citizen.", false);
     
+    // check if the user Likes us on Facebook
+    FB.getLoginStatus(processFBLoginStatus, true);
+    
     // queue assets, download them, then connect socket
     g_assets = new AssetManager();
     queueAssets(g_assets);
     g_assets.downloadAll(connect);
+}
+
+function processFBLoginStatus(response)
+{
+    log("Facebook: callback");
+    
+    if (response.status == 'connected')
+    {
+        var user_id = response.authResponse.userID;
+        //var page_id = "40796308305"; //coca cola
+        var page_id = "269406253129143"; // our page
+        var fql_query = "SELECT uid FROM page_fan WHERE page_id =" + page_id + " and uid=" + user_id;
+        var the_query = FB.Data.query(fql_query);
+
+        the_query.wait(function(rows)
+        {
+            if (rows.length == 1 && rows[0].uid == user_id)
+            {
+                log("Facebook: liked");
+                g_elector = true;
+            }
+            else
+            {
+                log("Facebook: not liked");
+            }
+        });
+    }
+    else
+    {
+        // user is not logged in
+        log("Facebook: not logged in");
+    }
 }
 
 function cancelUpdates()
@@ -1604,7 +1640,7 @@ function draw(_time)
         drawEndGameScore();
         
         // draw countdown
-        var message = "Your fellow citizens failed but the game will restart soon...";
+        var message = "Starting a new game soon...";
         if (g_pauseStartTime)
         {
             var dt = g_lastTime - g_pauseStartTime;
@@ -1865,7 +1901,7 @@ function updateSpamBots()
             else if (pick==2) voteValue = OP_RIGHT;
             else log("ERROR: Math.random went mad?");
             //log("SPAM: " + voteValue);
-            spamSocket.emit(MSG_MESSAGE, { name : MSGN_VOTE, move : g_move, value : voteValue });
+            spamSocket.emit(MSG_MESSAGE, { name : MSGN_VOTE, move : g_move, value : voteValue, elector : false });
         }
     }
 }
@@ -1912,7 +1948,7 @@ function vote(_value)
     if (g_state == GS_PLAYING && g_votesThisMove < MAX_VOTES_PER_MOVE)
     {
         //log("vote: " + _value);
-        g_socket.emit(MSG_MESSAGE, { name : MSGN_VOTE, move : g_move, value : _value });
+        g_socket.emit(MSG_MESSAGE, { name : MSGN_VOTE, move : g_move, value : _value, elector : g_elector });
         ++g_votesThisMove;
 
         // assume a vote sets us active on server

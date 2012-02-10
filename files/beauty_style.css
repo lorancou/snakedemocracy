@@ -265,10 +265,10 @@ div#todaysBest
 
 #twitterApples
 {
-    padding-top: 30px;
-    padding-left: 65px;
-    height: 70px;
+    margin-top: 15px;
+    height: 42px;
     background-image: url(bg-twitterapples.jpg);
+	background-repeat:no-repeat;
 }
 
 #twitterApplesWidget
@@ -289,4 +289,12 @@ div#todaysBest
     left: 275px;
     width: 60px;
     height: 20px;
+}
+
+#facebookCollege
+{
+    margin-top: 15px;
+    height: 38px;
+    background-image: url(bg-facebook.jpg);
+	background-repeat:no-repeat;
 }
