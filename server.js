@@ -387,9 +387,10 @@ function startTurn()
 
     // start with 3 elements
     g_snake = new Array();
-    g_snake.push(new vec2(10, 10));
-    g_snake.push(new vec2(10, 11));
-    g_snake.push(new vec2(10, 12));
+    var startX = 9 + Math.round(Math.random());
+    g_snake.push(new vec2(startX, 4));
+    g_snake.push(new vec2(startX, 5));
+    g_snake.push(new vec2(startX, 6));
 
     // start with some random apples
     g_apples = new Array();
@@ -399,6 +400,13 @@ function startTurn()
 
     // fix that infinite victory loop. so long!
     g_direction = SOUTH;
+
+    // reset opinion
+    g_opinion = {};
+    g_opinion.current = OP_FORWARD;
+    g_opinion.numLeft = 0;
+    g_opinion.numRight = 0;
+    g_opinion.numForward = 0;
 
     // "unlock" clients, time to play and vote!!
     g_state = GS_PLAYING;
@@ -609,7 +617,7 @@ function move()
 {
     ++g_move;
     
-    g_score = computeScore();
+    g_score = computeScore(false);
 
     // cache this, as it's "wrong" when broadcasting
     g_snakeLengthCache = g_snake.length;
@@ -699,6 +707,10 @@ function move()
     // check self-hit
     else if (checkSelf(newHead))
     {
+        // send score to database
+        g_score = computeScore(false);
+        sendScore(g_score);
+
         // broadcast fail
         g_state = GS_FAIL;
         broadcast({ name: MSGN_NEWSTATE, state: g_state });
@@ -710,7 +722,7 @@ function move()
     else if (checkVictory(newHead))
     {
         // send score to database
-        g_score = computeScore();
+        g_score = computeScore(true);
         sendScore(g_score);
 
         // broadcast victory
@@ -952,7 +964,7 @@ function pickupApple(_idx)
     g_apples.splice(_idx, 1);
 }
 
-function computeScore()
+function computeScore(_doubleScore)
 {
     var snakeLength = 3;
     if (g_snake)
@@ -982,7 +994,13 @@ function computeScore()
     }
 
     var score = snakeLength * playerCount;
+    
     //console.log("Score: " + score + "(snake: " + snakeLength + " * " + playerCount + ")");
+    if (_doubleScore)
+    {
+        score = score * 2;
+    }
+    
     return score;
 }
 

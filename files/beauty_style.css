@@ -175,7 +175,7 @@ a.nav-item:hover
 }
 #stats-10
 {
-	height:40px;
+	height:35px;
 }
 
 div.filler
@@ -191,28 +191,36 @@ div.digits
 	text-align:center;
 }
 
-div.bigHighscore
+div#bestEver
 {
 	background-color:transparent;
 	color:#000000;
-	font:24px calibri,arial,sans-serif;
+	font:18px calibri,arial,sans-serif;
 	font-weight:bold;
-	text-align:left;
+	text-align:center;
+    margin-left: 86px;
+    height: 24px;
+    line-height: 24px;
 }
-div.mediumHighscore
-{
-	background-color:transparent;
-	color:#000000;
-	font:20px calibri,arial,sans-serif;
-	font-weight:bold;
-	text-align:left;
-}
-div.smallHighscore
+div#weeksBest
 {
 	background-color:transparent;
 	color:#000000;
 	font:16px calibri,arial,sans-serif;
-	text-align:left;
+	text-align:center;
+    margin-left: 86px;
+    height: 24px;
+    line-height: 24px;
+}
+div#todaysBest
+{
+	background-color:transparent;
+	color:#000000;
+	font:14px calibri,arial,sans-serif;
+	text-align:center;
+    margin-left: 86px;
+    height: 24px;
+    line-height: 24px;
 }
 
 #feed

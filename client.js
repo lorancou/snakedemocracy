@@ -3,7 +3,7 @@ var CANVAS_WIDTH = 480;
 var CANVAS_HEIGHT = 480;
 var SPRITE_SIZE = 24;
 var SELECT_FRAMES = 3;
-var CONNECT_TIMEOUT = 30000; // in ms TODO
+var CONNECT_TIMEOUT = 30000; // in ms
 var SERVER_DOWN_THRESHOLD = 30000; // in ms
 var IDLE_CHECK_INTERVAL = 1000; // in ms
 var IDLE_THRESHOLD = 10000; // in ms
@@ -52,7 +52,6 @@ var g_clientStateElement = null;
 var g_moveElement = null;
 var g_fpsElement = null;
 var g_victoryTweet = null;
-var g_highscoreMsg = null;
 var g_test = null;
 var g_pokki = null;
 var g_clientState = null;
@@ -69,6 +68,7 @@ var g_connecting = false;
 var g_connectionCount = 0;
 var g_drawPaused = false;
 var g_highscores = { bestEver: 0, weeksBest: 0, todaysBest: 0 };
+var g_highscoreFlag = null;
 var g_tailHintTriggered = false;
 var g_tailHintStartTime = null;
 var g_tailHint = false;
@@ -144,6 +144,12 @@ var g_victoryPath = "files/victory.png";
 var g_failPath = "files/fail.png";
 var g_sleepPath = "files/sleep.png";
 var g_tailHintPath = "files/tailhint.png";
+var g_highscoreFlags =
+{
+    bestEver : "files/highscores_bestever.png",
+    weeksBest : "files/highscores_weeksbest.png",
+    todaysBest : "files/highscores_todaysbest.png"
+}
 
 function log(msg)
 {
@@ -232,6 +238,9 @@ function queueAssets(_mgr)
     _mgr.queueDownload(g_failPath);
     _mgr.queueDownload(g_sleepPath);
     _mgr.queueDownload(g_tailHintPath);
+    _mgr.queueDownload(g_highscoreFlags.bestEver);
+    _mgr.queueDownload(g_highscoreFlags.weeksBest);
+    _mgr.queueDownload(g_highscoreFlags.todaysBest);
 }
 
 // VICTORY TWEET!
@@ -975,12 +984,6 @@ function update()
         g_socket.emit(MSG_TESTMSG, { name : TMSGN_MEM });
     }
 
-    // clear highscore message
-    if (g_state != GS_VICTORY)
-    {
-        g_highscoreMsg = null;
-    }
-
     // draw
     if (!g_drawPaused)
     {
@@ -1573,28 +1576,10 @@ function draw(_time)
         g_context.drawImage(
             g_assets.cache[g_victoryPath],
             0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-        
-        var bkpFont = g_context.font;
-        var bkpAlign = g_context.textAlign;
 
-        // draw score
-        g_context.font = "30pt Arial Bold";
-        g_context.textAlign = "center";
-        g_context.fillStyle = "#000000";
-        g_context.fillText(g_score, 240, 285);
+        // score
+        drawEndGameScore();
         
-        // draw highscore message
-        if (g_highscoreMsg)
-        {
-            g_context.font = "30pt Arial Bold";
-            g_context.textAlign = "center";
-            g_context.fillStyle = "#000000";
-            g_context.fillText(g_highscoreMsg, 240, 230);
-        }
-        
-        g_context.font = bkpFont;
-        g_context.textAlign = bkpAlign;
-
         // draw countdown
         var message = "Starting a new game soon...";
         if (g_pauseStartTime)
@@ -1614,6 +1599,9 @@ function draw(_time)
         g_context.drawImage(
             g_assets.cache[g_failPath],
             0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        
+        // score
+        drawEndGameScore();
         
         // draw countdown
         var message = "Your fellow citizens failed but the game will restart soon...";
@@ -1690,14 +1678,69 @@ function draw(_time)
     }
     
     // show/hide victory tweet
-    if (g_state == GS_VICTORY)
+    if (g_state == GS_VICTORY || g_state == GS_FAIL)
     {
         showVictoryTweet();
     }
     else
     {
         hideVictoryTweet();
+        
+        // + reset highscore flag
+        g_highscoreFlag = null;
     }    
+}
+
+function applyScore()
+{
+    // new highscore
+    if (g_score > g_highscores.todaysBest)
+    {
+        log("Today's best score!");
+        g_highscores.todaysBest = g_score;
+        g_highscoreFlag = g_highscoreFlags.todaysBest;
+
+        // new weekly highscore
+        if (g_score > g_highscores.weeksBest)
+        {
+            log("This week's best score!");
+            g_highscores.weeksBest = g_score;
+            g_highscoreFlag = g_highscoreFlags.weeksBest;
+            
+            // wow! new best score ever
+            if (g_score > g_highscores.bestEver)
+            {
+                log("Best score ever!");
+                g_highscores.bestEver = g_score;
+                g_highscoreFlag = g_highscoreFlags.bestEver;            
+            }
+        }
+    }
+}
+
+function drawEndGameScore()
+{
+    // backup font
+    var bkpFont = g_context.font;
+    var bkpAlign = g_context.textAlign;
+
+    // draw score
+    g_context.font = "30pt Arial Bold";
+    g_context.textAlign = "center";
+    g_context.fillStyle = "#000000";
+    g_context.fillText(g_score, 240, 285);
+    
+    // restore font
+    g_context.font = bkpFont;
+    g_context.textAlign = bkpAlign;    
+    
+    // draw highscore flag
+    if (g_highscoreFlag)
+    {
+        g_context.drawImage(
+            g_assets.cache[g_highscoreFlag],
+            100, 248);
+    }
 }
 
 // detect idle client
@@ -1922,6 +1965,8 @@ function processMessage(_message)
             g_votesThisMove = 0;
             g_lastVoteMove = 0;
             g_pauseStartTime = new Date().getTime();
+
+            applyScore();
         }
         else if (_message.state == GS_VICTORY)
         {
@@ -1931,29 +1976,7 @@ function processMessage(_message)
             g_lastVoteMove = 0;
             g_pauseStartTime = new Date().getTime();
             
-            // show new highscore message
-            if (g_score > g_highscores.todaysBest)
-            {
-                g_highscores.todaysBest = g_score;
-                g_highscoreMsg = "Today's best score!"
-                log(g_highscoreMsg + " " + g_score);
-                
-                // new weekly highscore
-                if (g_score > g_highscores.weeksBest)
-                {
-                    g_highscores.weeksBest = g_score;
-                    g_highscoreMsg = "This week's best score!"
-                    log(g_highscoreMsg + " " + g_score);
-                    
-                    // wow! new best score ever
-                    if (g_score > g_highscores.bestEver)
-                    {
-                        g_highscores.bestEver = g_score;
-                        g_highscoreMsg = "Best score ever!"
-                        log(g_highscoreMsg + " " + g_score);
-                    }
-                }
-            }
+            applyScore();
         }
         else if (_message.state == GS_PLAYING)
         {

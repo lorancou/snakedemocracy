@@ -24,8 +24,8 @@ var SnakeDemocracyApp = function()
     minimize.addEventListener('click', pokki.closePopup);
     
     // initialize client
-    //init("http://snakedemocracy.herokuapp.com", false, true);
-    init("http://snakedemocracy:3000/", false, true);
+    init("http://snakedemocracy.herokuapp.com", false, true);
+    //init("http://snakedemocracy:3000/", false, true);
    
     // the background page will attempt to restart us once in a while
     this.restartIfStopped = function()
