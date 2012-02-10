@@ -1848,6 +1848,11 @@ function cheatTweet()
 {
     g_socket.emit(MSG_TESTMSG, { name : TMSGN_CHEATTWEET });
 }
+function cheatElector()
+{
+    g_elector = !g_elector;
+    log("Elector: ", g_elector);
+}
 var g_spamBots = new Array();
 function addSpamBot(_count)
 {
