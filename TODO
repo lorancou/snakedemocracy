@@ -6,13 +6,11 @@
 Server
  - Kick cheaters?
  - Bots if too few players?
- - Find a better way to include vec2.js / common.js etc.
+ - Find a better way to include vec2.js / common.js etc.? Eval is evil.
  
 Common
- - Better vec2, ready for socket transport
- - Compress those messages (BiSON)
- - Facebook like button bring privileges
+ - Better vec2, ready for socket transport?
+ - Compress those messages (BiSON)?
  
 Publishing
- - Pokki submission!
- - Kongregate
+ - Kongregate?

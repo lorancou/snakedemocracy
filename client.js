@@ -404,8 +404,6 @@ function init(_serverAddress, _test, _pokki)
 
 function processFBLoginStatus(response)
 {
-    log("Facebook: callback");
-    
     if (response.status == 'connected')
     {
         var user_id = response.authResponse.userID;
@@ -413,7 +411,6 @@ function processFBLoginStatus(response)
         var page_id = "269406253129143"; // our page
         var fql_query = "SELECT uid FROM page_fan WHERE page_id =" + page_id + " and uid=" + user_id;
         var the_query = FB.Data.query(fql_query);
-
         the_query.wait(function(rows)
         {
             if (rows.length == 1 && rows[0].uid == user_id)

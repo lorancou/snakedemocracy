@@ -1,5 +1,5 @@
-var REVISION = 30;
-var VERSION = "RC3"
+var REVISION = 31;
+var VERSION = "1.0"
 var AREA_SIZE = 20;
 var MAX_VOTES_PER_MOVE = 10;
 var MOVE_DELAY = 2000;
