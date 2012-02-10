@@ -1854,7 +1854,8 @@ function cheatTweet()
 function cheatElector()
 {
     g_elector = !g_elector;
-    log("Elector: ", g_elector);
+    if (g_elector) log("Elector");
+    else log("Not elector");
 }
 var g_spamBots = new Array();
 function addSpamBot(_count)
