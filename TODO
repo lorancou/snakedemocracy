@@ -15,6 +15,7 @@ Common
  - Better vec2, ready for socket transport
  - Compress those messages (BiSON)
  - Facebook like button bring privileges
+ - Change end conditions
  
 Publishing
  - Pokki

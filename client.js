@@ -587,6 +587,7 @@ function disconnect(_fromDisconnectMessage)
 
     log("Disconnect");
     g_connecting = false;
+    g_backPingRequested = false;
 
     // we don't want a time out to occur as we're *already* reconnected, this
     // would disconnect us for no reason
@@ -2066,7 +2067,7 @@ function appleTweetClick()
 // Pokki wrapper
 function pokkiRestartIfStopped()
 {
-    if (g_stopped && !g_connecting)
+    if (!g_socket && !g_connecting)
     {
         log("Periodic reconnection attempt...");
         connect();
@@ -2080,20 +2081,16 @@ function pokkiShowing()
         return;
     }
     
-    if (!g_connecting)
+    // Pokki Guidelines: Network connection issues
+    if (!g_socket && !g_connection)
     {
-        // attempt a restart if was stopped
-        // Pokki Guidelines: Network connection issues
-        if (g_stopped)
-        {
-            log("Reconnection attempt...");
-            connect();
-        }
-        // awaken if was sleeping
-        else if (g_clientState == CS_SLEEP)
-        {
-            requestBackPing();
-        }
+        log("Reconnection attempt...");
+        connect();
+    }
+    // awaken if was sleeping
+    else if (g_clientState == CS_SLEEP && !g_backPingRequested)
+    {
+        requestBackPing();
     }
 }
 function pokkiShown()
