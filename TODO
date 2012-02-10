@@ -7,10 +7,15 @@ Server
  - Kick cheaters?
  - Bots if too few players?
  - Find a better way to include vec2.js / common.js etc.? Eval is evil.
+ - After a while, today is no longer today...
  
 Common
  - Better vec2, ready for socket transport?
  - Compress those messages (BiSON)?
  
 Publishing
+ - WWW
+  * Better layout?
+  * Elector notification somewhere?
+  * Refresh page on clicking FB Like?
  - Kongregate?
