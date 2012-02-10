@@ -391,7 +391,7 @@ function init(_serverAddress, _test, _pokki)
     drawMessage("Loading ballot paper... please be patient, citizen.", false);
     
     // check if the user Likes us on Facebook
-    if (FB)
+    if (!(typeof FB === "undefined"))
     {
         FB.getLoginStatus(processFBLoginStatus, true);
     }
