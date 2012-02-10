@@ -71,8 +71,8 @@ var g_highscores = { bestEver: 0, weeksBest: 0, todaysBest: 0 };
 var STARTUP_APPLE_COUNT = 3;
 var MEM_SEPPUKU = 300; // MB, set to 0 to disable
 var SPECTATOR_THRESHOLD = 10; // in snake moves
-var SLEEP_THRESHOLD = 20; // in snake moves
-var CLIENT_TIMEOUT = 40; // in snake moves
+var SLEEP_THRESHOLD = 100; // in snake moves
+var CLIENT_TIMEOUT = 1000; // in snake moves
 
 //app.listen(80);
 var port = process.env.PORT || 3000;

@@ -727,7 +727,7 @@ function logVec2Array(_name, _array)
 // ping, first message, inits the snake
 function processPing(_ping)
 {
-    log("Ping received");
+    log("Ping received...");
 
     // assume we (re)start active on server
     g_clientState = CS_ACTIVE;
@@ -774,6 +774,8 @@ function processPing(_ping)
     g_lastVoteMove = g_move;
     g_lastMessageTime = new Date().getTime();
 
+    log("Running :)");
+    
     g_connecting = false;
     g_stopped = false;
     
@@ -982,7 +984,7 @@ function update()
     // draw
     if (!g_drawPaused)
     {
-        draw();
+        draw(time);
     }
 
     // reset input
