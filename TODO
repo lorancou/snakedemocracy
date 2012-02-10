@@ -3,9 +3,6 @@
   TODO list
 ---------------------------------------------------------------------------------
 
-Client
- - Tail tip hint doesn't blink anymore
-
 Server
  - Kick cheaters?
  - Bots if too few players?
@@ -15,6 +12,7 @@ Common
  - Better vec2, ready for socket transport
  - Compress those messages (BiSON)
  - Facebook like button bring privileges
+ - Change end conditions
  
 Publishing
  - Pokki
