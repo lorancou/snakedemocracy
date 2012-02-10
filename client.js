@@ -2082,7 +2082,7 @@ function pokkiShowing()
     }
     
     // Pokki Guidelines: Network connection issues
-    if (!g_socket && !g_connection)
+    if (!g_socket && !g_connecting)
     {
         log("Reconnection attempt...");
         connect();
