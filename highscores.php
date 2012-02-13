@@ -88,6 +88,9 @@ switch ($action)
             customDie("ERROR: missing score.");
         }
         $score = $_GET["score"];
+        
+        // get remote host
+        $remoteHost = $_SERVER["REMOTE_HOST"] ?: gethostbyaddr($_SERVER["REMOTE_ADDR"]);
 
         // add it
         debugLog("Adding score...");
@@ -95,7 +98,7 @@ switch ($action)
             "INSERT INTO scores SET " .
             "score = '"   . $score                  . "'," .
             "addr = '"    . $_SERVER['REMOTE_ADDR'] . "'," .
-            "host = '"    . $_SERVER['REMOTE_HOST'] . "'," .
+            "host = '"    . $remoteHost              . "'," .
             "port = '"    . $_SERVER['REMOTE_PORT'] . "'," .
             "week = '"    . date("W")               . "'," .
             "day = '"     . date("Y-m-d")           . "'," .

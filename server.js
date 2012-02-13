@@ -73,6 +73,7 @@ var MEM_SEPPUKU = 300; // MB, set to 0 to disable
 var SPECTATOR_THRESHOLD = 10; // in snake moves
 var SLEEP_THRESHOLD = 100; // in snake moves
 var CLIENT_TIMEOUT = 1000; // in snake moves
+var HIGHSCORES_REFRESH_DELAY = 900000; // re-get highscores from the db every 15mn
 
 //app.listen(80);
 var port = process.env.PORT || 3000;
@@ -228,7 +229,7 @@ function initGame()
 }
 
 initTwitter();
-initHighscores();
+loadHighscores();
 initGame();
 
 function reportAbuse(_address, _message)
@@ -697,6 +698,10 @@ function move()
         newHead.x >= AREA_SIZE ||
         newHead.y >= AREA_SIZE)
     {
+        // send score to database
+        g_score = computeScore(false);
+        sendScore(g_score);
+
         // broadcast fail
         g_state = GS_FAIL;
         broadcast({ name: MSGN_NEWSTATE, state: g_state });
@@ -1109,7 +1114,7 @@ function initTwitter()
 
 //------------------------------------------------------------------------------
 // Highscores init
-function initHighscores()
+function loadHighscores()
 {
     // get highscores and store them
     var host = g_test ? "snakedemocracy.dyndns.org" : "snakedemocracy.com";
@@ -1152,6 +1157,10 @@ function initHighscores()
             }
         });
     });
+    
+    // refresh highscores once in a while
+    // (for them to change when the day changes)
+    setTimeout(loadHighscores, HIGHSCORES_REFRESH_DELAY);
 }
 
 //------------------------------------------------------------------------------
@@ -1177,42 +1186,42 @@ function sendScore(_score)
                 console.vlog("Best score ever! ", _score);
             }
         }
+        
+        // actually send it to the database
+        var host = g_test ? "snakedemocracy.dyndns.org" : "snakedemocracy.com";
+        var path = "/highscores.php" +
+            "?username=" + username +
+            "&password=" + password +
+            "&action=add" +
+            "&score=" + _score;
+        var options = {
+            host: host,
+            port: 80,
+            path: path,
+            method: "GET"
+        };
+        console.vlog("Adding score: ", _score);
+        var req = http.get(options, function(res)
+        {
+            var pageData = "";
+            res.setEncoding("utf8");
+
+            res.on("data", function (chunk)
+            {
+                pageData += chunk;
+            });
+
+            res.on("end", function()
+            {
+                if (pageData == "OK")
+                {
+                    console.vlog("Score added.");
+                }
+                else
+                {
+                    console.vlog(pageData);
+                }
+            });
+        });        
     }
-
-    // actually send it to the database
-    var host = g_test ? "snakedemocracy.dyndns.org" : "snakedemocracy.com";
-    var path = "/highscores.php" +
-        "?username=" + username +
-        "&password=" + password +
-        "&action=add" +
-        "&score=" + _score;
-    var options = {
-        host: host,
-        port: 80,
-        path: path,
-        method: "GET"
-    };
-    console.vlog("Adding score: ", _score);
-    var req = http.get(options, function(res)
-    {
-        var pageData = "";
-        res.setEncoding("utf8");
-
-        res.on("data", function (chunk)
-        {
-            pageData += chunk;
-        });
-
-        res.on("end", function()
-        {
-            if (pageData == "OK")
-            {
-                console.vlog("Score added.");
-            }
-            else
-            {
-                console.vlog(pageData);
-            }
-        });
-    });
 }
