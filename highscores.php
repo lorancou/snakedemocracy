@@ -181,4 +181,8 @@ switch ($action)
     }
 }
 
+// Close connection
+debugLog("Closing connection.");
+mysql_close($con);
+
 ?>
