@@ -3,6 +3,10 @@
   TODO list
 ---------------------------------------------------------------------------------
 
+Client
+ - SFX
+ - onmouseout -> hide arrows hover sprite
+
 Server
  - Kick cheaters?
  - Bots if too few players?
