@@ -6,6 +6,7 @@
 Client
  - SFX
  - onmouseout -> hide arrows hover sprite
+ - New graphs
 
 Server
  - Kick cheaters?
@@ -15,6 +16,7 @@ Server
 Common
  - Better vec2, ready for socket transport?
  - Compress those messages (BiSON)?
+ - Back to #snakedemocracy
  
 Publishing
  - WWW
