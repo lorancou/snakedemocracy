@@ -138,7 +138,7 @@ h2 {
 {
     position: absolute;
     bottom: 8px;
-    right: 15px;
+    right: 75px;
 	text-align:right;
 	font:10px arial,sans-serif;;
 	color:#a5653a;
@@ -163,30 +163,80 @@ a.pokki-link:hover
 	text-decoration:none;
 }
 
-a#pokki-badgeon
+a#pokki-sfxon
 {
     display: block;
     position: absolute;
-    bottom: 8px;
-    left: 135px;
+    bottom: 22px;
+    right: 43px;
     width: 26px;
     height: 16px;
     background: transparent url(../files/on_hover.png) no-repeat; 
     background-position: 0px -16px;
 }
+a#pokki-sfxon:hover
+{
+    background-position: 0px 0px;     
+}
+img.pokki-sfxon
+{
+    display: block;
+    visibility: hidden;
+    position: absolute;
+    bottom: 22px;
+    right: 43px;
+    width: 26px;
+    height: 16px;
+}
 
+a#pokki-sfxoff
+{
+    display: block;
+    position: absolute;
+    bottom: 22px;
+    right: 15px;
+    width: 26px;
+    height: 16px;
+    background: transparent url(../files/off_hover.png) no-repeat; 
+    background-position: 0px -16px;
+}
+a#pokki-sfxoff:hover
+{
+    background-position: 0px 0px;     
+}
+img.pokki-sfxoff
+{
+    display: block;
+    visibility: hidden;
+    position: absolute;
+    bottom: 22px;
+    right: 15px;
+    width: 26px;
+    height: 16px;
+}
+
+a#pokki-badgeon
+{
+    display: block;
+    position: absolute;
+    bottom: 5px;
+    right: 43px;
+    width: 26px;
+    height: 16px;
+    background: transparent url(../files/on_hover.png) no-repeat; 
+    background-position: 0px -16px;
+}
 a#pokki-badgeon:hover
 {
     background-position: 0px 0px;     
 }
-
 img.pokki-badgeon
 {
     display: block;
     visibility: hidden;
     position: absolute;
-    bottom: 8px;
-    left: 135px;
+    bottom: 5px;
+    right: 43px;
     width: 26px;
     height: 16px;
 }
@@ -195,26 +245,24 @@ a#pokki-badgeoff
 {
     display: block;
     position: absolute;
-    bottom: 8px;
-    left: 165px;
+    bottom: 5px;
+    right: 15px;
     width: 26px;
     height: 16px;
     background: transparent url(../files/off_hover.png) no-repeat; 
     background-position: 0px -16px;
 }
-
 a#pokki-badgeoff:hover
 {
     background-position: 0px 0px;     
 }
-
 img.pokki-badgeoff
 {
     display: block;
     visibility: hidden;
     position: absolute;
-    bottom: 8px;
-    left: 165px;
+    bottom: 5px;
+    right: 15px;
     width: 26px;
     height: 16px;
 }

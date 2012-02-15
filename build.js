@@ -12,7 +12,8 @@ var g_except =
     "pokkiShown",
     "pokkiHidden",
     "pokkiUnload",
-    "pokkiGetActivePlayerCount"
+    "pokkiGetActivePlayerCount",
+    "pokkiSwitchSfx"
 ];
 
 var orig_code = fs.readFileSync("build/client.temp.js")+"";

@@ -4,8 +4,9 @@
 // even when the popup gets unloaded, but this would also mean heavy refactoring
 // for the SD client... So we're keeping that for later.
 
-// access to badges switch local storage
+// access to local storage
 var badgesSwitch = new LocalStore("badgesSwitch", {defaultVal: true});
+var sfxSwitch = new LocalStore("sfxSwitch", {defaultVal: true});
 
 // poll for badges every minute
 // Pokki Guidelines: Badges
@@ -37,6 +38,18 @@ function refreshContextMenu()
     pokki.resetContextMenu();
     pokki.addContextMenuItem("How to play? (external link)", "faq");
     pokki.addContextMenuItem("About (external link)", "about");
+
+    // SFX
+    if (sfxSwitch.get())
+    {
+        pokki.addContextMenuItem("Sound effects: switch off", "sfxoff");
+    }
+    else
+    {
+        pokki.addContextMenuItem("Sound effects: switch on", "sfxon");
+    }
+    
+    // badges
     if (badgesSwitch.get())
     {
         pokki.addContextMenuItem("New player notifications: switch off", "badgeoff");
@@ -59,6 +72,34 @@ pokki.addEventListener("context_menu", function(_id)
     else if (_id == "about")
     {
         pokki.openURLInDefaultBrowser("http://snakedemocracy.com/about.html");
+    }
+    else if (_id == "sfxoff")
+    {
+        sfxSwitch.set(false);
+        var loaded = pokki.rpc("POPUP_LOADED");
+        if (loaded)
+        {
+            pokki.rpc("SD.applySfx()");
+        }
+        if (pokki.isPopupShown())
+        {
+            pokki.rpc("SD.refreshSfxOnOffSwitch()");
+        }
+        refreshContextMenu();
+    }
+    else if (_id == "sfxon")
+    {
+        sfxSwitch.set(true);
+        var loaded = pokki.rpc("POPUP_LOADED");
+        if (loaded)
+        {
+            pokki.rpc("SD.applySfx()");
+        }
+        if (pokki.isPopupShown())
+        {
+            pokki.rpc("SD.refreshSfxOnOffSwitch()");
+        }
+        refreshContextMenu();
     }
     else if (_id == "badgeoff")
     {

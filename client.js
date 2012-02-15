@@ -76,8 +76,9 @@ var g_tailHintSwitch = false;
 var g_tailHintSwitchTime = null;
 var g_backPingRequested = false;
 var g_elector = false;
+var g_sfxSwitch = true;
 
-// assets
+// images
 var g_serverupgradePath = "files/serverupgrade.png";
 var g_serverdownPath = "files/serverdown.png";
 var g_serverfloodPath = "files/serverflood.png";
@@ -141,15 +142,45 @@ var g_arrowHoverPaths =
 }
 var g_applePath = "files/apple.png";
 var g_fullgridPath = "files/fullgrid.png";
-var g_victoryPath = "files/victory.png";
-var g_failPath = "files/fail.png";
+var g_victoryPaths =
+{
+    normal : "files/victory_normal.png",
+    today : "files/victory_today.png",
+    week : "files/victory_week.png",
+    ever : "files/victory_ever.png"
+}
+var g_failPaths =
+{
+    normal : "files/fail_normal.png",
+    today : "files/fail_today.png",
+    week : "files/fail_week.png",
+    ever : "files/fail_ever.png"
+}
 var g_sleepPath = "files/sleep.png";
 var g_tailHintPath = "files/tailhint.png";
-var g_highscoreFlags =
+
+// sounds
+// NB: IE9 won't play WAV sounds, Firefox won't play MP3 sounds, so using MP3 if
+// possible and falling back to WAV if not
+if (new Audio().canPlayType("audio/mpeg"))
 {
-    bestEver : "files/highscores_bestever.png",
-    weeksBest : "files/highscores_weeksbest.png",
-    todaysBest : "files/highscores_todaysbest.png"
+    log("Using MP3 sounds");
+    var g_crunch =
+    [
+        "files/crunch_0.mp3",
+        "files/crunch_1.mp3",
+        "files/crunch_2.mp3"
+    ];
+}
+else
+{
+    log("Using WAV sounds");
+    var g_crunch =
+    [
+        "files/crunch_0.wav",
+        "files/crunch_1.wav",
+        "files/crunch_2.wav"
+    ];
 }
 
 function log(msg)
@@ -196,52 +227,61 @@ window.cancelRequestAnimFrame = (function() {
 
 function queueAssets(_mgr)
 {
-    _mgr.queueDownload(g_serverupgradePath);
-    _mgr.queueDownload(g_serverdownPath);
-    _mgr.queueDownload(g_serverfloodPath);
-    _mgr.queueDownload(g_headPaths.east);
-    _mgr.queueDownload(g_headPaths.west);
-    _mgr.queueDownload(g_headPaths.south);
-    _mgr.queueDownload(g_headPaths.north);
-    _mgr.queueDownload(g_bodyPaths.hz);
-    _mgr.queueDownload(g_bodyPaths.vt);
-    _mgr.queueDownload(g_bodyPaths.es);
-    _mgr.queueDownload(g_bodyPaths.sw);
-    _mgr.queueDownload(g_bodyPaths.wn);
-    _mgr.queueDownload(g_bodyPaths.ne);
-    _mgr.queueDownload(g_tailPaths.east);
-    _mgr.queueDownload(g_tailPaths.west);
-    _mgr.queueDownload(g_tailPaths.south);
-    _mgr.queueDownload(g_tailPaths.north);
-    _mgr.queueDownload(g_tailBlinkPaths.east);
-    _mgr.queueDownload(g_tailBlinkPaths.west);
-    _mgr.queueDownload(g_tailBlinkPaths.south);
-    _mgr.queueDownload(g_tailBlinkPaths.north);
-    _mgr.queueDownload(g_arrowPaths.east);
-    _mgr.queueDownload(g_arrowPaths.west);
-    _mgr.queueDownload(g_arrowPaths.south);
-    _mgr.queueDownload(g_arrowPaths.north);
-    _mgr.queueDownload(g_arrowGoldPaths.east);
-    _mgr.queueDownload(g_arrowGoldPaths.west);
-    _mgr.queueDownload(g_arrowGoldPaths.south);
-    _mgr.queueDownload(g_arrowGoldPaths.north);
-    _mgr.queueDownload(g_arrowSelectPaths.east);
-    _mgr.queueDownload(g_arrowSelectPaths.west);
-    _mgr.queueDownload(g_arrowSelectPaths.south);
-    _mgr.queueDownload(g_arrowSelectPaths.north);
-    _mgr.queueDownload(g_arrowHoverPaths.east);
-    _mgr.queueDownload(g_arrowHoverPaths.west);
-    _mgr.queueDownload(g_arrowHoverPaths.south);
-    _mgr.queueDownload(g_arrowHoverPaths.north);
-    _mgr.queueDownload(g_applePath);
-    _mgr.queueDownload(g_fullgridPath);
-    _mgr.queueDownload(g_victoryPath);
-    _mgr.queueDownload(g_failPath);
-    _mgr.queueDownload(g_sleepPath);
-    _mgr.queueDownload(g_tailHintPath);
-    _mgr.queueDownload(g_highscoreFlags.bestEver);
-    _mgr.queueDownload(g_highscoreFlags.weeksBest);
-    _mgr.queueDownload(g_highscoreFlags.todaysBest);
+    // images
+    _mgr.queueImage(g_serverupgradePath);
+    _mgr.queueImage(g_serverdownPath);
+    _mgr.queueImage(g_serverfloodPath);
+    _mgr.queueImage(g_headPaths.east);
+    _mgr.queueImage(g_headPaths.west);
+    _mgr.queueImage(g_headPaths.south);
+    _mgr.queueImage(g_headPaths.north);
+    _mgr.queueImage(g_bodyPaths.hz);
+    _mgr.queueImage(g_bodyPaths.vt);
+    _mgr.queueImage(g_bodyPaths.es);
+    _mgr.queueImage(g_bodyPaths.sw);
+    _mgr.queueImage(g_bodyPaths.wn);
+    _mgr.queueImage(g_bodyPaths.ne);
+    _mgr.queueImage(g_tailPaths.east);
+    _mgr.queueImage(g_tailPaths.west);
+    _mgr.queueImage(g_tailPaths.south);
+    _mgr.queueImage(g_tailPaths.north);
+    _mgr.queueImage(g_tailBlinkPaths.east);
+    _mgr.queueImage(g_tailBlinkPaths.west);
+    _mgr.queueImage(g_tailBlinkPaths.south);
+    _mgr.queueImage(g_tailBlinkPaths.north);
+    _mgr.queueImage(g_arrowPaths.east);
+    _mgr.queueImage(g_arrowPaths.west);
+    _mgr.queueImage(g_arrowPaths.south);
+    _mgr.queueImage(g_arrowPaths.north);
+    _mgr.queueImage(g_arrowGoldPaths.east);
+    _mgr.queueImage(g_arrowGoldPaths.west);
+    _mgr.queueImage(g_arrowGoldPaths.south);
+    _mgr.queueImage(g_arrowGoldPaths.north);
+    _mgr.queueImage(g_arrowSelectPaths.east);
+    _mgr.queueImage(g_arrowSelectPaths.west);
+    _mgr.queueImage(g_arrowSelectPaths.south);
+    _mgr.queueImage(g_arrowSelectPaths.north);
+    _mgr.queueImage(g_arrowHoverPaths.east);
+    _mgr.queueImage(g_arrowHoverPaths.west);
+    _mgr.queueImage(g_arrowHoverPaths.south);
+    _mgr.queueImage(g_arrowHoverPaths.north);
+    _mgr.queueImage(g_applePath);
+    _mgr.queueImage(g_fullgridPath);
+    _mgr.queueImage(g_victoryPaths.normal);
+    _mgr.queueImage(g_victoryPaths.today);
+    _mgr.queueImage(g_victoryPaths.week);
+    _mgr.queueImage(g_victoryPaths.ever);
+    _mgr.queueImage(g_failPaths.normal);
+    _mgr.queueImage(g_failPaths.today);
+    _mgr.queueImage(g_failPaths.week);
+    _mgr.queueImage(g_failPaths.ever);
+    _mgr.queueImage(g_sleepPath);
+    _mgr.queueImage(g_tailHintPath);
+    
+    // sounds
+    _mgr.queueSound(g_crunch[0]);
+    _mgr.queueSound(g_crunch[1]);
+    _mgr.queueSound(g_crunch[2]);
 }
 
 // VICTORY TWEET!
@@ -380,6 +420,7 @@ function init(_serverAddress, _test, _pokki)
 	g_canvas.onmousedown = mouseDown;
 	g_canvas.onmouseup = mouseUp;
 	g_canvas.onmousemove = mouseMove;
+	g_canvas.onmouseout = mouseOut;
 	g_canvas.oncontextmenu = function() { return false; };
     g_canvas.onselectstart = function() {return false;} 
     document.onkeydown = keyDown;
@@ -916,6 +957,12 @@ function mouseMove(e)
     g_mouseY = canvasPos[1];
 }
 
+function mouseOut(e)
+{
+    g_mouseX = -1;
+    g_mouseY = -1;
+}
+
 function keyDown(e)
 {
 }
@@ -941,32 +988,79 @@ function keyUp(e)
 }
 
 // assets manager
-// http://io-2011-html5-games-hr.appspot.com/#22
-function AssetManager() {
-  this.successCount = 0;
-  this.errorCount = 0;
-  this.cache = [];
-  this.downloadQueue = [];
+// derived from: http://io-2011-html5-games-hr.appspot.com/#22
+function AssetManager()
+{
+    this.successCount = 0;
+    this.errorCount = 0;
+    this.cache = [];
+    this.downloadQueue = [];
 }
-AssetManager.prototype.queueDownload = function(path) {
-  this.downloadQueue.push(path);
+AssetManager.prototype.queueImage = function(_path)
+{
+    this.downloadQueue.push({ type: "image", path : _path });
 }
-AssetManager.prototype.isDone = function() {
-  return (this.downloadQueue.length == this.successCount + this.errorCount);
+AssetManager.prototype.queueSound = function(_path)
+{
+    this.downloadQueue.push({ type: "sound", path : _path });
 }
-AssetManager.prototype.downloadAll = function(callback) {
-  for (var i = 0; i < this.downloadQueue.length; i++) {
-      var path = this.downloadQueue[i];
-      var img = new Image();
-      img.src = path;
-      this.cache[path] = img;
-      var that = this;
-      img.onload = function() 
-      {
-          that.successCount += 1;
-          if (that.isDone()) { callback(); }
-      };          
-  }
+AssetManager.prototype.isDone = function()
+{
+    return (this.downloadQueue.length == this.successCount + this.errorCount);
+}
+AssetManager.prototype.downloadAll = function(callback)
+{
+    for (var i = 0; i < this.downloadQueue.length; i++)
+    {
+        var path = this.downloadQueue[i].path;
+        var type = this.downloadQueue[i].type;
+        var that = this;
+        
+        if (type == "image")
+        {
+            var img = new Image();
+            img.src = path;
+            this.cache[path] = img;
+
+            img.addEventListener("load", function()
+            {
+                that.successCount += 1;
+                if (that.isDone()) { callback(); }
+            });
+
+            img.addEventListener("error", function()
+            {
+                log("ERROR: failed to load " + path);
+                that.errorCount += 1;
+                if (that.isDone()) { callback(); }
+            });
+        }
+        else // type == "sound"
+        {
+            var audio = new Audio();
+            audio.src = path;
+            this.cache[path] = audio;
+
+            audio.addEventListener("loadeddata", function()
+            {
+                that.successCount += 1;
+                if (that.isDone()) { callback(); }
+            });
+
+            audio.addEventListener("error", function()
+            {
+                log("ERROR: failed to load " + path);
+                that.errorCount += 1;
+                if (that.isDone()) { callback(); }
+            });
+
+            audio.addEventListener("ended", function()
+            {
+                //that.cache[path].currentTime = 0;
+                //that.cache[path].pause();
+            });
+        }
+    }
 }
 
 function getScreenCoords(_coords, _middle)
@@ -1609,8 +1703,12 @@ function draw(_time)
     if (g_state == GS_VICTORY)
     {
         // img
+        var img = g_victoryPaths.normal;
+        if (g_highscoreFlag == "todaysBest") img = g_victoryPaths.today;
+        else if (g_highscoreFlag == "weeksBest") img = g_victoryPaths.week;
+        else if (g_highscoreFlag == "bestEver") img = g_victoryPaths.ever;
         g_context.drawImage(
-            g_assets.cache[g_victoryPath],
+            g_assets.cache[img],
             0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
         // score
@@ -1632,8 +1730,12 @@ function draw(_time)
     else if (g_state == GS_FAIL)
     {
         // img
+        var img = g_failPaths.normal;
+        if (g_highscoreFlag == "todaysBest") img = g_failPaths.today;
+        else if (g_highscoreFlag == "weeksBest") img = g_failPaths.week;
+        else if (g_highscoreFlag == "bestEver") img = g_failPaths.ever;
         g_context.drawImage(
-            g_assets.cache[g_failPath],
+            g_assets.cache[img],
             0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         
         // score
@@ -1734,21 +1836,21 @@ function applyScore()
     {
         log("Today's best score!");
         g_highscores.todaysBest = g_score;
-        g_highscoreFlag = g_highscoreFlags.todaysBest;
+        g_highscoreFlag = "todaysBest";
 
         // new weekly highscore
         if (g_score > g_highscores.weeksBest)
         {
             log("This week's best score!");
             g_highscores.weeksBest = g_score;
-            g_highscoreFlag = g_highscoreFlags.weeksBest;
+            g_highscoreFlag = "weeksBest";
             
             // wow! new best score ever
             if (g_score > g_highscores.bestEver)
             {
                 log("Best score ever!");
                 g_highscores.bestEver = g_score;
-                g_highscoreFlag = g_highscoreFlags.bestEver;            
+                g_highscoreFlag = "bestEver";            
             }
         }
     }
@@ -1769,14 +1871,6 @@ function drawEndGameScore()
     // restore font
     g_context.font = bkpFont;
     g_context.textAlign = bkpAlign;    
-    
-    // draw highscore flag
-    if (g_highscoreFlag)
-    {
-        g_context.drawImage(
-            g_assets.cache[g_highscoreFlag],
-            100, 248);
-    }
 }
 
 // detect idle client
@@ -2099,6 +2193,14 @@ function processMoveGrow(_message)
     if (_message.pickup != -1)
     {
         g_apples.splice(_message.pickup, 1);
+        
+        // play a random crunch SFX
+        if (g_sfxSwitch && g_activePlayerCount > 0)
+        {
+            var pick = Math.floor(Math.random() * 3);
+            log("Crunch " + pick);
+            g_assets.cache[g_crunch[pick]].play();
+        }
     }
 
     // apple spawn
@@ -2208,4 +2310,8 @@ function pokkiGetActivePlayerCount()
     
     // so the pokki can display newly active players
     return g_activePlayerCount;
+}
+function pokkiSwitchSfx(_onOff)
+{
+    g_sfxSwitch = _onOff;
 }

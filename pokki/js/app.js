@@ -2,6 +2,7 @@ var SnakeDemocracyApp = function()
 {
     // get local storage
     var badgesSwitch = new LocalStore("badgesSwitch", {defaultVal: true});
+    var sfxSwitch = new LocalStore("sfxSwitch", {defaultVal: true});
     var shownPlayerCount = new LocalStore("shownPlayerCount", {defaultVal: 0});
     
     // get used DOM elements
@@ -17,6 +18,18 @@ var SnakeDemocracyApp = function()
     {
         set : document.getElementById('pokki-badgeoff-set'),
         unset : document.getElementById('pokki-badgeoff-unset'),
+    };
+    var sfxOnLink = document.getElementById('pokki-sfxon');
+    var sfxOnImgs =
+    {
+        set : document.getElementById('pokki-sfxon-set'),
+        unset : document.getElementById('pokki-sfxon-unset'),
+    };
+    var sfxOffLink = document.getElementById('pokki-sfxoff');
+    var sfxOffImgs =
+    {
+        set : document.getElementById('pokki-sfxoff-set'),
+        unset : document.getElementById('pokki-sfxoff-unset'),
     };
 
     // attach click event to minimize button
@@ -49,7 +62,10 @@ var SnakeDemocracyApp = function()
 
         // we're now shown, hiding badges
         this.refreshBadges();
+
+        // refresh switches
         this.refreshBadgesOnOffSwitch();
+        this.refreshSfxOnOffSwitch();
 
         // tell the SD client
         pokkiShown();
@@ -103,6 +119,33 @@ var SnakeDemocracyApp = function()
     };
     this.refreshBadges(); // set initial state
     
+    // called when shown/hidden and from background.js to update the badge
+    this.refreshBadges = function()
+    {
+        // if badges enabled and popup hidden, show newly active players
+        if (badgesSwitch.get() && !pokki.isPopupShown())
+        {
+            var diff = pokkiGetActivePlayerCount() - shownPlayerCount.get();
+            if (diff > 0)
+            {
+                console.log("New player(s) detected " + diff);
+                pokki.setIconBadge(diff);
+            }
+            else
+            {
+                console.log("No new player");
+                pokki.removeIconBadge();
+            }
+        }
+        // otherwise clear it
+        else
+        {
+            console.log("Badges off or popup shown");
+            pokki.removeIconBadge();
+        }
+    };
+    this.refreshBadges(); // set initial state
+
     // called from background.js to update the popup switch buttons
     this.refreshBadgesOnOffSwitch = function()
     {
@@ -145,4 +188,57 @@ var SnakeDemocracyApp = function()
         this.refreshBadgesOnOffSwitch();
     };
   
+    // called from background.js to update the popup switch buttons
+    this.refreshSfxOnOffSwitch = function()
+    {
+        if (sfxSwitch.get())
+        {
+            console.log("Badges on.");
+            
+            sfxOnLink.style.visibility = "hidden";
+            sfxOnImgs.set.style.visibility = "visible";
+            sfxOnImgs.unset.style.visibility = "hidden";
+
+            sfxOffLink.style.visibility = "visible";
+            sfxOffImgs.set.style.visibility = "hidden";
+            sfxOffImgs.unset.style.visibility = "visible";
+        }
+        else
+        {
+            console.log("Badges off.");
+
+            sfxOnLink.style.visibility = "visible";
+            sfxOnImgs.set.style.visibility = "hidden";
+            sfxOnImgs.unset.style.visibility = "visible";
+
+            sfxOffLink.style.visibility = "hidden";
+            sfxOffImgs.set.style.visibility = "visible";
+            sfxOffImgs.unset.style.visibility = "hidden";
+        }
+    };
+    this.refreshSfxOnOffSwitch(); // set initial state
+
+    // called from popup.html
+    this.switchSfx = function(_onOff)
+    {
+        sfxSwitch.set(_onOff);
+        
+        // update context menu
+        pokki.rpc("refreshContextMenu()");
+
+        // update images
+        this.refreshSfxOnOffSwitch();
+        
+        // tell the SD client
+        pokkiSwitchSfx(_onOff);
+    };
+
+    // called from background.js
+    this.applySfx = function()
+    {
+        // tell the SD client
+        pokkiSwitchSfx(sfxSwitch.get());
+    };
+    this.applySfx(sfxSwitch.get()); // set initial state
+
 };
