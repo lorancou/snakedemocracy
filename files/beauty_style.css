@@ -271,12 +271,13 @@ div#todaysBest
 	background-repeat:no-repeat;
 }
 
-#twitterApplesWidget
+div#appleTweet
 {
-    background-image: url(bg-twitterapples.jpg);
+    padding-top: 20px;
+    padding-left: 35px;
 }
 
-#appleTweet
+input#appleTweet
 {
 	font:12px calibri,arial,sans-serif;
 }

@@ -312,7 +312,7 @@ function showVictoryTweet()
     {
         var src = "https://twitter.com/share"
         src += "?url=http://snakedemocracy.com";
-        src += "&hashtags=snake";
+        src += "&hashtags=snakedemocracy";
         src += "&count=none";
         src += "&text=I was there when we reached the score of " + g_score + " on ";
         if (!g_pokki)
@@ -2226,7 +2226,7 @@ function appleTweetClick()
 {
     var src = "https://twitter.com/share"
     src += "?url=http://snakedemocracy.com";
-    src += "&hashtags=snake";
+    src += "&hashtags=snakedemocracy";
     src += "&count=none";
     src += "&text=Give me an apple!"
     window.open(src,"","width=550,height=450");

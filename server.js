@@ -1106,7 +1106,7 @@ function initTwitter()
     });
 
     console.vlog("Writing request");
-    req.write("track=#snake\n\n");
+    req.write("track=#snakedemocracy\n\n");
 
     console.vlog("Sending request?");
     req.end();

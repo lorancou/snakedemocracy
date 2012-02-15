@@ -14,7 +14,6 @@ Server
 Common
  - Better vec2, ready for socket transport?
  - Compress those messages (BiSON)?
- - Back to #snakedemocracy
  
 Publishing
  - WWW
