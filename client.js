@@ -553,6 +553,7 @@ function drawServerUpgrade()
     }
     else
     {
+        log("ERROR: this should not happen, Pokkies just ignore server upgrades");
         drawMessage("The server was just upgraded. Your Pokki should update as well very soon, keep an eye on it!", true);
     }
 }
@@ -822,9 +823,16 @@ function processPing(_ping)
     // check revision
     if (!_ping.revision || _ping.revision != REVISION)
     {
-        disconnect();
-        stop(drawServerUpgrade, "Upgrade");
-        return;
+        if (!g_pokki)
+        {
+            disconnect();
+            stop(drawServerUpgrade, "Upgrade");
+            return;
+        }
+        else
+        {
+            log("WARNING: server was upgraded, this Pokki should update soon");
+        }
     }
     
     // copy initial snake
@@ -2313,5 +2321,11 @@ function pokkiGetActivePlayerCount()
 }
 function pokkiSwitchSfx(_onOff)
 {
+    if (!g_pokki)
+    {
+        log("WARNING: called pokkiSwitchSfx but I'm no Pokki, thanks.");
+        return;
+    }
+
     g_sfxSwitch = _onOff;
 }
