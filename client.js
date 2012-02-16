@@ -445,7 +445,7 @@ function init(_serverAddress, _test, _pokki)
 
 function processFBLoginStatus(response)
 {
-    if (response.status == 'connected')
+    if (response.status == "connected")
     {
         var user_id = response.authResponse.userID;
         //var page_id = "40796308305"; //coca cola
@@ -456,20 +456,62 @@ function processFBLoginStatus(response)
         {
             if (rows.length == 1 && rows[0].uid == user_id)
             {
-                log("Facebook: liked");
+                log("Facebook: liked.");
                 g_elector = true;
             }
             else
             {
-                log("Facebook: not liked");
+                log("Facebook: not liked.");
             }
+            showFBLikeBox();
         });
     }
     else
     {
-        // user is not logged in
-        log("Facebook: not logged in");
+        log("Facebook: not logged in (or app not authorized).");
+        showFBLoginButton();
     }
+}
+
+function showFBLoginButton()
+{
+    var loginButton = document.getElementById("fb-login-button");
+    if (!loginButton)
+    {
+        log("ERROR: can't get Facebook login button");
+        return;
+    }
+    loginButton.style.visibility = "visible";
+    
+    // http://stackoverflow.com/questions/5782515/facebook-js-api-how-to-redirect-user-after-login
+    FB.Event.subscribe("auth.login", function (response)
+    {
+        log("Facebook app just authorized.");
+        window.location.reload();
+    });
+}
+
+function showFBLikeBox()
+{
+    var likeBox = document.getElementById("fb-like-box");
+    if (!likeBox)
+    {
+        log("ERROR: can't get Facebook like box");
+        return;
+    }
+    likeBox.style.visibility = "visible";
+    
+    // http://stackoverflow.com/questions/2798622/facebook-like-button-callback
+    FB.Event.subscribe("edge.create", function(href, widget)
+    {
+        log("Facebook page just liked.");        
+        window.location.reload();
+    });
+    FB.Event.subscribe("edge.remove", function(href, widget)
+    {
+        log("Facebook page just unliked.");        
+        window.location.reload();
+    });
 }
 
 function cancelUpdates()
@@ -580,7 +622,7 @@ function drawSleep()
 function connect()
 {
     // if io isn't defined, this means we didn't receive socket.io.(min.)js, so the server is down
-    if (typeof io === 'undefined') // http://stackoverflow.com/questions/519145/how-can-i-check-whether-a-variable-is-defined-in-javascript
+    if (typeof io === "undefined") // http://stackoverflow.com/questions/519145/how-can-i-check-whether-a-variable-is-defined-in-javascript
     {
         // this should not happen in production, where all static content is served
         //  - for WWW: on a separate server

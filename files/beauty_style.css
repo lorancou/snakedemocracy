@@ -299,3 +299,19 @@ input#appleTweet
     background-image: url(bg-facebook.jpg);
 	background-repeat:no-repeat;
 }
+
+#fb-login-button
+{
+    position: relative;
+    visibility: hidden;
+    left: 75px;
+    top: 43px;
+}
+
+#fb-like-box
+{
+    position: relative;
+    visibility: hidden;
+    left: 15px;
+    top: 15px;
+}
