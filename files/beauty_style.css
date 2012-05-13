@@ -128,6 +128,19 @@ a.nav-item:hover
 	height:1966px;
 }
 
+#register
+{
+	font:16px calibri,arial,sans-serif;
+	/*font-weight:bold;*/
+	background-color:#fff7ee;
+    color: #3f2f19;
+	margin-left:auto;
+	margin-right:auto;
+	padding:0px 16px 0px 16px;
+	width:918px;
+	height:55px;
+}
+
 #canvas-box
 {
 	float:left;
