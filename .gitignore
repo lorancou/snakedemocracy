@@ -3,3 +3,5 @@ node_modules*
 Procfile
 build
 depcache
+PASSWORD.txt
+upload_stachlap.sh
