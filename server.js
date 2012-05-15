@@ -1,3 +1,15 @@
+/*
+ * server.js
+ * ------------------------------------------------------------------------------
+ * 
+ * SnakeDemocracy
+ * LEFT. RIGHT. VOTE.
+ * Copyright © 2012 Christophe Zerr, Alexis Moroz, Laurent Couvidou.
+ * Contact: snakedemocracy@gmail.com
+ *
+ * This program is free software - see README for details.
+ */
+ 
 // usage
 if (process.argv.length != 4)
 {
@@ -5,14 +17,24 @@ if (process.argv.length != 4)
     console.log("Usage: node ./server.js username password");
     process.exit(1);
 }
+
 var username = process.argv[2];
 var password = process.argv[3];
 
 // requires
 var http = require("http");
-var https = require("https");
 var app = require("express").createServer();
 var io = require("socket.io").listen(app);
+var twitter = require("./twitter.js");
+
+// init Twitter "thread"
+var twitusername = username;
+if (g_test)
+{
+    twitusername += "t"; // use test account otherwise this "disconnects" the
+                         // main server and tweet for apples no longer works!
+}
+twitter.run(username, password);
 
 // configure socket.io for production
 io.configure("production", function(){
@@ -228,8 +250,8 @@ function initGame()
     lightBroadcast();
 }
 
-initTwitter();
-loadHighscores();
+//initTwitter();
+//loadHighscores();
 initGame();
 
 function reportAbuse(_address, _message)
@@ -700,7 +722,7 @@ function move()
     {
         // send score to database
         g_score = computeScore(false);
-        sendScore(g_score);
+        //sendScore(g_score);
 
         // broadcast fail
         g_state = GS_FAIL;
@@ -714,7 +736,7 @@ function move()
     {
         // send score to database
         g_score = computeScore(false);
-        sendScore(g_score);
+        //sendScore(g_score);
 
         // broadcast fail
         g_state = GS_FAIL;
@@ -728,7 +750,7 @@ function move()
     {
         // send score to database
         g_score = computeScore(true);
-        sendScore(g_score);
+        //sendScore(g_score);
 
         // broadcast victory
         g_state = GS_VICTORY;
@@ -1038,78 +1060,6 @@ function broadcast(_message)
             s.emit(MSG_MESSAGE, _message);
         }
     }
-}
-
-//------------------------------------------------------------------------------
-// Twitter init
-function initTwitter()
-{
-    var username = process.argv[2];
-    var password = process.argv[3];
-    
-    if (g_test)
-    {
-        username += "t"; // use test account otherwise this "disconnects" the
-                         // main server and tweet for apples no longer works!
-    }
-
-    console.vlog("Twitter username: " + username);
-    var auth = "Basic " + new Buffer(username + ":" + password).toString("base64");
-
-    var options =
-    {
-        host: "stream.twitter.com",
-        port: 443,
-        path: "/1/statuses/filter.json",
-        headers :
-        {
-            "Host": "stream.twitter.com", 
-            "Authorization": auth,
-            "Content-type": "application/x-www-form-urlencoded"
-        },
-        method: "POST"
-    };
-
-    // start receiving tweets
-    var buf = "";
-    var req = https.request(options, function(res)
-    {
-        console.vlog("Twitter request status: " + res.statusCode);
-        console.vlog("Twitter request headers: " + JSON.stringify(res.headers));
-        
-        res.setEncoding("utf8");
-        res.on("data", function (chunk)
-        {
-            console.vlog("Twitter request status: " + res.statusCode);
-
-            buf += chunk;
-            var a = buf.split("\r\n");
-            buf = a[a.length-1];
-
-            for(var i=0; i < a.length-1; i++)
-            {
-                if (a[i] != "")
-                {
-                    try
-                    {
-                        var json = JSON.parse(a[i]);
-                        console.vlog("Tweet: " + json.text);
-                        processTweet(json.user.screen_name, json.text);
-                    }
-                    catch (e)
-                    {
-                        console.vlog("ERROR: invalid Twitter data");
-                    }
-                }
-            }
-        });
-    });
-
-    console.vlog("Writing request");
-    req.write("track=#snakedemocracy\n\n");
-
-    console.vlog("Sending request?");
-    req.end();
 }
 
 //------------------------------------------------------------------------------
