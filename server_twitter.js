@@ -1,6 +1,6 @@
 /*
- * twitter.js
- * ------------------------------------------------------------------------------
+ * server_twitter.js
+ * -----------------------------------------------------------------------------
  * 
  * SnakeDemocracy
  * LEFT. RIGHT. VOTE.
@@ -10,15 +10,17 @@
  * This program is free software - see README for details.
  */
 
-var https = require("https");
-
 (function()
 {
     
-    module.exports.run = function(username, password)
+    var https = require("https");
+ 
+    //--------------------------------------------------------------------------
+    // Twitter "thread", keeps running and receives tweets
+    module.exports.run = function(_username, _password, _processTweetCallback)
     {
-        console.log("Twitter username: " + username);
-        var auth = "Basic " + new Buffer(username + ":" + password).toString("base64");
+        console.log("SD_TWITTER Twitter username: " + _username);
+        var auth = "Basic " + new Buffer(_username + ":" + _password).toString("base64");
 
         var options =
         {
@@ -38,13 +40,13 @@ var https = require("https");
         var buf = "";
         var req = https.request(options, function(res)
         {
-            console.log("Twitter request status: " + res.statusCode);
-            console.log("Twitter request headers: " + JSON.stringify(res.headers));
+            console.log("SD_TWITTER Twitter request status: " + res.statusCode);
+            console.log("SD_TWITTER Twitter request headers: " + JSON.stringify(res.headers));
             
             res.setEncoding("utf8");
             res.on("data", function (chunk)
             {
-                console.log("Twitter request status: " + res.statusCode);
+                console.log("SD_TWITTER Twitter request status: " + res.statusCode);
 
                 buf += chunk;
                 var a = buf.split("\r\n");
@@ -57,22 +59,23 @@ var https = require("https");
                         try
                         {
                             var json = JSON.parse(a[i]);
-                            console.log("Tweet: " + json.text);
-                            processTweet(json.user.screen_name, json.text);
+                            console.log("SD_TWITTER Tweet: " + json.text);
+                            _processTweetCallback(json.user.screen_name, json.text);
                         }
                         catch (e)
                         {
-                            console.log("ERROR: invalid Twitter data");
+                            console.log("SD_TWITTER ERROR: invalid Twitter data");
                         }
                     }
                 }
             });
         });
 
-        console.log("Writing request");
-        req.write("track=#snakedemocracy\n\n");
+        console.log("SD_TWITTER Writing request");
+        req.write("track=#EuroclubPetaTwitter\n\n");
 
-        console.log("Sending request?");
+        console.log("SD_TWITTER Sending request?");
         req.end();
     }
+
 }());

@@ -1,6 +1,6 @@
 /*
  * server.js
- * ------------------------------------------------------------------------------
+ * -----------------------------------------------------------------------------
  * 
  * SnakeDemocracy
  * LEFT. RIGHT. VOTE.
@@ -25,16 +25,8 @@ var password = process.argv[3];
 var http = require("http");
 var app = require("express").createServer();
 var io = require("socket.io").listen(app);
-var twitter = require("./twitter.js");
-
-// init Twitter "thread"
-var twitusername = username;
-if (g_test)
-{
-    twitusername += "t"; // use test account otherwise this "disconnects" the
-                         // main server and tweet for apples no longer works!
-}
-twitter.run(username, password);
+var twitter = require("./server_twitter.js");
+var scores = require("./server_scores.js");
 
 // configure socket.io for production
 io.configure("production", function(){
@@ -95,13 +87,34 @@ var MEM_SEPPUKU = 300; // MB, set to 0 to disable
 var SPECTATOR_THRESHOLD = 10; // in snake moves
 var SLEEP_THRESHOLD = 100; // in snake moves
 var CLIENT_TIMEOUT = 1000; // in snake moves
-var HIGHSCORES_REFRESH_DELAY = 900000; // re-get highscores from the db every 15mn
 
 //app.listen(80);
 var port = process.env.PORT || 3000;
 app.listen(port, function() {
     console.vlog("Listening on " + port);
 });
+
+// init twitter module
+var twitusername = username;
+if (g_test)
+{
+    twitusername += "t";                       // use test account otherwise
+                                               // this "disconnects" the prod
+                                               // server and tweet for apples no
+                                               // longer work!
+}
+twitter.run(twitusername, password, processTweet);
+
+// init scores module
+var conString = process.env.DATABASE_URL;      // Heroku sets this for us
+if (g_test)
+{
+    conString += "tcp://" +                    // access pg through TCP
+                 username + ":" + password +   // authentication
+                 "@localhost/snakedemocracy"   // assumes there's already a db
+                                               // and that it's local
+}
+scores.run(conString, g_highscores);
 
 // serve redirect page in prod
 if (!g_test)
@@ -722,7 +735,7 @@ function move()
     {
         // send score to database
         g_score = computeScore(false);
-        //sendScore(g_score);
+        scores.send(g_score, g_highscores);
 
         // broadcast fail
         g_state = GS_FAIL;
@@ -736,7 +749,7 @@ function move()
     {
         // send score to database
         g_score = computeScore(false);
-        //sendScore(g_score);
+        scores.send(g_score, g_highscores);
 
         // broadcast fail
         g_state = GS_FAIL;
@@ -750,7 +763,7 @@ function move()
     {
         // send score to database
         g_score = computeScore(true);
-        //sendScore(g_score);
+        scores.send(g_score, g_highscores);
 
         // broadcast victory
         g_state = GS_VICTORY;
@@ -1059,119 +1072,5 @@ function broadcast(_message)
         {
             s.emit(MSG_MESSAGE, _message);
         }
-    }
-}
-
-//------------------------------------------------------------------------------
-// Highscores init
-function loadHighscores()
-{
-    // get highscores and store them
-    var host = g_test ? "snakedemocracy.dyndns.org" : "snakedemocracy.com";
-    var path = "/highscores.php" +
-        "?username=" + username +
-        "&password=" + password +
-        "&action=best";
-    var options = {
-        host: host,
-        port: 80,
-        path: path,
-        method: "GET"
-    };
-    var req = http.get(options, function(res)
-    {
-        var pageData = "";
-        res.setEncoding("utf8");
-
-        res.on("data", function (chunk)
-        {
-            pageData += chunk;
-        });
-
-        res.on("end", function()
-        {
-            //console.vlog("Highscores: ", pageData);
-            console.vlog("Page data: ", pageData);
-            
-            // JSON.parse throws a SyntaxError when passed invalid JSON
-            try
-            {
-                g_highscores = JSON.parse(pageData);
-                console.vlog("Best score ever: ", g_highscores.bestEver);
-                console.vlog("Week's best: ", g_highscores.weeksBest);
-                console.vlog("Today's best: ", g_highscores.todaysBest);
-            }
-            catch (e)
-            {
-                console.vlog("ERROR: invalid highscores data");
-            }
-        });
-    });
-    
-    // refresh highscores once in a while
-    // (for them to change when the day changes)
-    setTimeout(loadHighscores, HIGHSCORES_REFRESH_DELAY);
-}
-
-//------------------------------------------------------------------------------
-// Send score
-function sendScore(_score)
-{
-    // new highscore!
-    if (_score > g_highscores.todaysBest)
-    {
-        g_highscores.todaysBest = _score;
-        console.vlog("Today's best score! ", _score);
-        
-        // new weekly highscore
-        if (_score > g_highscores.weeksBest)
-        {
-            g_highscores.weeksBest = _score;
-            console.vlog("This weeks's best score! ", _score);
-            
-            // wow! new best score ever
-            if (_score > g_highscores.bestEver)
-            {
-                g_highscores.bestEver = _score;
-                console.vlog("Best score ever! ", _score);
-            }
-        }
-        
-        // actually send it to the database
-        var host = g_test ? "snakedemocracy.dyndns.org" : "snakedemocracy.com";
-        var path = "/highscores.php" +
-            "?username=" + username +
-            "&password=" + password +
-            "&action=add" +
-            "&score=" + _score;
-        var options = {
-            host: host,
-            port: 80,
-            path: path,
-            method: "GET"
-        };
-        console.vlog("Adding score: ", _score);
-        var req = http.get(options, function(res)
-        {
-            var pageData = "";
-            res.setEncoding("utf8");
-
-            res.on("data", function (chunk)
-            {
-                pageData += chunk;
-            });
-
-            res.on("end", function()
-            {
-                if (pageData == "OK")
-                {
-                    console.vlog("Score added.");
-                }
-                else
-                {
-                    console.vlog(pageData);
-                }
-            });
-        });        
     }
 }
