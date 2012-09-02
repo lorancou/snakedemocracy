@@ -10,4 +10,4 @@ ssh stachserver "cd /opt/snakedemocracy.test && ./build.sh"
 #ssh stachserver "cd /opt/snakedemocracy.test && rsync -avzh build/stachserver/ /var/www/snakedemocracy"
 
 # bring build back
-#rsync -avzh --delete stachserver:/opt/snakedemocracy.test/build .
+rsync -avzh --delete stachserver:/opt/snakedemocracy.test/build .

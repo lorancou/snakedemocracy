@@ -1,10 +1,10 @@
-var REVISION = 31;
-var VERSION = "1.2"
+var REVISION = 32;
+var VERSION = "1.3"
 var AREA_SIZE = 16;
 var MAX_VOTES_PER_MOVE = 10;
 var MOVE_DELAY = 850;
-var FAIL_DELAY = 1000;//20000;
-var VICTORY_DELAY = 1000;//20000;
+var FAIL_DELAY = 4000;
+var VICTORY_DELAY = 20000;
 var MEM_SEPPUKU_DELAY = 5000;
 
 // game states
