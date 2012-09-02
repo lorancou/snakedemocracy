@@ -1,19 +1,11 @@
 #!/bin/bash
 
+# to run from dev/test server
+
 if [[ -z "$1" ]]; then
     echo "Usage: ./upload_prod.sh user@host"
     exit 1
 fi
-
-# Git push
-echo "Committing local changes..."
-git status
-git add .
-git commit
-echo "Pushing to stachserver..."
-git push stachserver master
-echo "Pushing to GitHub..."
-git push github master
 
 # Build
 ./build.sh
