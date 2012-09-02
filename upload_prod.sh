@@ -19,7 +19,7 @@ git push github master
 ./build.sh
 
 # SFTP
-for i in $(seq 1 2) ; do
+#for i in $(seq 1 2) ; do
 
     if [ $i -eq 1 ]; then
         SUBDIR="www"
@@ -33,10 +33,10 @@ for i in $(seq 1 2) ; do
     sftp -b ../../upload_prod.sftp $1:vhosts/$VHOST/htdocs/
     cd ../..
 
-done
+#done
 
 # Git pull, repush
 cd ../snakedemocracy.heroku
 ./publish.sh
-cd ../snakedemocracy2.no.de
-./publish.sh
+#cd ../snakedemocracy2.no.de
+#./publish.sh
