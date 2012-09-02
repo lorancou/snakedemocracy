@@ -82,7 +82,8 @@ var g_lightBroadcastTimeoutHandle = null;
 var g_highscores = { bestEver: 0, weeksBest: 0, todaysBest: 0 };
 
 // global constants
-var STARTUP_APPLE_COUNT = 3;
+var STARTUP_APPLE_COUNT = 5;
+var GROW_PER_APPLE = 5;
 var MEM_SEPPUKU = 300; // MB, set to 0 to disable
 var SPECTATOR_THRESHOLD = 10; // in snake moves
 var SLEEP_THRESHOLD = 100; // in snake moves
@@ -424,9 +425,10 @@ function startTurn()
     // start with 3 elements
     g_snake = new Array();
     var startX = 9 + Math.round(Math.random());
-    g_snake.push(new vec2(startX, 4));
-    g_snake.push(new vec2(startX, 5));
-    g_snake.push(new vec2(startX, 6));
+    for (var y=0; y<10; ++y)
+    {
+        g_snake.push(new vec2(startX, y));
+    }
 
     // start with some random apples
     g_apples = new Array();
@@ -789,7 +791,7 @@ function move()
                     pickup = a;
                     pickupApple(a);
                     spawnApple(1, newApples);
-                    g_pendingGrow += 2;
+                    g_pendingGrow += GROW_PER_APPLE;
                     break; // 2+ apples at the same spot shouln't not happen. normally.
                 }
             }

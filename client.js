@@ -1,6 +1,7 @@
 // global constants
 var CANVAS_WIDTH = 480;
 var CANVAS_HEIGHT = 480;
+var AREA_OFFSET = 48;
 var SPRITE_SIZE = 24;
 var SELECT_FRAMES = 3;
 var CONNECT_TIMEOUT = 30000; // in ms
@@ -1115,12 +1116,12 @@ AssetManager.prototype.downloadAll = function(callback)
 
 function getScreenCoords(_coords, _middle)
 {
-    var topLeft = new vec2(_coords.x*SPRITE_SIZE, _coords.y*SPRITE_SIZE);
+    var topLeft = new vec2(AREA_OFFSET + _coords.x*SPRITE_SIZE, AREA_OFFSET + _coords.y*SPRITE_SIZE);
     if (!_middle)
     {
         return topLeft;
     }
-    var middle = new vec2(topLeft.x + 0.5*SPRITE_SIZE, topLeft.y + 0.5*SPRITE_SIZE);
+    var middle = new vec2(AREA_OFFSET + topLeft.x + 0.5*SPRITE_SIZE, AREA_OFFSET + topLeft.y + 0.5*SPRITE_SIZE);
     return middle;
 }
 

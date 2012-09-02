@@ -309,6 +309,7 @@ input#appleTweet
 {
     margin-top: 15px;
     height: 38px;
+    width: 224px;
     background-image: url(bg-facebook.jpg);
 	background-repeat:no-repeat;
 }
