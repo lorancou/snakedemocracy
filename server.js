@@ -108,11 +108,11 @@ twitter.run(twitusername, password, processTweet);
 
 // init scores module
 var conString = process.env.DATABASE_URL;      // Heroku sets this for us
-if (conString == "")
+if (conString == "" || conString == undefined)
 {
     conString = "tcp://" +                     // access pg through TCP
                 username + ":" + password +    // authentication
-                "@localhost/snakedemocracy"    // assumes there's already a db
+                "@localhost/snakedemocracy";   // assumes there's already a db
                                                // and that it's local
 }
 scores.run(conString, g_highscores);
