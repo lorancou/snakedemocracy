@@ -53,9 +53,6 @@ for i in $(seq 0 2) ; do
     cp about.html build/$SUBDIR/about.html
     cp channel.html build/$SUBDIR/channel.html
 
-    # PHP
-    cp highscores.php build/$SUBDIR/highscores.php
-    
     # JS
     cp build/socket.io.min.js build/$SUBDIR/
     cp build/client.$REVISION.min.js build/$SUBDIR/
