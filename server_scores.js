@@ -22,6 +22,7 @@
     // Highscores init
     module.exports.run = function(_conString, _highscores)
     {
+        console.log("SD_SCORES Connecting with string: " + conString);
         var client = new pg.Client(_conString);
         client.connect();
         
