@@ -118,9 +118,8 @@
             
             console.log("SD_SCORES Sending new highscore...");
             var query = client.query(
-                "INSERT INTO scores SET " +
-                "score = " + _score + "," +
-                "created = CURRENT_TIMESTAMP"
+                "INSERT INTO scores (score, created) values " +
+                "(" + _score + ", CURRENT_TIMESTAMP)"
                 );
             query.on("error", function(error) {
                 console.log("SD_SCORES ERROR (sending score): " + error);
