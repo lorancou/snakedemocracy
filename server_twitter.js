@@ -72,7 +72,7 @@
         });
 
         console.log("SD_TWITTER Writing request");
-        req.write("track=#EuroclubPetaTwitter\n\n");
+        req.write("track=#snakedemocracy\n\n");
 
         console.log("SD_TWITTER Sending request?");
         req.end();

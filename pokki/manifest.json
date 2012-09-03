@@ -1,11 +1,11 @@
 {
     "name": "SnakeDemocracy",
-    "version": "1.2",
-    "icon-19x19": "img/icon-19x19.png",
-    "icon-29x29": "img/icon-29x29.png",
-    "icon-42x42": "img/icon-42x42.png",
-    "icon-256x256": "img/icon-256x256.png",
+    "version": "1.3",
+    "icons": { "19":	 "img/icon-19x19.png", 
+               "29":	 "img/icon-29x29.png",
+               "42":	 "img/icon-42x42.png",
+               "256":    "img/icon-256x256.png" },
     "description": "RIGHT. LEFT. VOTE.",
-    "popup": "popup.html",
+    "window": "popup.html",
     "background_page": "background.html"
 }

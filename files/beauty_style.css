@@ -138,7 +138,7 @@ a.nav-item:hover
 	margin-right:auto;
 	padding:0px 16px 0px 16px;
 	width:918px;
-	height:55px;
+	height:30px;
 }
 
 #canvas-box
@@ -309,6 +309,7 @@ input#appleTweet
 {
     margin-top: 15px;
     height: 38px;
+    width: 224px;
     background-image: url(bg-facebook.jpg);
 	background-repeat:no-repeat;
 }

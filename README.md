@@ -1,9 +1,10 @@
----------------------------------------------------------------------------------
-  SnakeDemocracy
-  LEFT. RIGHT. VOTE.
----------------------------------------------------------------------------------
+SnakeDemocracy
+================================================================================
 
-“We won’t tolerate the dictatorship of one snake player anymore”
+LEFT. RIGHT. VOTE.
+--------------------------------------------------------------------------------
+
+"We won't tolerate the dictatorship of one snake player anymore"  
 (Abraham Lincoln)
 
 You like the good old game of "snake"? Turning left and right, growing, staying
@@ -29,9 +30,8 @@ party)
 
 Copyright (c) 2012 Christophe Zerr, Alexis Moroz, Laurent Couvidou
 
----------------------------------------------------------------------------------
-  LICENSE - SOFTWARE
----------------------------------------------------------------------------------
+License - Software
+--------------------------------------------------------------------------------
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU General Public License as published by the Free Software
@@ -45,9 +45,8 @@ PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with this
 program (LICENSE_GPL file). If not, see <http://www.gnu.org/licenses/>. 
 
----------------------------------------------------------------------------------
-  LICENSE - ASSETS
----------------------------------------------------------------------------------
+License - Assets
+--------------------------------------------------------------------------------
 
 Assets are licensed under a Creative Commons Attribution-NonCommercial 3.0
 Unported License (CC BY-NC 3.0).
@@ -55,10 +54,9 @@ Unported License (CC BY-NC 3.0).
 You should have received a copy of it with this program (LICENSE_CC file). If
 not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 
----------------------------------------------------------------------------------
-  Known issues
----------------------------------------------------------------------------------
+Known issues
+--------------------------------------------------------------------------------
 
 There are some paranoid security software around that prevent socket.io from
-working correctly (like this one: http://housecall.trendmicro.com/). There's
+working correctly (like this one: <http://housecall.trendmicro.com/>). There's
 nothing that can be done about this.

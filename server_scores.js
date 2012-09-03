@@ -21,6 +21,7 @@
     // Highscores init
     module.exports.run = function(_conString, _highscores)
     {
+        console.log("SD_SCORES Connecting with string: " + _conString);
         var client = new pg.Client(_conString);
         client.connect();
         
@@ -116,9 +117,8 @@
             
             console.log("SD_SCORES Sending new highscore...");
             var query = client.query(
-                "INSERT INTO scores (score, created) VALUES (" +
-                _score + ", " +
-                "CURRENT_TIMESTAMP)"
+                "INSERT INTO scores (score, created) values " +
+                "(" + _score + ", CURRENT_TIMESTAMP)"
                 );
             query.on("error", function(error) {
                 console.log("SD_SCORES ERROR (sending score): " + error);
