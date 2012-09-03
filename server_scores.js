@@ -1,5 +1,5 @@
 /*
- * server_highscores.js
+ * server_scores.js
  * -----------------------------------------------------------------------------
  * 
  * SnakeDemocracy
@@ -13,7 +13,6 @@
 (function()
 {
     var pg = require("pg"); 
-    require("datejs");
     var cachedConString = null;
 
     var HIGHSCORES_REFRESH_DELAY = 900000; // re-get highscores from the db every 15mn
@@ -117,9 +116,9 @@
             
             console.log("SD_SCORES Sending new highscore...");
             var query = client.query(
-                "INSERT INTO scores SET " +
-                "score = " + _score + "," +
-                "created = CURRENT_TIMESTAMP"
+                "INSERT INTO scores (score, created) VALUES (" +
+                _score + ", " +
+                "CURRENT_TIMESTAMP)"
                 );
             query.on("error", function(error) {
                 console.log("SD_SCORES ERROR (sending score): " + error);

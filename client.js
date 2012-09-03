@@ -2283,6 +2283,11 @@ function appleTweetClick()
     return true;
 }
 
+function registerClick()
+{
+    log("OK");
+}
+
 // Pokki wrapper
 function pokkiRestartIfStopped()
 {

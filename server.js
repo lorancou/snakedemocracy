@@ -27,6 +27,7 @@ var app = require("express").createServer();
 var io = require("socket.io").listen(app);
 var twitter = require("./server_twitter.js");
 var scores = require("./server_scores.js");
+var mailer = require("./server_mailer.js");
 
 // configure socket.io for production
 io.configure("production", function(){
@@ -107,14 +108,18 @@ twitter.run(twitusername, password, processTweet);
 
 // init scores module
 var conString = process.env.DATABASE_URL;      // Heroku sets this for us
-if (g_test)
+console.log("conString: " + conString);
+if (typeof conString === "undefined") // TODO: helper function to determine whether a variable is null or undefined or...
 {
-    conString += "tcp://" +                    // access pg through TCP
-                 username + ":" + password +   // authentication
-                 "@localhost/snakedemocracy"   // assumes there's already a db
+    conString = "tcp://" +                     // access pg through TCP
+                username + ":" + password +    // authentication
+                "@localhost/snakedemocracy"    // assumes there's already a db
                                                // and that it's local
 }
 scores.run(conString, g_highscores);
+
+// init mailer module
+mailer.run(conString, username, password);
 
 // serve redirect page in prod
 if (!g_test)
