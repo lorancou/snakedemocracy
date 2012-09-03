@@ -795,11 +795,7 @@ function move()
                     pickup = a;
                     pickupApple(a);
                     spawnApple(1, newApples);
-<<<<<<< HEAD
-                    g_pendingGrow += 2;
-=======
                     g_pendingGrow += GROW_PER_APPLE;
->>>>>>> 534abf52b4ff97f70d4f8069aa6cf94eb354adba
                     break; // 2+ apples at the same spot shouln't not happen. normally.
                 }
             }
