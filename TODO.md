@@ -22,6 +22,7 @@ Server
  - Find a better way to upload a new highscore - for now there's a 15 minutes
    grey zone where a new highscore could be missed :/
  - Fix arrow click (area offset not applied)
+ - Longer turn time when failure is possible
  
 Common
  - Better vec2, ready for socket transport?
