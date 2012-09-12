@@ -119,7 +119,7 @@ if (typeof conString === "undefined") // TODO: helper function to determine whet
 scores.run(conString, g_highscores);
 
 // init mailer module
-mailer.run(conString, username, password);
+mailer.run(conString, username, password, g_highscores);
 
 // serve redirect page in prod
 if (!g_test)
@@ -268,8 +268,6 @@ function initGame()
     lightBroadcast();
 }
 
-//initTwitter();
-//loadHighscores();
 initGame();
 
 function reportAbuse(_address, _message)
@@ -416,6 +414,12 @@ io.sockets.on("connection", function (socket)
 	        return s != socket;
 	    });
         console.vlog("Bye bye client: ", address);
+    });
+    
+    // mailer registering
+    socket.on(MSG_MAILER_REGISTER, function(_message)
+    {
+        mailer.register(_message.f, _message.e, _message.t);
     });
 });
 

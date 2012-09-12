@@ -128,7 +128,7 @@ a.nav-item:hover
 	height:1966px;
 }
 
-#register
+#mailer-register
 {
 	font:16px calibri,arial,sans-serif;
 	/*font-weight:bold;*/
@@ -139,6 +139,11 @@ a.nav-item:hover
 	padding:0px 16px 0px 16px;
 	width:918px;
 	height:55px;
+}
+
+#mailer-button
+{
+	width:250px;
 }
 
 #canvas-box

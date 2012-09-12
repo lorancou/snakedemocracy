@@ -42,6 +42,7 @@ var MSG_TESTMSG = "t";
 var MSG_IDLE = "i";
 var MSG_BACK = "b";
 var MSG_CLIENTSTATE = "c";
+var MSG_MAILER_REGISTER = "r";
 
 // message names
 var MSGN_VOTE = 1;
@@ -59,3 +60,13 @@ var TMSGN_CHEATTWEET = 4;
 var TMSGN_MOVEDELAY = 5;
 var TMSGN_FAILDELAY = 6;
 var TMSGN_VICTORYDELAY = 7;
+
+// utility String function
+// http://stackoverflow.com/a/1978419/1005455
+if (typeof String.prototype.contains === "undefined")
+{
+    String.prototype.contains = function(it)
+    {
+        return this.indexOf(it) != -1;
+    };
+}

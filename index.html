@@ -131,22 +131,23 @@
           </div>
         </div>
       </div>
-      <div id="register">
+      <div id="mailer-register">
       <form style='margin: 0; padding: 0'>
         <p style="text-align:center">
           Join the biggest game of the week, each <strong>Tuesday at 5 p.m.</strong> Set your alarm to feel the power of democracy!<br/>
           Remind me
-          <select name="freq">
-            <option value="next">next time</option>
-            <option value="each">every week</option>
+          <select name="freq" id="mailer-freq">
+            <option value="once">once only</option>
+            <option value="always">every week</option>
+            <option value="never">never again</option>
           </select>
-          <input type="text" name="email" value="E-mail" />
-          <select name="region">
-            <option value="europe">Europe/Paris</option>
-            <option value="america">America/Los_Angeles</option>
-            <option value="asia">Asia/Tokyo</option>
+          <input type="text" name="email" placeholder="Enter your e-mail here" id="mailer-email"/>
+          <select name="timezone" id="mailer-timezone">
+            <option value="Europe/Paris">Europe/Paris</option>
+            <option value="America/Los_Angeles">America/Los_Angeles</option>
+            <option value="Asia/Tokyo">Asia/Tokyo</option>
           </select>
-          <input type="button" value="Become the XXth registered voter!" onclick="registerClick()"/>
+          <input type="button" value="Become the XXth registered voter!" id="mailer-button"/>
         </p>
       </form>
       </div>

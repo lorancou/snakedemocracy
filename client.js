@@ -442,6 +442,8 @@ function init(_serverAddress, _test, _pokki)
     g_assets = new AssetManager();
     queueAssets(g_assets);
     g_assets.downloadAll(connect);
+    
+    initMailerRegister();
 }
 
 function processFBLoginStatus(response)
@@ -2284,9 +2286,45 @@ function appleTweetClick()
     return true;
 }
 
-function registerClick()
+// Mailing-list register
+function initMailerRegister()
 {
-    log("OK");
+    if (g_pokki)
+    {
+        // Not available in Pokki
+        return;
+    } 
+
+    // Register event handler
+    var button = document.getElementById("mailer-button");
+    if (button)
+    {
+        button.onclick = clickMailerRegister;
+    }
+}
+function clickMailerRegister()
+{
+    if (g_pokki)
+    {
+        log("WARNING: called registerClick in Pokki, this isn't supposed to be available.");
+        return;
+    } 
+
+    // Send register message
+    var button = document.getElementById("mailer-button");
+    if (button.style.visibility != "visible" && g_socket)
+    {
+        var freq = document.getElementById("mailer-freq").value;
+        var email = document.getElementById("mailer-email").value;
+        var timezone = document.getElementById("mailer-timezone").value;
+        if (freq && email && email.contains("@") && timezone)
+        {
+            g_socket.emit(MSG_MAILER_REGISTER, {f: freq, e: email, t: timezone});
+            
+            button.value = "Done!"; // TODO: "Processing..." until server confirmation
+            button.disabled = true;
+        }
+    }    
 }
 
 // Pokki wrapper
