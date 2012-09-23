@@ -306,7 +306,7 @@ function setClientState(_socket, _newState)
     {
         // back ping, the client will set itself as active when received
         console.log("Gnark: "+ mailer.subscribersCount);
-        _socket.emit(SG_PING, { revision: REVISION, state: g_state, score: g_score, snake: g_snake, apples: g_apples, move: g_move, highscores: g_highscores, subscribersCount: mailer.getSubscribersCount() });
+        _socket.emit(MSG_PING, { revision: REVISION, state: g_state, score: g_score, snake: g_snake, apples: g_apples, move: g_move, highscores: g_highscores, subscribersCount: mailer.getSubscribersCount() });
         _socket.lastVoteMove = g_move;
     }
     
