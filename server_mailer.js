@@ -77,6 +77,8 @@
         + "choose \"never again\" in the drop-down list to unsuscribe)</em></p>";
     
     var MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
+    
+    var subscribersCount = 0;
    
     //--------------------------------------------------------------------------
     // Mailing list init
@@ -89,6 +91,23 @@
         
         // remember highscores reference
         cachedHighscores = _highscores;
+        
+        // init subscribers count
+        var client = new pg.Client(cachedConString);
+        client.connect();
+        var queryString = "SELECT COUNT (*) FROM subscribers";
+        console.log("SD_MAILER Query: " + queryString);
+        var query = client.query(queryString);
+        query.on("error", function(error) {
+            console.log("SD_MAILER ERROR (init): " + error);
+        });
+        query.on("row", function(row) {
+            subscribersCount = row.count;
+            console.log("SD_MAILER subscribers count: " + subscribersCount);
+        });
+        query.on("end", function(result) {
+            client.end();
+        });            
         
         // get server time
         var serverNow = new Date();
@@ -194,13 +213,13 @@
         var sendCall = function()
         {
             // create reusable transport method (opens pool of SMTP connections)
-            var gmail_username = cachedUsername + "@gmail.com";
+            var gmail_username = "snakedemocracy@gmail.com";
             var gmail_sender = "SnakeDemocracy <snakedemocracy@gmail.com>";
             var smtpTransport = nodemailer.createTransport("SMTP",{
                 service: "Gmail",
                 auth: {
                     user: gmail_username,
-                    pass: cachedPassword
+                    pass: "appletweetISART12"
                 }
             });
             
@@ -280,7 +299,7 @@
         //     SELECT 3, 'C', 'Z'
         //     WHERE NOT EXISTS (SELECT 1 FROM table WHERE id=3);
 
-        var updateScore = function ()
+        var updateSubscriber = function ()
         {
             var queryString = "UPDATE subscribers set (timezone, created, freq) = (" +
                 "'" + _timezone + "'," +
@@ -293,11 +312,11 @@
                 console.log("SD_MAILER ERROR (registering): " + error);
             });
             query.on("end", function(result) {
-                insertScore();
+                insertSubscriber();
             });
         };
 
-        var insertScore = function ()
+        var insertSubscriber = function ()
         {
             var queryString = "INSERT INTO subscribers (email, timezone, created, freq) SELECT " +
                 "'" + _email + "'," +
@@ -311,21 +330,38 @@
                 console.log("SD_MAILER ERROR (registering): " + error);
             });
             query.on("end", function(result) {
+                updateSubscribersCount();
+            });
+        };
+        
+        var updateSubscribersCount = function()
+        {
+            var queryString = "SELECT COUNT (*) FROM subscribers";
+            console.log("SD_MAILER Query: " + queryString);
+            var query = client.query(queryString);
+            query.on("error", function(error) {
+                console.log("SD_MAILER ERROR (registering): " + error);
+            });
+            query.on("row", function(row) {
+                subscribersCount = row.count;
+                console.log("SD_MAILER subscribers count: " + subscribersCount);
+            });
+            query.on("end", function(result) {
                 client.end();
                 sendConfirmation();
-            });
+            });            
         };
         
         var sendConfirmation = function ()
         {
             // create reusable transport method (opens pool of SMTP connections)
-            var gmail_username = cachedUsername + "@gmail.com";
+            var gmail_username = "snakedemocracy@gmail.com";
             var gmail_sender = "SnakeDemocracy <snakedemocracy@gmail.com>";
             var smtpTransport = nodemailer.createTransport("SMTP",{
                 service: "Gmail",
                 auth: {
                     user: gmail_username,
-                    pass: cachedPassword
+                    pass: "appletweetISART12"
                 }
             });
             
@@ -368,8 +404,13 @@
             });
         };
 
-        // this will "upsert" the score then send a confirmation e-mail
-        updateScore();
+        // this will "upsert" the subscriber then send a confirmation e-mail
+        updateSubscriber();
+    }
+    
+    module.exports.getSubscribersCount = function()
+    {
+        return subscribersCount;
     }
 
 }());

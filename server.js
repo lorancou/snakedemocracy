@@ -305,7 +305,8 @@ function setClientState(_socket, _newState)
         (_socket.clientState == CS_SLEEP && _newState != CS_IDLE))
     {
         // back ping, the client will set itself as active when received
-        _socket.emit(MSG_PING, { revision: REVISION, state: g_state, score: g_score, snake: g_snake, apples: g_apples, move: g_move, highscores: g_highscores });
+        console.log("Gnark: "+ mailer.subscribersCount);
+        _socket.emit(SG_PING, { revision: REVISION, state: g_state, score: g_score, snake: g_snake, apples: g_apples, move: g_move, highscores: g_highscores, subscribersCount: mailer.getSubscribersCount() });
         _socket.lastVoteMove = g_move;
     }
     
@@ -324,7 +325,8 @@ io.sockets.on("connection", function (socket)
 
         // log connection, send current state
         console.vlog("New client: ", address);
-        socket.emit(MSG_PING, { revision: REVISION, state: g_state, score: g_score, snake: g_snake, apples: g_apples, move: g_move, highscores: g_highscores });
+        console.log("Gnirk: "+ mailer.subscribersCount);
+        socket.emit(MSG_PING, { revision: REVISION, state: g_state, score: g_score, snake: g_snake, apples: g_apples, move: g_move, highscores: g_highscores, subscribersCount: mailer.getSubscribersCount() });
         socket.clientState = CS_ACTIVE;
         socket.votesThisMove = 0;
         socket.lastVoteMove = g_move;

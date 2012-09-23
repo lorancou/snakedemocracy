@@ -442,8 +442,6 @@ function init(_serverAddress, _test, _pokki)
     g_assets = new AssetManager();
     queueAssets(g_assets);
     g_assets.downloadAll(connect);
-    
-    initMailerRegister();
 }
 
 function processFBLoginStatus(response)
@@ -742,6 +740,9 @@ function disconnect(_fromDisconnectMessage)
     
     // clean reference
     g_socket = null;
+    
+    // disable mailer registering button
+    releaseMailerRegister();
 }
 
 // I'm back! send me the game state!
@@ -912,6 +913,8 @@ function processPing(_ping)
     g_votesThisMove = 0;
     g_lastVoteMove = g_move;
     g_lastMessageTime = new Date().getTime();
+    
+    initMailerRegister(_ping.subscribersCount);
 
     log("Running :)");
     
@@ -2255,7 +2258,6 @@ function processMoveGrow(_message)
             g_assets.cache[g_crunch[pick]].play();
         }
     }
-
     // apple spawn
     for (var i=0; i<_message.newApples.length; ++i)
     {
@@ -2287,7 +2289,7 @@ function appleTweetClick()
 }
 
 // Mailing-list register
-function initMailerRegister()
+function initMailerRegister(_subscribersCount)
 {
     if (g_pokki)
     {
@@ -2295,11 +2297,40 @@ function initMailerRegister()
         return;
     } 
 
-    // Register event handler
+    // Register event handler + update button text
     var button = document.getElementById("mailer-button");
     if (button)
     {
+        // http://davidchambersdesign.com/converting-integers-to-ordinals/
+        var ordinal = function(n) {
+            if (10 < n && n < 14) return n + 'th';
+            switch (n % 10) {
+                case 1: return n + 'st';
+                case 2: return n + 'nd';
+                case 3: return n + 'rd';
+                default: return n + 'th';
+            }
+        };
+        button.value = "Become the " + ordinal(_subscribersCount) + " registered voter!";
+        button.disabled = false;
         button.onclick = clickMailerRegister;
+    }
+}
+function releaseMailerRegister()
+{
+    if (g_pokki)
+    {
+        // Not available in Pokki
+        return;
+    } 
+
+    // Release event handler + update button text
+    var button = document.getElementById("mailer-button");
+    if (button)
+    {
+        button.value = "Disconnected.";
+        button.disabled = true;
+        button.onclick = null;
     }
 }
 function clickMailerRegister()
