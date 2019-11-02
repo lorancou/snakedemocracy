@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "express": "2.5.6",
-    "socket.io": "0.8.7",
+    "socket.io": "2.3.0",
     "pg": "0.6.18",
     "moment": "1.6.2",
     "time": "0.8.2",
